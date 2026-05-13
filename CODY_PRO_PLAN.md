@@ -61,7 +61,22 @@ Add Cody-specific agents:
 - `operator`: infra and server operations
 - `infra-audit`: read-only infrastructure inspection
 - `windows-admin`: guarded local Windows operations
+- `ssh-operator`: guarded remote host operations
+- `docker-operator`: Docker inspection and approved control actions
+- `systemd-operator`: Linux service inspection and approved control actions
+- `proxmox-operator`: Proxmox VM/container inspection and approved control actions
 - `backup-operator`: backup and rollback workflows
+- `web-research`: internet/docs research with citations and no local/admin write permissions
+
+### Milestone 5: Cody Research Tools
+
+Add web research support around opencode's tool/plugin system:
+
+- web search tool
+- web page fetch/read tool
+- documentation/source summarizer
+- citation-aware answer formatting
+- permissions that allow web access but deny local file edits and infra/admin tools
 
 ## Non-Negotiables
 
