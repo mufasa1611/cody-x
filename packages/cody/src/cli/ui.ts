@@ -10,6 +10,14 @@ const wordmark = [
   `▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`,
 ]
 
+const codyProWordmark = [
+  `  ____ ___  ______   __  ____  ____   ___  `,
+  ` / ___/ _ \\|  _ \\ \\ / / |  _ \\|  _ \\ / _ \\ `,
+  `| |  | | | | | | \\ V /  | |_) | |_) | | | |`,
+  `| |__| |_| | |_| || |   |  __/|  _ <| |_| |`,
+  ` \\____\\___/|____/ |_|   |_|   |_| \\_\\\\___/ `,
+]
+
 export const CancelledError = NamedError.create("UICancelledError", z.void())
 
 export const Style = {
@@ -47,9 +55,9 @@ export function empty() {
 }
 
 export function logo(pad?: string) {
-  if (!process.stdout.isTTY && !process.stderr.isTTY) {
+  if (process.env.CODY_PRO === "1" || (!process.stdout.isTTY && !process.stderr.isTTY)) {
     const result = []
-    for (const row of wordmark) {
+    for (const row of process.env.CODY_PRO === "1" ? codyProWordmark : wordmark) {
       if (pad) result.push(pad)
       result.push(row)
       result.push(EOL)

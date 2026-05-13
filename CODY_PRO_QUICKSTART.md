@@ -17,6 +17,8 @@ $env:Path='C:\Users\Mufasa\AppData\Roaming\npm;' + $env:Path
 bun run cody-pro
 ```
 
+Both launch paths set `CODY_PRO=1`, so help text shows the `cody-pro` command name while the fork still reuses opencode internals.
+
 Pass a project path if you want Cody Pro to open somewhere else:
 
 ```powershell
@@ -42,4 +44,3 @@ Start with a primary agent:
 - `opencode` still works; `cody-pro` is an alias while the fork is being adapted.
 - The first launch may run opencode's local database migration.
 - Keep dangerous infra actions permission-gated. Cody Pro agents should inspect first and ask before mutating systems.
-

@@ -11,6 +11,6 @@ if not exist "%BUN%" (
 )
 
 set "PATH=%USERPROFILE%\AppData\Roaming\npm;%PATH%"
+set "CODY_PRO=1"
 call "%BUN%" run --cwd "%ROOT%packages\opencode" --conditions=browser src\index.ts %*
 exit /b %ERRORLEVEL%
-

@@ -77,6 +77,12 @@ Set-Location D:\cody-pro
 .\cody-pro.cmd debug agent operator
 ```
 
+The Cody launcher now sets Cody mode, so CLI help uses the `cody-pro` command name and a Cody Pro banner:
+
+```powershell
+.\cody-pro.cmd --help
+```
+
 Focused agent and smoke tests pass:
 
 ```powershell
@@ -133,5 +139,5 @@ For the plain default TUI:
 Continue Milestone 1 from `CODY_PLAN.md`:
 
 1. Launch and test the TUI with `.\cody-pro.cmd --agent operator`.
-2. Check whether the current opencode-branded TUI is acceptable for the first Cody Pro test.
-3. Start the next branding pass only after the TUI path is confirmed.
+2. Check which remaining TUI surfaces still need Cody wording after the interactive test.
+3. Start the next deeper branding pass only after the TUI path is confirmed.

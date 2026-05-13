@@ -78,12 +78,12 @@ export function resolveThreadDirectory(project?: string, envPWD = process.env.PW
 
 export const TuiThreadCommand = cmd({
   command: "$0 [project]",
-  describe: "start opencode tui",
+  describe: process.env.CODY_PRO === "1" ? "start Cody Pro tui" : "start opencode tui",
   builder: (yargs) =>
     withNetworkOptions(yargs)
       .positional("project", {
         type: "string",
-        describe: "path to start opencode in",
+        describe: process.env.CODY_PRO === "1" ? "path to start Cody Pro in" : "path to start opencode in",
       })
       .option("model", {
         type: "string",
