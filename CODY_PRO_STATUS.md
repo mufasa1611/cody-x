@@ -99,6 +99,20 @@ Result:
 0 fail
 ```
 
+Cody-specific agent regression test passes with the native agent tests:
+
+```powershell
+Set-Location D:\cody-pro\packages\opencode
+bun test test\agent\cody-pro-agents.test.ts test\agent\agent.test.ts --timeout 30000
+```
+
+Result:
+
+```text
+39 pass
+0 fail
+```
+
 ## Known Verification Gap
 
 Full package test run:
