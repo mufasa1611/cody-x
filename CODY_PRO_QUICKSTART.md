@@ -9,6 +9,8 @@ Set-Location D:\cody-pro
 .\cody-pro.cmd
 ```
 
+The fork config sets `operator` as the default primary agent, so this starts Cody Pro in operator mode from the repo root.
+
 Equivalent Bun command:
 
 ```powershell
@@ -29,6 +31,12 @@ Start with a primary agent:
 
 ```powershell
 .\cody-pro.cmd --agent operator
+```
+
+You can still explicitly choose an upstream opencode agent:
+
+```powershell
+.\cody-pro.cmd --agent build
 ```
 
 ## Useful Checks

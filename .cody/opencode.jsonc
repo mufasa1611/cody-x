@@ -1,5 +1,6 @@
 {
   "$schema": "https://cody.dev/config.json",
+  "default_agent": "operator",
   "provider": {},
   "permission": {
     "edit": {

@@ -17,6 +17,8 @@ abdb7ea Add Cody web research agent plan
 
 Milestone 1 is now focused on a thin Cody layer over opencode, not a broad rewrite.
 
+The local fork config uses Cody's `operator` as the default primary agent.
+
 ## Environment
 
 Node is installed:
@@ -113,13 +115,13 @@ From PowerShell:
 
 ```powershell
 Set-Location D:\cody-pro
-.\cody-pro.cmd --agent operator
+.\cody-pro.cmd
 ```
 
-For the plain default TUI:
+Equivalent explicit form:
 
 ```powershell
-.\cody-pro.cmd
+.\cody-pro.cmd --agent operator
 ```
 
 ## Cody Agents Added
@@ -138,6 +140,6 @@ For the plain default TUI:
 
 Continue Milestone 1 from `CODY_PLAN.md`:
 
-1. Launch and test the TUI with `.\cody-pro.cmd --agent operator`.
+1. Launch and test the TUI with `.\cody-pro.cmd`.
 2. Check which remaining TUI surfaces still need Cody wording after the interactive test.
 3. Start the next deeper branding pass only after the TUI path is confirmed.
