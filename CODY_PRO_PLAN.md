@@ -52,7 +52,6 @@ Add Cody tools around opencode's tool/plugin system:
 - Docker inspection/control tools
 - systemd service tools
 - Proxmox read/control tools
-- Synology read/control tools
 - backup and rollback tools
 
 ### Milestone 4: Cody Agents
@@ -70,4 +69,3 @@ Add Cody-specific agents:
 - Do not remove opencode features unless they conflict with Cody's local safety model.
 - Dangerous host/server operations must be permission-gated.
 - Cody v1 remains available as fallback until Cody Pro covers its core workflows.
-
