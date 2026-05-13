@@ -1,0 +1,14 @@
+{
+  "$schema": "https://cody.dev/config.json",
+  "provider": {},
+  "permission": {
+    "edit": {
+      "packages/cody/migration/*": "ask",
+    },
+  },
+  "mcp": {},
+  "tools": {
+    "github-triage": false,
+    "github-pr-search": false,
+  },
+}
