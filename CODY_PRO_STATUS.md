@@ -6,11 +6,16 @@ Last updated: 2026-05-13
 
 `D:\cody-pro` is a fresh opencode-based fork for Cody Pro.
 
-The fork baseline is committed:
+The fork baseline and early Cody scope commits are in place:
 
 ```text
 0cf4ef7 Create Cody Pro opencode fork baseline
+40f8492 Remove Synology from Cody Pro scope
+0da4f9b Add Cody Pro fork status and CLI alias
+abdb7ea Add Cody web research agent plan
 ```
+
+Milestone 1 is now focused on a thin Cody layer over opencode, not a broad rewrite.
 
 ## Environment
 
@@ -63,6 +68,29 @@ Result:
 0 fail
 ```
 
+Cody operator-agent smoke verification also passes:
+
+```powershell
+Set-Location D:\cody-pro
+.\cody-pro.cmd --help
+.\cody-pro.cmd agent list
+.\cody-pro.cmd debug agent operator
+```
+
+Focused agent and smoke tests pass:
+
+```powershell
+Set-Location D:\cody-pro\packages\opencode
+bun test test\agent\agent.test.ts test\cli\error.test.ts test\config\lsp.test.ts test\patch\patch.test.ts --timeout 30000
+```
+
+Result:
+
+```text
+68 pass
+0 fail
+```
+
 ## Known Verification Gap
 
 Full package test run:
@@ -73,11 +101,37 @@ bun test --timeout 30000
 
 did not fail after the clean reinstall, but it exceeded a 5-minute command timeout and had to be stopped. Use narrower test slices while making early Cody changes, then run the full suite with a longer timeout later.
 
+## Current TUI Test Command
+
+From PowerShell:
+
+```powershell
+Set-Location D:\cody-pro
+.\cody-pro.cmd --agent operator
+```
+
+For the plain default TUI:
+
+```powershell
+.\cody-pro.cmd
+```
+
+## Cody Agents Added
+
+- `operator` primary agent for coordinated Cody Pro operations.
+- `infra-audit` read-only infrastructure audit subagent.
+- `windows-admin` Windows diagnostics/admin subagent.
+- `ssh-operator` SSH/server inspection subagent.
+- `docker-operator` Docker and Compose inspection subagent.
+- `systemd-operator` Linux service inspection subagent.
+- `proxmox-operator` Proxmox inspection subagent.
+- `backup-operator` backup and restore review subagent.
+- `web-research` web research subagent for documentation, provider, and tool discovery.
+
 ## Next Best Step
 
-Start Milestone 1 from `CODY_PLAN.md`:
+Continue Milestone 1 from `CODY_PLAN.md`:
 
-1. Add a `cody-pro` command alias while keeping `opencode` working.
-2. Add Cody-local docs without broad renaming.
-3. Verify typecheck and focused tests after each change.
-
+1. Launch and test the TUI with `.\cody-pro.cmd --agent operator`.
+2. Check whether the current opencode-branded TUI is acceptable for the first Cody Pro test.
+3. Start the next branding pass only after the TUI path is confirmed.
