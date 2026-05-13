@@ -51,8 +51,8 @@ operator debug: pass
 
 ## Milestone 2: Local-First Provider Defaults
 
-- [ ] Document Ollama setup.
-- [ ] Document OpenAI-compatible local endpoint setup.
+- [x] Document Ollama setup.
+- [x] Document OpenAI-compatible local endpoint setup.
 - [ ] Add Cody local/private provider profile examples.
 - [ ] Keep cloud providers available but not required.
 - [ ] Add smoke checks for provider config parsing.

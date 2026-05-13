@@ -47,6 +47,8 @@ You can still explicitly choose an upstream opencode agent:
 .\cody-pro.cmd debug agent operator
 ```
 
+Local model setup notes are in `CODY_LOCAL_MODELS.md`.
+
 ## Notes
 
 - `opencode` still works; `cody-pro` is an alias while the fork is being adapted.
