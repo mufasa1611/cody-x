@@ -8,6 +8,12 @@ node_modules
 .codex
 .cody-pro-backups/
 .cody/generated/
+.cody/node_modules/
+.cody/package.json
+.cody/package-lock.json
+.cody/bun.lock
+.cody/references/
+.cody/plans/
 *~
 playground
 tmp
@@ -31,3 +37,10 @@ UPCOMING_CHANGELOG.md
 logs/
 *.bun-build
 tsconfig.tsbuildinfo
+
+# Local Cody Pro planning notes
+CODY_PLAN.md
+CODY_STATUS.md
+CODY_TODO.md
+CODY_TEST_LOG.md
+CODY_LEGACY_AUDIT.md
