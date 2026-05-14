@@ -29,6 +29,57 @@ function Get-BunCommand {
   return $null
 }
 
+function Add-UserPathEntry($entry) {
+  $full = [System.IO.Path]::GetFullPath($entry).TrimEnd('\')
+  $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+  $items = @()
+  if ($userPath) {
+    $items = $userPath -split ';' | Where-Object { $_ -and $_.Trim() }
+  }
+
+  $exists = $false
+  foreach ($item in $items) {
+    $expanded = [Environment]::ExpandEnvironmentVariables($item)
+    try {
+      $normalized = [System.IO.Path]::GetFullPath($expanded).TrimEnd('\')
+    } catch {
+      $normalized = $expanded.TrimEnd('\')
+    }
+    if ($normalized.Equals($full, [System.StringComparison]::OrdinalIgnoreCase)) {
+      $exists = $true
+      break
+    }
+  }
+
+  if (-not $exists) {
+    $next = @($items + $full) -join ';'
+    [Environment]::SetEnvironmentVariable("Path", $next, "User")
+    Write-Host "Added Cody Pro command directory to user PATH:"
+    Write-Host "  $full"
+  } else {
+    Write-Host "Cody Pro command directory is already in user PATH:"
+    Write-Host "  $full"
+  }
+
+  $currentItems = @($env:PATH -split ';' | Where-Object { $_ -and $_.Trim() })
+  $inCurrent = $false
+  foreach ($item in $currentItems) {
+    $expanded = [Environment]::ExpandEnvironmentVariables($item)
+    try {
+      $normalized = [System.IO.Path]::GetFullPath($expanded).TrimEnd('\')
+    } catch {
+      $normalized = $expanded.TrimEnd('\')
+    }
+    if ($normalized.Equals($full, [System.StringComparison]::OrdinalIgnoreCase)) {
+      $inCurrent = $true
+      break
+    }
+  }
+  if (-not $inCurrent) {
+    $env:PATH = "$full;$env:PATH"
+  }
+}
+
 if (-not (Get-BunCommand)) {
   Write-Host "Bun not found. Installing Bun for the current user..."
   powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://bun.sh/install.ps1 | iex"
@@ -74,3 +125,11 @@ exit `$LASTEXITCODE
 Write-Host "Installed global Cody Pro command:"
 Write-Host "  $cmdShim"
 Write-Host "  $psShim"
+
+Add-UserPathEntry $target
+
+if (-not (Get-Command cody-pro -ErrorAction SilentlyContinue)) {
+  throw "Cody Pro shim was created, but cody-pro is still not available on PATH. Open a new terminal or run $cmdShim directly."
+}
+
+Write-Host "[ok] cody-pro is available on PATH."

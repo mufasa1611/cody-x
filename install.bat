@@ -88,19 +88,35 @@ if %ERRORLEVEL% neq 0 (
 
 echo.
 echo Verifying cody-pro command...
-call "%APPDATA%\npm\cody-pro.cmd" --help >nul 2>nul
+set "PATH=%APPDATA%\npm;%USERPROFILE%\.bun\bin;%PATH%"
+where cody-pro >nul 2>nul
 if %ERRORLEVEL% neq 0 (
-  echo [warn] cody-pro was installed, but this terminal may not have the updated PATH yet.
-  echo Open a new terminal and run: cody-pro
-) else (
-  echo [ok] cody-pro is ready.
+  echo [error] cody-pro was installed but is not available on PATH.
+  echo Expected command shim:
+  echo   "%APPDATA%\npm\cody-pro.cmd"
+  echo The installer tried to add "%APPDATA%\npm" to your user PATH.
+  echo Open a new terminal and run:
+  echo   cody-pro
+  echo If it still fails, run:
+  echo   "%APPDATA%\npm\cody-pro.cmd"
+  popd
+  exit /b 1
 )
+call cody-pro --help >nul 2>nul
+if %ERRORLEVEL% neq 0 (
+  echo [error] cody-pro was found on PATH but failed to start.
+  popd
+  exit /b 1
+)
+echo [ok] cody-pro is ready on PATH.
 
 popd
 echo.
 echo Cody Pro installation complete.
 echo Start Cody Pro with:
 echo   cody-pro
+set "FINAL_PATH=%APPDATA%\npm;%USERPROFILE%\.bun\bin;%PATH%"
+endlocal & set "PATH=%FINAL_PATH%"
 exit /b 0
 
 :EnsureCommand

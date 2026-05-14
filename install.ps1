@@ -125,6 +125,15 @@ if ($LASTEXITCODE -ne 0) {
   exit $LASTEXITCODE
 }
 
+if (-not (Get-Command cody-pro -ErrorAction SilentlyContinue)) {
+  $shimDir = Join-Path $env:APPDATA "npm"
+  $env:PATH = "$shimDir;$env:PATH"
+}
+
+if (-not (Get-Command cody-pro -ErrorAction SilentlyContinue)) {
+  throw "cody-pro was installed but is not available on PATH. Open a new terminal and retry."
+}
+
 Write-Host ""
 Write-Host "Cody Pro is installed."
 Write-Host "Start it with:"
