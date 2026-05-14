@@ -19,7 +19,8 @@ This is a separate path from `D:\cody-v2`, which remains the Python clean-room r
 2. Rename and brand only after the baseline builds and tests.
 3. Add Cody-specific features as tools, plugins, providers, commands, and agents before changing deep core behavior.
 4. Prefer upstream-compatible extension points where possible.
-5. Use Cody v1 for local infra behavior and Cody v2 for Python-local backend experiments.
+5. Use Cody v1 only as a legacy checklist source, not as a runtime dependency.
+6. Use Cody v2 only for Python-local backend experiments that still make sense after Cody Pro is working.
 
 ## First Milestones
 
@@ -78,9 +79,17 @@ Add web research support around opencode's tool/plugin system:
 - citation-aware answer formatting
 - permissions that allow web access but deny local file edits and infra/admin tools
 
+### Milestone 6: Legacy Cody v1 Audit
+
+- Treat Cody v1 at `C:\Users\Mufasa\crew-agent` as a checklist source only.
+- Do not keep Cody v1 as an active runtime dependency.
+- Identify any useful workflows not covered by Cody Pro.
+- Port only missing high-value pieces.
+- Mark Cody v1 retired when no important workflow remains.
+
 ## Non-Negotiables
 
 - Local-first and private by default.
 - Do not remove opencode features unless they conflict with Cody's local safety model.
 - Dangerous host/server operations must be permission-gated.
-- Cody v1 remains available as fallback until Cody Pro covers its core workflows.
+- Cody v1 is a legacy reference only; Cody Pro is the active product path.

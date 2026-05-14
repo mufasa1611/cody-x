@@ -78,12 +78,13 @@ operator debug: pass
 - [ ] Add citation formatting helper.
 - [ ] Keep web research isolated from local edit/admin tools.
 
-## Milestone 5: Cody v1 Infra Parity
+## Milestone 5: Legacy Cody v1 Audit
 
 - [ ] Compare Cody v1 workflows from `C:\Users\Mufasa\crew-agent`.
-- [ ] Port only the infra workflows still needed.
+- [ ] Confirm Cody v1 is not required at runtime.
+- [ ] Port only missing high-value workflows.
 - [ ] Add tests or smoke scripts for each ported workflow.
-- [ ] Document gaps that remain in Cody v1.
+- [ ] Mark Cody v1 retired when no important workflow remains.
 
 ## Milestone 6: Packaging And Daily Driver
 
