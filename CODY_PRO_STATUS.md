@@ -82,7 +82,15 @@ Set-Location D:\cody-pro
 The Cody launcher now sets Cody mode, so CLI help uses the `cody-pro` command name and a Cody Pro banner:
 
 ```powershell
+cody-pro --help
 .\cody-pro.cmd --help
+```
+
+Global shim installed:
+
+```text
+C:\Users\Mufasa\AppData\Roaming\npm\cody-pro.cmd
+C:\Users\Mufasa\AppData\Roaming\npm\cody-pro.ps1
 ```
 
 Focused agent and smoke tests pass:
@@ -128,14 +136,13 @@ did not fail after the clean reinstall, but it exceeded a 5-minute command timeo
 From PowerShell:
 
 ```powershell
-Set-Location D:\cody-pro
-.\cody-pro.cmd
+cody-pro
 ```
 
 Equivalent explicit form:
 
 ```powershell
-.\cody-pro.cmd --agent operator
+cody-pro --agent operator
 ```
 
 ## Cody Agents Added

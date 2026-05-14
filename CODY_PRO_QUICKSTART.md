@@ -2,6 +2,12 @@
 
 ## Start The TUI
 
+Global command:
+
+```powershell
+cody-pro
+```
+
 From the fork checkout:
 
 ```powershell
@@ -42,9 +48,17 @@ You can still explicitly choose an upstream opencode agent:
 ## Useful Checks
 
 ```powershell
+cody-pro --help
 .\cody-pro.cmd --help
 .\cody-pro.cmd agent list
 .\cody-pro.cmd debug agent operator
+```
+
+If the global command is missing, reinstall the local shim:
+
+```powershell
+Set-Location D:\cody-pro
+.\script\install-cody-pro-global.ps1
 ```
 
 Local model setup notes are in `CODY_LOCAL_MODELS.md`.

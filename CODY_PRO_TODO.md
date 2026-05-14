@@ -11,6 +11,7 @@ Last updated: 2026-05-13
 - [x] Add Cody Pro status and quickstart docs.
 - [x] Remove Synology support from the current scope.
 - [x] Add `cody-pro` package scripts and Windows launcher.
+- [x] Add global `cody-pro` command shim for PowerShell/CMD.
 - [x] Add Cody-mode CLI help command name and banner.
 - [x] Add Cody operator and infra/research agent definitions.
 - [x] Set `operator` as the local default primary agent.
