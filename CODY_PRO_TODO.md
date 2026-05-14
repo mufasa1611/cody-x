@@ -62,7 +62,7 @@ operator debug: pass
 ## Milestone 3: Guarded Infra Tools
 
 - [ ] Map opencode tool/plugin extension points for Cody tools.
-- [ ] Add guarded PowerShell inspection tool.
+- [x] Add guarded PowerShell inspection tool.
 - [ ] Add SSH inspection tool.
 - [ ] Add Docker inspection tool.
 - [ ] Add systemd inspection tool.

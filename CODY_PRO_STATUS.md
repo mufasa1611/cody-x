@@ -136,6 +136,14 @@ cody-pro models llama-cpp-local
 
 Result: both generated providers appear in the model list.
 
+First guarded infra tool is available:
+
+```powershell
+cody-pro debug agent windows-admin --tool cody-windows-inspect --params '"{\"check\":\"system\",\"timeoutSeconds\":10}"'
+```
+
+Result: `cody-windows-inspect` runs a predefined read-only Windows system summary successfully.
+
 ## Known Verification Gap
 
 Full package test run:
