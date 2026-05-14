@@ -554,6 +554,7 @@ function buildIdleState(t: number, ctx: LogoContext): IdleState {
 
 export function Logo(props: { shape?: LogoShape; ink?: RGBA; idle?: boolean } = {}) {
   const ctx = props.shape ? build(props.shape) : DEFAULT
+  const showCredit = !props.shape && process.env.CODY_PRO !== "0"
   const { theme } = useTheme()
   const renderer = useRenderer()
   const [rings, setRings] = createSignal<Ring[]>([])
@@ -885,6 +886,13 @@ export function Logo(props: { shape?: LogoShape; ink?: RGBA; idle?: boolean } = 
           </box>
         )}
       </For>
+      {showCredit && (
+        <box width={ctx.FULL[0]?.length ?? 0} alignItems="center">
+          <text fg={theme.textMuted} selectable={false}>
+            Made by M.Farid (Mufasa)
+          </text>
+        </box>
+      )}
     </box>
   )
 }
