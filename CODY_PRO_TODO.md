@@ -72,11 +72,11 @@ operator debug: pass
 
 ## Milestone 4: Web Research Tools
 
-- [ ] Add web search tool.
-- [ ] Add web page fetch/read tool.
-- [ ] Add source summarizer helper.
-- [ ] Add citation formatting helper.
-- [ ] Keep web research isolated from local edit/admin tools.
+- [x] Add web search tool.
+- [x] Add web page fetch/read tool.
+- [x] Add source summarizer helper.
+- [x] Add citation formatting helper.
+- [x] Keep web research isolated from local edit/admin tools.
 
 ## Milestone 5: Legacy Cody v1 Audit
 
