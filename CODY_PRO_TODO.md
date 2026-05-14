@@ -65,7 +65,7 @@ operator debug: pass
 - [x] Add guarded PowerShell inspection tool.
 - [x] Add SSH inspection tool.
 - [x] Add Docker inspection tool.
-- [ ] Add systemd inspection tool.
+- [x] Add systemd inspection tool.
 - [ ] Add Proxmox inspection tool.
 - [ ] Add backup inventory/check tool.
 - [ ] Require approval for every mutation path.

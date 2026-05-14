@@ -101,3 +101,37 @@ cody-pro debug agent docker-operator --tool cody-docker-inspect --params '"{\"ch
 ```
 
 The `compose` profile can receive `projectPath` as a working directory, but mutating compose commands remain out of scope for this inspection tool.
+
+## Guarded systemd Inspection
+
+Tool: `cody-systemd-inspect`
+
+Location:
+
+```text
+D:\cody-pro\.opencode\tool\cody-systemd-inspect.ts
+```
+
+Purpose:
+
+- Run predefined read-only systemd and journal diagnostics.
+- Support local Linux checks or remote SSH checks.
+- Avoid arbitrary `systemctl` or `journalctl` input.
+
+Profiles:
+
+- `version`
+- `failed`
+- `services`
+- `timers`
+- `status`
+- `cat`
+- `journal`
+
+Smoke test:
+
+```powershell
+cody-pro debug agent systemd-operator --tool cody-systemd-inspect --params '"{\"check\":\"version\",\"timeoutSeconds\":10}"'
+```
+
+Remote checks accept `host`, optional `user`, and optional `port`. Unit-specific profiles require a sanitized `unit` value such as `ssh.service`.
