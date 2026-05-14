@@ -40,7 +40,7 @@ export function FormatError(input: unknown) {
       `Model not found: ${data?.providerID}/${data?.modelID}`,
       ...(suggestions.length ? ["Did you mean: " + suggestions.join(", ")] : []),
       `Try: \`cody-pro models\` to list available models`,
-      `Or check your config (opencode.json) provider/model names`,
+      `Or check your project config provider/model names`,
     ].join("\n")
   }
 

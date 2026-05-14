@@ -538,18 +538,21 @@ export class Agent implements ACPAgent {
     log.info("initialize", { protocolVersion: params.protocolVersion })
 
     const authMethod: AuthMethod = {
-      description: "Run `opencode auth login` in the terminal",
-      name: "Login with opencode",
-      id: "opencode-login",
+      description:
+        process.env.CODY_PRO === "0"
+          ? "Run `opencode auth login` in the terminal"
+          : "Run `cody-pro auth login` in the terminal",
+      name: process.env.CODY_PRO === "0" ? "Login with opencode" : "Login with Cody Pro",
+      id: process.env.CODY_PRO === "0" ? "opencode-login" : "cody-pro-login",
     }
 
     // If client supports terminal-auth capability, use that instead.
     if (params.clientCapabilities?._meta?.["terminal-auth"] === true) {
       authMethod._meta = {
         "terminal-auth": {
-          command: "cody",
+          command: process.env.CODY_PRO === "0" ? "cody" : "cody-pro",
           args: ["auth", "login"],
-          label: "OpenCode Login",
+          label: process.env.CODY_PRO === "0" ? "OpenCode Login" : "Cody Pro Login",
         },
       }
     }
@@ -575,7 +578,7 @@ export class Agent implements ACPAgent {
       },
       authMethods: [authMethod],
       agentInfo: {
-        name: "OpenCode",
+        name: process.env.CODY_PRO === "0" ? "OpenCode" : "Cody Pro",
         version: InstallationVersion,
       },
     }

@@ -89,7 +89,7 @@ const PathParameterSchemas = {
 
 const LegacyComponentDescriptions = {
   LogLevel: "Log level",
-  ServerConfig: "Server configuration for opencode serve and web commands",
+  ServerConfig: "Server configuration for Cody Pro serve and web commands",
   LayoutConfig: "@deprecated Always uses stretch layout.",
 } satisfies Record<string, string>
 
@@ -537,9 +537,9 @@ function pathParameterSchema(route: string, name: string) {
 
 export const PublicApi = OpenCodeHttpApi.annotateMerge(
   OpenApi.annotations({
-    title: "cody",
+    title: process.env.CODY_PRO === "0" ? "cody" : "cody-pro",
     version: "1.0.0",
-    description: "opencode api",
+    description: process.env.CODY_PRO === "0" ? "opencode api" : "Cody Pro API",
     transform: matchLegacyOpenApi,
   }),
 )

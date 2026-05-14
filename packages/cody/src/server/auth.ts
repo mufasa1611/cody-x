@@ -4,6 +4,8 @@ import { ConfigService } from "@/effect/config-service"
 import { Flag } from "@cody/core/flag/flag"
 import { Config as EffectConfig, Context, Option, Redacted } from "effect"
 
+const DEFAULT_USERNAME = process.env.CODY_PRO === "0" ? "cody" : "cody-pro"
+
 export type Credentials = {
   password?: string
   username?: string
@@ -16,7 +18,7 @@ export type DecodedCredentials = {
 
 export class Config extends ConfigService.Service<Config>()("@cody/ServerAuthConfig", {
   password: EffectConfig.string("CODY_SERVER_PASSWORD").pipe(EffectConfig.option),
-  username: EffectConfig.string("CODY_SERVER_USERNAME").pipe(EffectConfig.withDefault("cody")),
+  username: EffectConfig.string("CODY_SERVER_USERNAME").pipe(EffectConfig.withDefault(DEFAULT_USERNAME)),
 }) {}
 
 export type Info = Context.Service.Shape<typeof Config>
@@ -37,7 +39,7 @@ export function header(credentials?: Credentials) {
   const password = credentials?.password ?? Flag.CODY_SERVER_PASSWORD
   if (!password) return undefined
 
-  const username = credentials?.username ?? Flag.CODY_SERVER_USERNAME ?? "cody"
+  const username = credentials?.username ?? Flag.CODY_SERVER_USERNAME ?? DEFAULT_USERNAME
   return `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`
 }
 

@@ -605,7 +605,8 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
         name: "docs.open",
         title: "Open docs",
         run: () => {
-          open("https://opencode.ai/docs").catch(() => {})
+          open(process.env.CODY_PRO === "0" ? "https://opencode.ai/docs" : "https://github.com/mufasa1611/cody-pro")
+            .catch(() => {})
           dialog.clear()
         },
         category: "System",
