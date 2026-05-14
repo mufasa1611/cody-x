@@ -7,7 +7,7 @@ import { Flag } from "@cody/core/flag/flag"
 export const ServeCommand = effectCmd({
   command: "serve",
   builder: (yargs) => withNetworkOptions(yargs),
-  describe: "starts a headless opencode server",
+  describe: process.env.CODY_PRO === "0" ? "starts a headless opencode server" : "starts a headless Cody Pro server",
   // Server loads instances per-request via x-opencode-directory header — no
   // need for an ambient project InstanceContext at startup.
   instance: false,
@@ -17,7 +17,9 @@ export const ServeCommand = effectCmd({
     }
     const opts = yield* resolveNetworkOptions(args)
     const server = yield* Effect.promise(() => Server.listen(opts))
-    console.log(`opencode server listening on http://${server.hostname}:${server.port}`)
+    console.log(
+      `${process.env.CODY_PRO === "0" ? "cody" : "Cody Pro"} server listening on http://${server.hostname}:${server.port}`,
+    )
 
     yield* Effect.never
   }),

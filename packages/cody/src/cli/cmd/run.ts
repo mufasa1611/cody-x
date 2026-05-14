@@ -120,7 +120,7 @@ async function toolError(part: ToolPart) {
 
 export const RunCommand = effectCmd({
   command: "run [message..]",
-  describe: "run opencode with a message",
+  describe: process.env.CODY_PRO === "0" ? "run opencode with a message" : "run Cody Pro with a message",
   // --attach connects to a remote server (no local instance needed); the
   // default path runs an in-process server and needs the project instance.
   instance: (args) => !args.attach,
@@ -184,7 +184,10 @@ export const RunCommand = effectCmd({
       })
       .option("attach", {
         type: "string",
-        describe: "attach to a running opencode server (e.g., http://localhost:4096)",
+        describe:
+          process.env.CODY_PRO === "0"
+            ? "attach to a running opencode server (e.g., http://localhost:4096)"
+            : "attach to a running Cody Pro server (e.g., http://localhost:4096)",
       })
       .option("password", {
         alias: ["p"],
@@ -194,7 +197,10 @@ export const RunCommand = effectCmd({
       .option("username", {
         alias: ["u"],
         type: "string",
-        describe: "basic auth username (defaults to CODY_SERVER_USERNAME or 'cody')",
+        describe:
+          process.env.CODY_PRO === "0"
+            ? "basic auth username (defaults to CODY_SERVER_USERNAME or 'cody')"
+            : "basic auth username (defaults to CODY_SERVER_USERNAME or 'cody-pro')",
       })
       .option("dir", {
         type: "string",

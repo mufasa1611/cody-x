@@ -24,7 +24,10 @@ interface RemovalTargets {
 
 export const UninstallCommand = {
   command: "uninstall",
-  describe: "uninstall opencode and remove all related files",
+  describe:
+    process.env.CODY_PRO === "0"
+      ? "uninstall opencode and remove all related files"
+      : "uninstall Cody Pro and remove all related files",
   builder: (yargs: Argv) =>
     yargs
       .option("keep-config", {

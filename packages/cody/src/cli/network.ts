@@ -20,8 +20,11 @@ const options = {
   },
   "mdns-domain": {
     type: "string" as const,
-    describe: "custom domain name for mDNS service (default: opencode.local)",
-    default: "opencode.local",
+    describe:
+      process.env.CODY_PRO === "0"
+        ? "custom domain name for mDNS service (default: opencode.local)"
+        : "custom domain name for mDNS service (default: cody-pro.local)",
+    default: process.env.CODY_PRO === "0" ? "opencode.local" : "cody-pro.local",
   },
   cors: {
     type: "string" as const,
