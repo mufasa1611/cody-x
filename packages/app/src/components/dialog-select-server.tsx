@@ -17,7 +17,7 @@ import { usePlatform } from "@/context/platform"
 import { normalizeServerUrl, ServerConnection, useServer } from "@/context/server"
 import { type ServerHealth, useCheckServerHealth } from "@/utils/server-health"
 
-const DEFAULT_USERNAME = "cody"
+const DEFAULT_USERNAME = "cody-pro"
 
 interface ServerFormProps {
   value: string

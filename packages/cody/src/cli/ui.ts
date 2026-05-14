@@ -87,6 +87,10 @@ export function logo(pad?: string) {
     result.push(isTTY ? draw(other, right.fg, right.shadow, right.bg) : plain(other))
     result.push(EOL)
   })
+  if (process.env.CODY_PRO !== "0") {
+    if (pad) result.push(pad)
+    result.push(isTTY ? Style.TEXT_DIM : "", "made by M.Farid (mufasa)", isTTY ? reset : "")
+  }
   return result.join("").trimEnd()
 }
 
