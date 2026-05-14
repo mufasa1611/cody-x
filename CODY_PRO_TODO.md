@@ -67,7 +67,7 @@ operator debug: pass
 - [x] Add Docker inspection tool.
 - [x] Add systemd inspection tool.
 - [x] Add Proxmox inspection tool.
-- [ ] Add backup inventory/check tool.
+- [x] Add backup inventory/check tool.
 - [ ] Require approval for every mutation path.
 
 ## Milestone 4: Web Research Tools

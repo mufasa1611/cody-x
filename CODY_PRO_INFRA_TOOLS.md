@@ -179,3 +179,35 @@ cody-pro debug agent proxmox-operator --tool cody-proxmox-inspect --params '"{\"
 ```
 
 Guest checks require `node`, `guestKind`, and `vmid`. Backup checks require `node` and `storage`.
+
+## Guarded Backup Inventory
+
+Tool: `cody-backup-inventory`
+
+Location:
+
+```text
+D:\cody-pro\.opencode\tool\cody-backup-inventory.ts
+```
+
+Purpose:
+
+- Run bounded read-only backup inventory checks.
+- List backup-like files by extension, recency, or size.
+- Calculate SHA-256 for a specific file when requested.
+
+Profiles:
+
+- `summary`
+- `inventory`
+- `recent`
+- `large`
+- `checksum`
+
+Smoke test:
+
+```powershell
+cody-pro debug agent backup-operator --tool cody-backup-inventory --params '"{\"check\":\"summary\",\"root\":\"D:\\\\cody-pro\",\"maxDepth\":2,\"maxItems\":25}"'
+```
+
+The scanner does not follow symlinks and defaults to bounded recursion. Restore, delete, prune, rotate, or overwrite actions remain outside this tool.
