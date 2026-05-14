@@ -12,7 +12,7 @@ if not defined BUN if exist "%USERPROFILE%\AppData\Roaming\npm\bun.cmd" set "BUN
 
 if not defined BUN (
   echo Bun was not found.
-  echo Run install.ps1 from this checkout, or install Bun from https://bun.sh and retry.
+  echo Run install.bat from this checkout, or install Bun from https://bun.sh and retry.
   exit /b 1
 )
 
@@ -30,7 +30,14 @@ for %%A in (%*) do (
   if /I "%%~A"=="version" set "CODY_DISCOVER_MODELS=0"
 )
 
+set "CODY_GENERATED_CONFIG=%ROOT%.opencode\generated\opencode.jsonc"
+set "CODY_SHOULD_DISCOVER_MODELS=0"
 if not "%CODY_SKIP_MODEL_DISCOVERY%"=="1" if "%CODY_DISCOVER_MODELS%"=="1" (
+  if "%CODY_REFRESH_MODELS%"=="1" set "CODY_SHOULD_DISCOVER_MODELS=1"
+  if not exist "%CODY_GENERATED_CONFIG%" set "CODY_SHOULD_DISCOVER_MODELS=1"
+)
+
+if "%CODY_SHOULD_DISCOVER_MODELS%"=="1" (
   powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%script\discover-local-models.ps1" -Root "%ROOT:~0,-1%"
 )
 
