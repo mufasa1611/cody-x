@@ -19,6 +19,8 @@ cd cody-pro
 
 The installer checks Git, Node.js/npm, and Bun. If something is missing, it tries to install it, pulls the latest repo changes when the checkout is clean, installs dependencies, and creates the global `cody-pro` command.
 
+You can also download only `install.bat` and run it from anywhere. If it is not inside a Cody Pro checkout, it clones the repository to `%LOCALAPPDATA%\CodyPro\cody-pro` first.
+
 The fork config sets `operator` as the default primary agent, so this starts Cody Pro in operator mode from the repo root.
 
 Equivalent Bun command:

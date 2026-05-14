@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_URL="https://github.com/mufasa1611/cody-pro.git"
+SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEFAULT_ROOT="${CODY_HOME:-$HOME/.local/share/cody-pro/cody-pro}"
+ROOT="$SCRIPT_ROOT"
 BIN_DIR="${CODY_BIN_DIR:-$HOME/.local/bin}"
 SHIM="$BIN_DIR/cody-pro"
 
@@ -13,9 +16,32 @@ need_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
+is_cody_checkout() {
+  [ -f "$1/package.json" ] && grep -q '"name"[[:space:]]*:[[:space:]]*"cody-pro"' "$1/package.json"
+}
+
+if ! is_cody_checkout "$ROOT"; then
+  ROOT="$DEFAULT_ROOT"
+fi
+
+if ! need_cmd git; then
+  msg "git is required to clone or update Cody Pro. Install git with your system package manager and rerun ./install."
+  exit 1
+fi
+
 if ! need_cmd curl; then
   msg "curl is required to install Bun. Install curl with your system package manager and rerun ./install."
   exit 1
+fi
+
+if ! is_cody_checkout "$ROOT"; then
+  msg "Cody Pro checkout not found. Cloning from GitHub..."
+  if [ -e "$ROOT" ] && [ -n "$(find "$ROOT" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]; then
+    msg "$ROOT exists but is not a Cody Pro checkout. Move it away or choose a clean install location, then rerun ./install."
+    exit 1
+  fi
+  mkdir -p "$(dirname "$ROOT")"
+  git clone "$REPO_URL" "$ROOT"
 fi
 
 if ! need_cmd bun; then

@@ -1,9 +1,60 @@
 #!/usr/bin/env pwsh
 $ErrorActionPreference = "Stop"
 
-$root = Split-Path -Parent $MyInvocation.MyCommand.Path
-if (-not $root) {
-  $root = (Get-Location).Path
+$repoUrl = "https://github.com/mufasa1611/cody-pro.git"
+$defaultRoot = Join-Path $env:LOCALAPPDATA "CodyPro\cody-pro"
+
+function Test-CodyProCheckout($path) {
+  $packagePath = Join-Path $path "package.json"
+  if (-not (Test-Path $packagePath)) {
+    return $false
+  }
+  return (Get-Content -Raw -Path $packagePath) -match '"name"\s*:\s*"cody-pro"'
+}
+
+function Ensure-Command($commandName, $wingetId, $label) {
+  if (Get-Command $commandName -ErrorAction SilentlyContinue) {
+    Write-Host "[ok] $label found."
+    return
+  }
+
+  $winget = Get-Command winget -ErrorAction SilentlyContinue
+  if (-not $winget) {
+    throw "$label is required. Install $label or install winget, then rerun this installer."
+  }
+
+  Write-Host "$label not found. Installing $label with winget..."
+  winget install --id $wingetId --exact --source winget --accept-package-agreements --accept-source-agreements
+  if ($LASTEXITCODE -ne 0) {
+    throw "Failed to install $label with winget."
+  }
+
+  $env:PATH = "$env:ProgramFiles\Git\cmd;$env:ProgramFiles\nodejs;$env:PATH"
+  if (-not (Get-Command $commandName -ErrorAction SilentlyContinue)) {
+    throw "$label was installed, but $commandName is not available in this terminal. Reopen the terminal and rerun this installer."
+  }
+}
+
+$scriptPath = $MyInvocation.MyCommand.Path
+$scriptRoot = if ($scriptPath) { Split-Path -Parent $scriptPath } else { $null }
+if (-not $scriptRoot) {
+  $scriptRoot = (Get-Location).Path
+}
+
+$root = if (Test-CodyProCheckout $scriptRoot) { $scriptRoot } else { $defaultRoot }
+
+Ensure-Command "git" "Git.Git" "Git"
+
+if (-not (Test-CodyProCheckout $root)) {
+  Write-Host "Cody Pro checkout not found. Cloning from GitHub..."
+  if ((Test-Path $root) -and (Get-ChildItem -Force -Path $root | Select-Object -First 1)) {
+    throw "$root exists but is not a Cody Pro checkout. Move it away or choose a clean install location, then rerun this installer."
+  }
+  New-Item -ItemType Directory -Force -Path (Split-Path -Parent $root) | Out-Null
+  git clone $repoUrl $root
+  if ($LASTEXITCODE -ne 0) {
+    throw "Failed to clone Cody Pro from $repoUrl."
+  }
 }
 
 Set-Location $root
@@ -21,6 +72,13 @@ if (Test-Path (Join-Path $root ".git")) {
   }
 } else {
   Write-Host "No .git directory found. Skipping repository update."
+}
+
+Ensure-Command "node" "OpenJS.NodeJS.LTS" "Node.js LTS"
+if (Get-Command npm -ErrorAction SilentlyContinue) {
+  Write-Host "[ok] npm found."
+} else {
+  Write-Host "[warn] npm was not found after Node.js check. Cody Pro does not require npm for startup, but Node.js should normally provide it."
 }
 
 function Get-BunCommand {

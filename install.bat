@@ -1,8 +1,13 @@
 @echo off
 setlocal EnableExtensions
 
+set "REPO_URL=https://github.com/mufasa1611/cody-pro.git"
+set "DEFAULT_PARENT=%LOCALAPPDATA%\CodyPro"
+set "DEFAULT_ROOT=%DEFAULT_PARENT%\cody-pro"
 set "ROOT=%~dp0"
 if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
+
+if not exist "%ROOT%\package.json" set "ROOT=%DEFAULT_ROOT%"
 
 echo Cody Pro Windows installer
 echo Repo: "%ROOT%"
@@ -17,6 +22,28 @@ if %ERRORLEVEL%==0 (
 
 call :EnsureCommand git "Git.Git" "Git"
 if errorlevel 1 exit /b 1
+
+set "HAS_CHECKOUT=0"
+if exist "%ROOT%\package.json" if exist "%ROOT%\cody-pro.cmd" set "HAS_CHECKOUT=1"
+
+if "%HAS_CHECKOUT%"=="1" (
+  echo [ok] Cody Pro checkout found.
+) else (
+  echo Cody Pro checkout not found. Cloning from GitHub...
+  if exist "%DEFAULT_ROOT%" (
+    echo [error] "%DEFAULT_ROOT%" exists but is not a Cody Pro checkout.
+    echo Move it away or set up Cody Pro there, then rerun install.bat.
+    exit /b 1
+  )
+  if not exist "%DEFAULT_PARENT%" mkdir "%DEFAULT_PARENT%" >nul 2>nul
+  git clone "%REPO_URL%" "%DEFAULT_ROOT%"
+  if %ERRORLEVEL% neq 0 (
+    echo [error] Failed to clone Cody Pro from "%REPO_URL%".
+    exit /b 1
+  )
+  set "ROOT=%DEFAULT_ROOT%"
+  echo [ok] Cody Pro cloned to "%ROOT%".
+)
 
 call :UpdateCheckout
 

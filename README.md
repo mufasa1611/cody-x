@@ -33,9 +33,11 @@ cd cody-pro
 .\install.bat
 ```
 
-The Windows installer checks Git, Node.js/npm, and Bun. If something is missing, it tries to install it with `winget` or Bun's official installer. It also runs `git pull --ff-only` when the checkout is clean, installs dependencies, and creates the global `cody-pro` command.
+Or download only `install.bat` and run it from anywhere. If it is not inside a Cody Pro checkout, it clones the repository to `%LOCALAPPDATA%\CodyPro\cody-pro` first.
 
-If Git is not installed, download the repository ZIP from GitHub, extract it, open a terminal in the extracted folder, and run `install.bat`.
+The Windows installer checks Git, Node.js/npm, and Bun. If something is missing, it tries to install it with `winget` or Bun's official installer. It clones the repo when needed, runs `git pull --ff-only` when the checkout is clean, installs dependencies, and creates the global `cody-pro` command.
+
+If Git is not installed, the installer tries to install Git with `winget` before cloning.
 
 From anywhere after the global shim is installed:
 
