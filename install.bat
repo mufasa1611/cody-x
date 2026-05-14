@@ -5,6 +5,8 @@ set "REPO_URL=https://github.com/mufasa1611/cody-pro.git"
 set "INSTALLER_URL=https://raw.githubusercontent.com/mufasa1611/cody-pro/master/install.bat"
 set "DEFAULT_PARENT=%LOCALAPPDATA%\CodyPro"
 set "DEFAULT_ROOT=%DEFAULT_PARENT%\cody-pro"
+set "GLOBAL_BIN=%APPDATA%\npm"
+set "GLOBAL_CMD=%GLOBAL_BIN%\cody-pro.cmd"
 set "ROOT=%~dp0"
 if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
 
@@ -15,8 +17,39 @@ echo Cody Pro Windows installer
 echo Repo: "%ROOT%"
 echo.
 
-call :SelfUpdate %*
-if defined CODY_SELF_UPDATE_EXIT exit /b %CODY_SELF_UPDATE_EXIT%
+if "%CODY_INSTALLER_SELF_UPDATED%"=="1" goto AfterSelfUpdate
+
+where powershell >nul 2>nul
+if %ERRORLEVEL% neq 0 (
+  echo [warn] PowerShell not found. Skipping installer self-update check.
+  goto AfterSelfUpdate
+)
+
+set "LATEST_INSTALLER=%TEMP%\cody-pro-install-latest-%RANDOM%%RANDOM%.bat"
+echo Checking for installer updates...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri '%INSTALLER_URL%' -OutFile '%LATEST_INSTALLER%'; exit 0 } catch { Write-Host ('[warn] Could not download latest installer: ' + $_.Exception.Message); exit 1 }"
+if %ERRORLEVEL% neq 0 (
+  del "%LATEST_INSTALLER%" >nul 2>nul
+  echo [warn] Continuing with the current installer.
+  goto AfterSelfUpdate
+)
+
+fc /b "%~f0" "%LATEST_INSTALLER%" >nul 2>nul
+if %ERRORLEVEL%==0 (
+  del "%LATEST_INSTALLER%" >nul 2>nul
+  echo [ok] Installer is up to date.
+  goto AfterSelfUpdate
+)
+
+echo [info] New installer found. Running latest installer from GitHub...
+set "CODY_INSTALLER_SELF_UPDATED=1"
+set "CODY_INSTALL_ROOT=%ROOT%"
+call "%LATEST_INSTALLER%" %*
+set "LATEST_INSTALLER_EXIT=%ERRORLEVEL%"
+del "%LATEST_INSTALLER%" >nul 2>nul
+exit /b %LATEST_INSTALLER_EXIT%
+
+:AfterSelfUpdate
 
 where winget >nul 2>nul
 if %ERRORLEVEL%==0 (
@@ -93,26 +126,40 @@ if %ERRORLEVEL% neq 0 (
 
 echo.
 echo Verifying cody-pro command...
-set "PATH=%APPDATA%\npm;%USERPROFILE%\.bun\bin;%PATH%"
-where cody-pro >nul 2>nul
-if %ERRORLEVEL% neq 0 (
-  echo [error] cody-pro was installed but is not available on PATH.
+if not exist "%GLOBAL_CMD%" (
+  echo [error] Global cody-pro command shim was not created.
   echo Expected command shim:
-  echo   "%APPDATA%\npm\cody-pro.cmd"
-  echo The installer tried to add "%APPDATA%\npm" to your user PATH.
-  echo Open a new terminal and run:
-  echo   cody-pro
-  echo If it still fails, run:
-  echo   "%APPDATA%\npm\cody-pro.cmd"
+  echo   "%GLOBAL_CMD%"
+  popd
+  exit /b 1
+)
+
+set "PATH=%GLOBAL_BIN%;%USERPROFILE%\.bun\bin;%PATH%"
+set "FOUND_GLOBAL_CMD="
+pushd "%TEMP%"
+for /f "delims=" %%A in ('where cody-pro 2^>nul') do (
+  if /I "%%~fA"=="%GLOBAL_CMD%" set "FOUND_GLOBAL_CMD=1"
+)
+if not defined FOUND_GLOBAL_CMD (
+  popd
+  echo [error] cody-pro was installed but the global command directory is not on PATH.
+  echo Expected PATH entry:
+  echo   "%GLOBAL_BIN%"
+  echo Expected command shim:
+  echo   "%GLOBAL_CMD%"
+  echo Open a new terminal and rerun install.bat. If it still fails, run:
+  echo   "%GLOBAL_CMD%"
   popd
   exit /b 1
 )
 call cody-pro --help >nul 2>nul
 if %ERRORLEVEL% neq 0 (
+  popd
   echo [error] cody-pro was found on PATH but failed to start.
   popd
   exit /b 1
 )
+popd
 echo [ok] cody-pro is ready on PATH.
 
 popd
@@ -120,41 +167,8 @@ echo.
 echo Cody Pro installation complete.
 echo Start Cody Pro with:
 echo   cody-pro
-set "FINAL_PATH=%APPDATA%\npm;%USERPROFILE%\.bun\bin;%PATH%"
+set "FINAL_PATH=%GLOBAL_BIN%;%USERPROFILE%\.bun\bin;%PATH%"
 endlocal & set "PATH=%FINAL_PATH%"
-exit /b 0
-
-:SelfUpdate
-if "%CODY_INSTALLER_SELF_UPDATED%"=="1" exit /b 0
-
-where powershell >nul 2>nul
-if %ERRORLEVEL% neq 0 (
-  echo [warn] PowerShell not found. Skipping installer self-update check.
-  exit /b 0
-)
-
-set "LATEST_INSTALLER=%TEMP%\cody-pro-install-latest-%RANDOM%%RANDOM%.bat"
-echo Checking for installer updates...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri '%INSTALLER_URL%' -OutFile '%LATEST_INSTALLER%'; exit 0 } catch { Write-Host ('[warn] Could not download latest installer: ' + $_.Exception.Message); exit 1 }"
-if %ERRORLEVEL% neq 0 (
-  del "%LATEST_INSTALLER%" >nul 2>nul
-  echo [warn] Continuing with the current installer.
-  exit /b 0
-)
-
-fc /b "%~f0" "%LATEST_INSTALLER%" >nul 2>nul
-if %ERRORLEVEL%==0 (
-  del "%LATEST_INSTALLER%" >nul 2>nul
-  echo [ok] Installer is up to date.
-  exit /b 0
-)
-
-echo [info] New installer found. Running latest installer from GitHub...
-set "CODY_INSTALLER_SELF_UPDATED=1"
-set "CODY_INSTALL_ROOT=%ROOT%"
-call "%LATEST_INSTALLER%" %*
-set "CODY_SELF_UPDATE_EXIT=%ERRORLEVEL%"
-del "%LATEST_INSTALLER%" >nul 2>nul
 exit /b 0
 
 :EnsureCommand

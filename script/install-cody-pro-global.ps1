@@ -78,6 +78,25 @@ function Add-UserPathEntry($entry) {
   if (-not $inCurrent) {
     $env:PATH = "$full;$env:PATH"
   }
+
+  try {
+    if (-not ("CodyPro.NativeMethods" -as [type])) {
+      Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+namespace CodyPro {
+  public static class NativeMethods {
+    [DllImport("user32.dll", SetLastError=true, CharSet=CharSet.Auto)]
+    public static extern IntPtr SendMessageTimeout(IntPtr hWnd, UInt32 Msg, UIntPtr wParam, string lParam, UInt32 fuFlags, UInt32 uTimeout, out UIntPtr lpdwResult);
+  }
+}
+"@
+    }
+    $result = [UIntPtr]::Zero
+    [CodyPro.NativeMethods]::SendMessageTimeout([IntPtr]0xffff, 0x1a, [UIntPtr]::Zero, "Environment", 0x0002, 5000, [ref]$result) | Out-Null
+  } catch {
+    Write-Host "[warn] Could not broadcast PATH update. Open a new terminal if cody-pro is not recognized."
+  }
 }
 
 if (-not (Get-BunCommand)) {
