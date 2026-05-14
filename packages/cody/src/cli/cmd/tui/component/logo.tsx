@@ -855,7 +855,7 @@ export function Logo(props: { shape?: LogoShape; ink?: RGBA; idle?: boolean } = 
   }
 
   return (
-    <box ref={(item: BoxRenderable) => (box = item)}>
+    <box ref={(item: BoxRenderable) => (box = item)} flexDirection="column">
       <box
         position="absolute"
         top={0}
