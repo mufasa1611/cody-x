@@ -89,7 +89,7 @@ operator debug: pass
 ## Milestone 6: Packaging And Daily Driver
 
 - [ ] Decide final package names after first TUI test.
-- [ ] Add install/update command strategy for local use.
-- [ ] Add release notes/changelog.
+- [x] Add install/update command strategy for local use.
+- [x] Add release notes/changelog.
 - [ ] Run longer full test suite with extended timeout.
 - [ ] Tag the first usable Cody Pro checkpoint.
