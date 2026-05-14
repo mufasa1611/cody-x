@@ -154,6 +154,8 @@ bun test --timeout 30000
 
 did not fail after the clean reinstall, but it exceeded a 5-minute command timeout and had to be stopped. Use narrower test slices while making early Cody changes, then run the full suite with a longer timeout later.
 
+Update on 2026-05-14: the longer full suite command was tried again and still timed out before useful output was emitted. The current reliable gate is `bun run typecheck` plus focused smoke tests in `CODY_TEST_LOG.md`.
+
 ## Current TUI Test Command
 
 From PowerShell:
