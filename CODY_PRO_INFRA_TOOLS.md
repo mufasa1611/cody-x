@@ -66,3 +66,38 @@ cody-pro debug agent ssh-operator --tool cody-ssh-inspect --params '"{\"check\":
 ```
 
 Remote checks require a `host` value and run with `BatchMode=yes`, so they will fail fast instead of prompting for passwords.
+
+## Guarded Docker Inspection
+
+Tool: `cody-docker-inspect`
+
+Location:
+
+```text
+D:\cody-pro\.opencode\tool\cody-docker-inspect.ts
+```
+
+Purpose:
+
+- Run predefined read-only Docker diagnostics.
+- Avoid arbitrary Docker argument input.
+- Return command output, stderr, exit code, and timeout status.
+
+Profiles:
+
+- `version`
+- `contexts`
+- `containers`
+- `images`
+- `volumes`
+- `networks`
+- `system`
+- `compose`
+
+Smoke test:
+
+```powershell
+cody-pro debug agent docker-operator --tool cody-docker-inspect --params '"{\"check\":\"version\",\"timeoutSeconds\":10}"'
+```
+
+The `compose` profile can receive `projectPath` as a working directory, but mutating compose commands remain out of scope for this inspection tool.

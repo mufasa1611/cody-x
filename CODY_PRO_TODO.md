@@ -64,7 +64,7 @@ operator debug: pass
 - [ ] Map opencode tool/plugin extension points for Cody tools.
 - [x] Add guarded PowerShell inspection tool.
 - [x] Add SSH inspection tool.
-- [ ] Add Docker inspection tool.
+- [x] Add Docker inspection tool.
 - [ ] Add systemd inspection tool.
 - [ ] Add Proxmox inspection tool.
 - [ ] Add backup inventory/check tool.
