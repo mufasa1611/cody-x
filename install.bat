@@ -2,16 +2,21 @@
 setlocal EnableExtensions
 
 set "REPO_URL=https://github.com/mufasa1611/cody-pro.git"
+set "INSTALLER_URL=https://raw.githubusercontent.com/mufasa1611/cody-pro/master/install.bat"
 set "DEFAULT_PARENT=%LOCALAPPDATA%\CodyPro"
 set "DEFAULT_ROOT=%DEFAULT_PARENT%\cody-pro"
 set "ROOT=%~dp0"
 if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
 
+if defined CODY_INSTALL_ROOT set "ROOT=%CODY_INSTALL_ROOT%"
 if not exist "%ROOT%\package.json" set "ROOT=%DEFAULT_ROOT%"
 
 echo Cody Pro Windows installer
 echo Repo: "%ROOT%"
 echo.
+
+call :SelfUpdate %*
+if defined CODY_SELF_UPDATE_EXIT exit /b %CODY_SELF_UPDATE_EXIT%
 
 where winget >nul 2>nul
 if %ERRORLEVEL%==0 (
@@ -117,6 +122,39 @@ echo Start Cody Pro with:
 echo   cody-pro
 set "FINAL_PATH=%APPDATA%\npm;%USERPROFILE%\.bun\bin;%PATH%"
 endlocal & set "PATH=%FINAL_PATH%"
+exit /b 0
+
+:SelfUpdate
+if "%CODY_INSTALLER_SELF_UPDATED%"=="1" exit /b 0
+
+where powershell >nul 2>nul
+if %ERRORLEVEL% neq 0 (
+  echo [warn] PowerShell not found. Skipping installer self-update check.
+  exit /b 0
+)
+
+set "LATEST_INSTALLER=%TEMP%\cody-pro-install-latest-%RANDOM%%RANDOM%.bat"
+echo Checking for installer updates...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri '%INSTALLER_URL%' -OutFile '%LATEST_INSTALLER%'; exit 0 } catch { Write-Host ('[warn] Could not download latest installer: ' + $_.Exception.Message); exit 1 }"
+if %ERRORLEVEL% neq 0 (
+  del "%LATEST_INSTALLER%" >nul 2>nul
+  echo [warn] Continuing with the current installer.
+  exit /b 0
+)
+
+fc /b "%~f0" "%LATEST_INSTALLER%" >nul 2>nul
+if %ERRORLEVEL%==0 (
+  del "%LATEST_INSTALLER%" >nul 2>nul
+  echo [ok] Installer is up to date.
+  exit /b 0
+)
+
+echo [info] New installer found. Running latest installer from GitHub...
+set "CODY_INSTALLER_SELF_UPDATED=1"
+set "CODY_INSTALL_ROOT=%ROOT%"
+call "%LATEST_INSTALLER%" %*
+set "CODY_SELF_UPDATE_EXIT=%ERRORLEVEL%"
+del "%LATEST_INSTALLER%" >nul 2>nul
 exit /b 0
 
 :EnsureCommand
