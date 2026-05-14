@@ -89,7 +89,7 @@ export function logo(pad?: string) {
   })
   if (process.env.CODY_PRO !== "0") {
     if (pad) result.push(pad)
-    result.push(isTTY ? Style.TEXT_DIM : "", "made by M.Farid (mufasa)", isTTY ? reset : "")
+    result.push(isTTY ? Style.TEXT_DIM : "", "Made by M.Farid (Mufasa)", isTTY ? reset : "")
   }
   return result.join("").trimEnd()
 }
