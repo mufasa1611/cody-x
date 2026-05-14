@@ -1,22 +1,7 @@
 import z from "zod"
 import { EOL } from "os"
 import { NamedError } from "@cody/core/util/error"
-import { logo as glyphs } from "./logo"
-
-const wordmark = [
-  `⠀                                ▄     `,
-  `█▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█`,
-  `█  █ █  █ █▀▀▀ █  █ █    █  █ █  █ █▀▀▀`,
-  `▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`,
-]
-
-const codyProWordmark = [
-  `  ____ ___  ______   __  ____  ____   ___  `,
-  ` / ___/ _ \\|  _ \\ \\ / / |  _ \\|  _ \\ / _ \\ `,
-  `| |  | | | | | | \\ V /  | |_) | |_) | | | |`,
-  `| |__| |_| | |_| || |   |  __/|  _ <| |_| |`,
-  ` \\____\\___/|____/ |_|   |_|   |_| \\_\\\\___/ `,
-]
+import { codyPro, logo as opencode } from "./logo"
 
 export const CancelledError = NamedError.create("UICancelledError", z.void())
 
@@ -55,16 +40,7 @@ export function empty() {
 }
 
 export function logo(pad?: string) {
-  if (process.env.CODY_PRO === "1" || (!process.stdout.isTTY && !process.stderr.isTTY)) {
-    const result = []
-    for (const row of process.env.CODY_PRO === "1" ? codyProWordmark : wordmark) {
-      if (pad) result.push(pad)
-      result.push(row)
-      result.push(EOL)
-    }
-    return result.join("").trimEnd()
-  }
-
+  const glyphs = process.env.CODY_PRO === "1" ? codyPro : opencode
   const result: string[] = []
   const reset = "\x1b[0m"
   const left = {
@@ -101,12 +77,14 @@ export function logo(pad?: string) {
     }
     return parts.join("")
   }
+  const plain = (line: string) => line.replaceAll("_", " ").replaceAll("^", "▀").replaceAll("~", "▀")
+  const isTTY = process.stdout.isTTY || process.stderr.isTTY
   glyphs.left.forEach((row, index) => {
     if (pad) result.push(pad)
-    result.push(draw(row, left.fg, left.shadow, left.bg))
+    result.push(isTTY ? draw(row, left.fg, left.shadow, left.bg) : plain(row))
     result.push(gap)
     const other = glyphs.right[index] ?? ""
-    result.push(draw(other, right.fg, right.shadow, right.bg))
+    result.push(isTTY ? draw(other, right.fg, right.shadow, right.bg) : plain(other))
     result.push(EOL)
   })
   return result.join("").trimEnd()
