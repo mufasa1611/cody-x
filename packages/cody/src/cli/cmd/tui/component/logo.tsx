@@ -3,7 +3,7 @@ import { useRenderer } from "@opentui/solid"
 import { For, createMemo, createSignal, onCleanup, onMount, type JSX } from "solid-js"
 import { useTheme, tint } from "@tui/context/theme"
 import * as Sound from "@tui/util/sound"
-import { codyPro, go, logo } from "@/cli/logo"
+import { codyPro, codyProCredit, codyProCreditColor, go, logo } from "@/cli/logo"
 
 export type LogoShape = {
   left: string[]
@@ -88,6 +88,7 @@ const TAIL = 1.8
 const TRACE_IN = 200
 const GLOW_OUT = 1600
 const PEAK = RGBA.fromInts(255, 255, 255)
+const CODY_CREDIT_ORANGE = RGBA.fromHex(codyProCreditColor)
 
 type Ring = {
   x: number
@@ -888,8 +889,8 @@ export function Logo(props: { shape?: LogoShape; ink?: RGBA; idle?: boolean } = 
       </For>
       {showCredit && (
         <box width={ctx.FULL[0]?.length ?? 0} alignItems="center">
-          <text fg={theme.textMuted} selectable={false}>
-            Made by M.Farid (Mufasa)
+          <text fg={CODY_CREDIT_ORANGE} selectable={false}>
+            {codyProCredit}
           </text>
         </box>
       )}

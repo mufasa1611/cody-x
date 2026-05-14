@@ -8,6 +8,9 @@ export const codyPro = {
   right: ["              ", "█▀▀█ █▀▀▄ █▀▀█", "█▀▀▀ █▀▄  █  █", "▀    ▀  ▀ ▀▀▀▀"],
 }
 
+export const codyProCredit = "local agent-by-M.Farid-(Mufasa)"
+export const codyProCreditColor = "#f97316"
+
 export const go = {
   left: ["    ", "█▀▀▀", "█_^█", "▀▀▀▀"],
   right: ["    ", "█▀▀█", "█__█", "▀▀▀▀"],

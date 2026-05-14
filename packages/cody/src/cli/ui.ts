@@ -1,7 +1,7 @@
 import z from "zod"
 import { EOL } from "os"
 import { NamedError } from "@cody/core/util/error"
-import { codyPro, logo as opencode } from "./logo"
+import { codyPro, codyProCredit, logo as opencode } from "./logo"
 
 export const CancelledError = NamedError.create("UICancelledError", z.void())
 
@@ -20,6 +20,8 @@ export const Style = {
   TEXT_SUCCESS_BOLD: "\x1b[92m\x1b[1m",
   TEXT_INFO: "\x1b[94m",
   TEXT_INFO_BOLD: "\x1b[94m\x1b[1m",
+  TEXT_ORANGE: "\x1b[38;5;208m",
+  TEXT_ORANGE_BOLD: "\x1b[38;5;208m\x1b[1m",
 }
 
 export function println(...message: string[]) {
@@ -89,7 +91,7 @@ export function logo(pad?: string) {
   })
   if (process.env.CODY_PRO !== "0") {
     if (pad) result.push(pad)
-    result.push(isTTY ? Style.TEXT_DIM : "", "Made by M.Farid (Mufasa)", isTTY ? reset : "")
+    result.push(isTTY ? Style.TEXT_ORANGE_BOLD : "", codyProCredit, isTTY ? reset : "")
   }
   return result.join("").trimEnd()
 }
