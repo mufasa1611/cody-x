@@ -40,7 +40,7 @@ export function empty() {
 }
 
 export function logo(pad?: string) {
-  const glyphs = process.env.CODY_PRO === "1" ? codyPro : opencode
+  const glyphs = process.env.CODY_PRO === "0" ? opencode : codyPro
   const result: string[] = []
   const reset = "\x1b[0m"
   const left = {

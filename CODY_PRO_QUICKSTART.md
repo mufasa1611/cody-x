@@ -19,7 +19,7 @@ $env:Path='C:\Users\Mufasa\AppData\Roaming\npm;' + $env:Path
 bun run cody-pro
 ```
 
-Both launch paths set `CODY_PRO=1`, so help text shows the `cody-pro` command name while the fork still reuses opencode internals.
+Cody Pro branding is the default in this fork, even when launching from `packages/opencode`. Set `CODY_PRO=0` only if you need to inspect the inherited upstream opencode branding.
 
 Pass a project path if you want Cody Pro to open somewhere else:
 
