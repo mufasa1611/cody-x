@@ -54,9 +54,10 @@ operator debug: pass
 
 - [x] Document Ollama setup.
 - [x] Document OpenAI-compatible local endpoint setup.
-- [ ] Add Cody local/private provider profile examples.
+- [x] Add Cody local/private provider profile examples.
+- [x] Add first-run local model discovery for Ollama and GGUF files.
 - [ ] Keep cloud providers available but not required.
-- [ ] Add smoke checks for provider config parsing.
+- [x] Add smoke checks for provider config parsing.
 
 ## Milestone 3: Guarded Infra Tools
 

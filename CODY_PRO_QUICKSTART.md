@@ -61,6 +61,28 @@ Set-Location D:\cody-pro
 .\script\install-cody-pro-global.ps1
 ```
 
+## Local Model Discovery
+
+On first normal startup, Cody Pro scans local drives for Ollama models and `.gguf` files, then writes a generated config:
+
+```text
+D:\cody-pro\.opencode\generated\opencode.jsonc
+```
+
+During that scan it prints `[cody-pro:model-scan]` progress lines so you can see the current phase, drive, folder, and found model count. Refresh later with:
+
+```powershell
+$env:CODY_REFRESH_MODELS='1'
+cody-pro
+```
+
+Skip discovery for one launch:
+
+```powershell
+$env:CODY_SKIP_MODEL_DISCOVERY='1'
+cody-pro
+```
+
 Local model setup notes are in `CODY_LOCAL_MODELS.md`.
 
 ## Notes

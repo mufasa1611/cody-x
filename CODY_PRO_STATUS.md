@@ -121,6 +121,21 @@ Result:
 0 fail
 ```
 
+Local model discovery is enabled through the Cody launcher. It writes generated provider config to:
+
+```text
+D:\cody-pro\.opencode\generated\opencode.jsonc
+```
+
+Current smoke checks:
+
+```powershell
+cody-pro models ollama-local
+cody-pro models llama-cpp-local
+```
+
+Result: both generated providers appear in the model list.
+
 ## Known Verification Gap
 
 Full package test run:

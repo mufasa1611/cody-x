@@ -85,3 +85,38 @@ Launch Cody Pro with:
 - If tool calls fail with a local model, choose a model that supports tool calling or disable tool-heavy workflows.
 - If context is too small, increase the model/server context setting first, then update the `limit.context` value.
 - Cloud providers still work through opencode's normal `/connect` and `providers` commands.
+
+## Auto Discovery
+
+Cody Pro runs local model discovery on first normal startup and writes generated provider config to:
+
+```text
+D:\cody-pro\.opencode\generated\opencode.jsonc
+```
+
+It discovers:
+
+- `ollama-local/*` models from `ollama list` and Ollama manifest folders. Ollama `:cloud` entries are skipped.
+- `llama-cpp-local/*` models from `.gguf` files found across fixed drives. Split GGUF sets are collapsed to the first shard.
+
+Refresh discovery:
+
+```powershell
+$env:CODY_REFRESH_MODELS='1'
+cody-pro
+```
+
+Skip discovery for one launch:
+
+```powershell
+$env:CODY_SKIP_MODEL_DISCOVERY='1'
+cody-pro
+```
+
+Set an unlimited scan when you want every drive walked fully:
+
+```powershell
+$env:CODY_REFRESH_MODELS='1'
+$env:CODY_MODEL_SCAN_MAX_SECONDS='0'
+cody-pro
+```
