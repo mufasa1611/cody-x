@@ -25,6 +25,14 @@ Known gap:
 
 ## Start Cody Pro
 
+Clone the repo and install dependencies:
+
+```powershell
+git clone https://github.com/mufasa1611/cody-pro.git
+cd cody-pro
+bun install
+```
+
 From anywhere after the global shim is installed:
 
 ```powershell
@@ -40,7 +48,6 @@ cody-pro --agent operator
 From the repo root:
 
 ```powershell
-Set-Location D:\cody-pro
 .\cody-pro.cmd
 ```
 
@@ -151,21 +158,21 @@ Cody Pro is local-first and conservative:
 Install dependencies:
 
 ```powershell
-Set-Location D:\cody-pro
+cd cody-pro
 bun install
 ```
 
 Typecheck the core Cody Pro runtime:
 
 ```powershell
-Set-Location D:\cody-pro\packages\opencode
+cd packages/opencode
 bun run typecheck
 ```
 
 Run the pre-push monorepo typecheck:
 
 ```powershell
-Set-Location D:\cody-pro
+cd ../..
 bun turbo typecheck
 ```
 
@@ -180,33 +187,22 @@ cody-pro debug agent web-research --tool cody-web-read --params '"{\"url\":\"htt
 
 ## Install And Update
 
-The local checkout is the source of truth:
-
-```text
-D:\cody-pro
-```
-
-Global shims route to `D:\cody-pro\cody-pro.cmd`:
-
-```text
-C:\Users\Mufasa\AppData\Roaming\npm\cody-pro.ps1
-C:\Users\Mufasa\AppData\Roaming\npm\cody-pro.cmd
-```
+The local checkout is the source of truth. Clone it anywhere you want; the global command installer records that checkout path in the generated shim.
 
 Reinstall the global command if needed:
 
 ```powershell
-Set-Location D:\cody-pro
 .\script\install-cody-pro-global.ps1
 ```
+
+On Windows, the script writes `cody-pro.cmd` and `cody-pro.ps1` to your npm global bin folder, normally `%APPDATA%\npm`.
 
 Update from git:
 
 ```powershell
-Set-Location D:\cody-pro
 git pull --ff-only
 bun install
-Set-Location D:\cody-pro\packages\opencode
+cd packages/opencode
 bun run typecheck
 ```
 

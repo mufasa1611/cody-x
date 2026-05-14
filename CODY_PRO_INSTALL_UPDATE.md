@@ -1,25 +1,23 @@
 # Cody Pro Install And Update Strategy
 
-## Current Local Install
+## Local Install
 
-Cody Pro is currently installed as a local checkout at:
+Clone the repo wherever you want to keep it:
 
-```text
-D:\cody-pro
+```powershell
+git clone https://github.com/mufasa1611/cody-pro.git
+cd cody-pro
+bun install
 ```
 
-Global command shims:
+The checkout path is not fixed. On Windows, the global command installer records the current checkout path in shims under your npm global bin folder, normally:
 
 ```text
-C:\Users\Mufasa\AppData\Roaming\npm\cody-pro.ps1
-C:\Users\Mufasa\AppData\Roaming\npm\cody-pro.cmd
+%APPDATA%\npm\cody-pro.ps1
+%APPDATA%\npm\cody-pro.cmd
 ```
 
-Both shims route to:
-
-```text
-D:\cody-pro\cody-pro.cmd
-```
+Both shims route to the `cody-pro.cmd` file in your checkout.
 
 ## Start Command
 
@@ -38,11 +36,10 @@ cody-pro --agent operator
 For now, Cody Pro should update through git from the local checkout:
 
 ```powershell
-Set-Location D:\cody-pro
 git status --short --branch
 git pull --ff-only
 bun install
-Set-Location D:\cody-pro\packages\opencode
+cd packages/opencode
 bun run typecheck
 ```
 
@@ -53,7 +50,6 @@ Do not add an auto-update command until after the first TUI test. The current fo
 If the global shim is missing or stale:
 
 ```powershell
-Set-Location D:\cody-pro
 .\script\install-cody-pro-global.ps1
 ```
 

@@ -11,7 +11,9 @@ cody-pro
 From the fork checkout:
 
 ```powershell
-Set-Location D:\cody-pro
+git clone https://github.com/mufasa1611/cody-pro.git
+cd cody-pro
+bun install
 .\cody-pro.cmd
 ```
 
@@ -20,8 +22,6 @@ The fork config sets `operator` as the default primary agent, so this starts Cod
 Equivalent Bun command:
 
 ```powershell
-Set-Location D:\cody-pro
-$env:Path='C:\Users\Mufasa\AppData\Roaming\npm;' + $env:Path
 bun run cody-pro
 ```
 
@@ -30,7 +30,7 @@ Cody Pro branding is the default in this fork, even when launching from `package
 Pass a project path if you want Cody Pro to open somewhere else:
 
 ```powershell
-.\cody-pro.cmd D:\some-project
+.\cody-pro.cmd C:\path\to\project
 ```
 
 Start with a primary agent:
@@ -57,7 +57,6 @@ cody-pro --help
 If the global command is missing, reinstall the local shim:
 
 ```powershell
-Set-Location D:\cody-pro
 .\script\install-cody-pro-global.ps1
 ```
 
@@ -66,7 +65,7 @@ Set-Location D:\cody-pro
 On first normal startup, Cody Pro scans local drives for Ollama models and `.gguf` files, then writes a generated config:
 
 ```text
-D:\cody-pro\.opencode\generated\opencode.jsonc
+.opencode\generated\opencode.jsonc
 ```
 
 During that scan it prints `[cody-pro:model-scan]` progress lines so you can see the current phase, drive, folder, and found model count. Refresh later with:

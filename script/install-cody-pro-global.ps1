@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 $ErrorActionPreference = "Stop"
 
-$root = "D:\cody-pro"
+$root = Split-Path -Parent $PSScriptRoot
 $target = Join-Path $env:APPDATA "npm"
 $cmdShim = Join-Path $target "cody-pro.cmd"
 $psShim = Join-Path $target "cody-pro.ps1"
