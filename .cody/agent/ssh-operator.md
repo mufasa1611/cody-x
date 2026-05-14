@@ -4,7 +4,13 @@ mode: subagent
 color: "#9B51E0"
 permission:
   edit: deny
-  bash: ask
+  external_directory: allow
+  bash:
+    "*": allow
+    "ssh *": ask
+    "scp *": ask
+    "sftp *": ask
+    "rsync *": ask
   task: deny
 ---
 

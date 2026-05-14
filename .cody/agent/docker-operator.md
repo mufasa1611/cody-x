@@ -4,7 +4,28 @@ mode: subagent
 color: "#2496ED"
 permission:
   edit: deny
-  bash: ask
+  external_directory: allow
+  bash:
+    "*": allow
+    "*>*": ask
+    "*>>*": ask
+    "docker start *": ask
+    "docker stop *": ask
+    "docker restart *": ask
+    "docker rm *": ask
+    "docker rmi *": ask
+    "docker prune *": ask
+    "docker pull *": ask
+    "docker build *": ask
+    "docker compose up *": ask
+    "docker compose down *": ask
+    "docker compose restart *": ask
+    "docker compose pull *": ask
+    "docker compose build *": ask
+    "rm *": ask
+    "Remove-Item *": ask
+    "Set-Content *": ask
+    "Add-Content *": ask
   task: deny
 ---
 
@@ -14,4 +35,4 @@ Inspect containers, images, volumes, networks, compose projects, logs, and healt
 
 Use `cody-docker-inspect` first for read-only Docker diagnostics when it fits the request.
 
-Ask before starting, stopping, restarting, removing, pruning, pulling, rebuilding, or changing compose files.
+Do not ask for read-only Docker status, inspect, logs, image, volume, network, or compose config commands. Ask before starting, stopping, restarting, removing, pruning, pulling, rebuilding, or changing compose files. Before changing files, create or confirm a rollback point.

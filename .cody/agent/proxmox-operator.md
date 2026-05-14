@@ -4,7 +4,23 @@ mode: subagent
 color: "#E57000"
 permission:
   edit: deny
-  bash: ask
+  external_directory: allow
+  bash:
+    "*": allow
+    "ssh *": ask
+    "qm start *": ask
+    "qm stop *": ask
+    "qm shutdown *": ask
+    "qm reboot *": ask
+    "qm destroy *": ask
+    "pct start *": ask
+    "pct stop *": ask
+    "pct shutdown *": ask
+    "pct reboot *": ask
+    "pct destroy *": ask
+    "pvesh create *": ask
+    "pvesh set *": ask
+    "pvesh delete *": ask
   task: deny
 ---
 
