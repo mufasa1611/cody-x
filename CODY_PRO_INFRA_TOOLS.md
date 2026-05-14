@@ -135,3 +135,47 @@ cody-pro debug agent systemd-operator --tool cody-systemd-inspect --params '"{\"
 ```
 
 Remote checks accept `host`, optional `user`, and optional `port`. Unit-specific profiles require a sanitized `unit` value such as `ssh.service`.
+
+## Guarded Proxmox Inspection
+
+Tool: `cody-proxmox-inspect`
+
+Location:
+
+```text
+D:\cody-pro\.opencode\tool\cody-proxmox-inspect.ts
+```
+
+Purpose:
+
+- Run predefined read-only Proxmox API diagnostics.
+- Avoid arbitrary API path input.
+- Return HTTP status and response body without exposing mutation paths.
+
+Profiles:
+
+- `version`
+- `nodes`
+- `cluster`
+- `resources`
+- `storage`
+- `guestStatus`
+- `guestConfig`
+- `snapshots`
+- `backups`
+
+Configuration:
+
+```powershell
+$env:CODY_PROXMOX_URL = "https://pve.local:8006"
+$env:CODY_PROXMOX_TOKEN_ID = "user@pam!token"
+$env:CODY_PROXMOX_TOKEN_SECRET = "secret"
+```
+
+Smoke test:
+
+```powershell
+cody-pro debug agent proxmox-operator --tool cody-proxmox-inspect --params '"{\"check\":\"version\",\"timeoutSeconds\":10}"'
+```
+
+Guest checks require `node`, `guestKind`, and `vmid`. Backup checks require `node` and `storage`.

@@ -66,7 +66,7 @@ operator debug: pass
 - [x] Add SSH inspection tool.
 - [x] Add Docker inspection tool.
 - [x] Add systemd inspection tool.
-- [ ] Add Proxmox inspection tool.
+- [x] Add Proxmox inspection tool.
 - [ ] Add backup inventory/check tool.
 - [ ] Require approval for every mutation path.
 
