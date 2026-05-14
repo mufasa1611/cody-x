@@ -80,10 +80,10 @@ operator debug: pass
 
 ## Milestone 5: Legacy Cody v1 Audit
 
-- [ ] Compare Cody v1 workflows from `C:\Users\Mufasa\crew-agent`.
-- [ ] Confirm Cody v1 is not required at runtime.
-- [ ] Port only missing high-value workflows.
-- [ ] Add tests or smoke scripts for each ported workflow.
+- [x] Compare Cody v1 workflows from `C:\Users\Mufasa\crew-agent`.
+- [x] Confirm Cody v1 is not required at runtime.
+- [x] Port only missing high-value workflows.
+- [x] Add tests or smoke scripts for each ported workflow.
 - [ ] Mark Cody v1 retired when no important workflow remains.
 
 ## Milestone 6: Packaging And Daily Driver
