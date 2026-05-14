@@ -61,14 +61,14 @@ operator debug: pass
 
 ## Milestone 3: Guarded Infra Tools
 
-- [ ] Map opencode tool/plugin extension points for Cody tools.
+- [x] Map opencode tool/plugin extension points for Cody tools.
 - [x] Add guarded PowerShell inspection tool.
 - [x] Add SSH inspection tool.
 - [x] Add Docker inspection tool.
 - [x] Add systemd inspection tool.
 - [x] Add Proxmox inspection tool.
 - [x] Add backup inventory/check tool.
-- [ ] Require approval for every mutation path.
+- [x] Require approval for every mutation path.
 
 ## Milestone 4: Web Research Tools
 
