@@ -1,10 +1,10 @@
-# Cody Pro Status
+﻿# Cody Pro Status
 
 Last updated: 2026-05-13
 
 ## Current State
 
-`D:\cody-pro` is a fresh opencode-based fork for Cody Pro.
+`<repo>` is a fresh opencode-based fork for Cody Pro.
 
 The fork baseline and early Cody scope commits are in place:
 
@@ -21,24 +21,13 @@ The local fork config uses Cody's `operator` as the default primary agent.
 
 ## Environment
 
-Node is installed:
-
-```text
-node v24.12.0
-npm 11.12.1
-```
-
-Bun was installed through npm:
-
-```text
-C:\Users\Mufasa\AppData\Roaming\npm\bun.cmd
-```
-
-Use this session prefix when Bun is not on PATH:
+Cody Pro now has a Windows bootstrap installer:
 
 ```powershell
-$env:Path='C:\Users\Mufasa\AppData\Roaming\npm;' + $env:Path
+.\install.bat
 ```
+
+It checks Git, Node.js/npm, and Bun. If something is missing, it tries to install it, then installs dependencies and creates the global `cody-pro` command.
 
 ## Verification
 
@@ -52,14 +41,14 @@ bun install
 Core package typecheck passes:
 
 ```powershell
-Set-Location D:\cody-pro\packages\opencode
+cd packages/opencode
 bun run typecheck
 ```
 
 Focused smoke tests pass:
 
 ```powershell
-Set-Location D:\cody-pro\packages\opencode
+cd packages/opencode
 bun test test\cli\error.test.ts test\config\lsp.test.ts test\patch\patch.test.ts --timeout 30000
 ```
 
@@ -73,7 +62,7 @@ Result:
 Cody operator-agent smoke verification also passes:
 
 ```powershell
-Set-Location D:\cody-pro
+cd cody-pro
 .\cody-pro.cmd --help
 .\cody-pro.cmd agent list
 .\cody-pro.cmd debug agent operator
@@ -89,14 +78,14 @@ cody-pro --help
 Global shim installed:
 
 ```text
-C:\Users\Mufasa\AppData\Roaming\npm\cody-pro.cmd
-C:\Users\Mufasa\AppData\Roaming\npm\cody-pro.ps1
+%APPDATA%\npm\cody-pro.cmd
+%APPDATA%\npm\cody-pro.ps1
 ```
 
 Focused agent and smoke tests pass:
 
 ```powershell
-Set-Location D:\cody-pro\packages\opencode
+cd packages/opencode
 bun test test\agent\agent.test.ts test\cli\error.test.ts test\config\lsp.test.ts test\patch\patch.test.ts --timeout 30000
 ```
 
@@ -110,7 +99,7 @@ Result:
 Cody-specific agent regression test passes with the native agent tests:
 
 ```powershell
-Set-Location D:\cody-pro\packages\opencode
+cd packages/opencode
 bun test test\agent\cody-pro-agents.test.ts test\agent\agent.test.ts --timeout 30000
 ```
 
@@ -124,7 +113,7 @@ Result:
 Local model discovery is enabled through the Cody launcher. It writes generated provider config to:
 
 ```text
-D:\cody-pro\.opencode\generated\opencode.jsonc
+<repo>\.opencode\generated\opencode.jsonc
 ```
 
 Current smoke checks:
@@ -189,3 +178,5 @@ Continue Milestone 1 from `CODY_PLAN.md`:
 1. Launch and test the TUI with `.\cody-pro.cmd`.
 2. Check which remaining TUI surfaces still need Cody wording after the interactive test.
 3. Start the next deeper branding pass only after the TUI path is confirmed.
+
+

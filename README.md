@@ -25,13 +25,17 @@ Known gap:
 
 ## Start Cody Pro
 
-Clone the repo and install dependencies:
+Clone the repo and run the Cody Pro installer:
 
 ```powershell
 git clone https://github.com/mufasa1611/cody-pro.git
 cd cody-pro
-bun install
+.\install.bat
 ```
+
+The Windows installer checks Git, Node.js/npm, and Bun. If something is missing, it tries to install it with `winget` or Bun's official installer. It also runs `git pull --ff-only` when the checkout is clean, installs dependencies, and creates the global `cody-pro` command.
+
+If Git is not installed, download the repository ZIP from GitHub, extract it, open a terminal in the extracted folder, and run `install.bat`.
 
 From anywhere after the global shim is installed:
 
@@ -159,7 +163,7 @@ Install dependencies:
 
 ```powershell
 cd cody-pro
-bun install
+.\install.bat
 ```
 
 Typecheck the core Cody Pro runtime:
@@ -187,21 +191,27 @@ cody-pro debug agent web-research --tool cody-web-read --params '"{\"url\":\"htt
 
 ## Install And Update
 
-The local checkout is the source of truth. Clone it anywhere you want; the global command installer records that checkout path in the generated shim.
+The local checkout is the source of truth. Clone it anywhere you want; the installer records that checkout path in the generated global command.
 
-Reinstall the global command if needed:
+Windows:
 
 ```powershell
-.\script\install-cody-pro-global.ps1
+.\install.bat
 ```
 
-On Windows, the script writes `cody-pro.cmd` and `cody-pro.ps1` to your npm global bin folder, normally `%APPDATA%\npm`.
+macOS/Linux:
+
+```bash
+./install
+```
+
+On Windows, the installer writes `cody-pro.cmd` and `cody-pro.ps1` to `%APPDATA%\npm`. It checks Node.js/npm for users who need the wider JavaScript toolchain, but Cody Pro startup uses Bun.
 
 Update from git:
 
 ```powershell
 git pull --ff-only
-bun install
+.\install.bat
 cd packages/opencode
 bun run typecheck
 ```

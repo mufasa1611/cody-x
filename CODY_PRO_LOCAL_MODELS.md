@@ -1,4 +1,4 @@
-# Cody Pro Local Models
+﻿# Cody Pro Local Models
 
 Cody Pro keeps opencode's provider system. Use these snippets when you want local/private models through Ollama, LM Studio, or another OpenAI-compatible server.
 
@@ -91,7 +91,7 @@ Launch Cody Pro with:
 Cody Pro runs local model discovery on first normal startup and writes generated provider config to:
 
 ```text
-D:\cody-pro\.opencode\generated\opencode.jsonc
+<repo>\.opencode\generated\opencode.jsonc
 ```
 
 It discovers:
@@ -120,3 +120,5 @@ $env:CODY_REFRESH_MODELS='1'
 $env:CODY_MODEL_SCAN_MAX_SECONDS='0'
 cody-pro
 ```
+
+

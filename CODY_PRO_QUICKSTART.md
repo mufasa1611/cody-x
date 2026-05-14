@@ -1,4 +1,4 @@
-# Cody Pro Quickstart
+﻿# Cody Pro Quickstart
 
 ## Start The TUI
 
@@ -13,9 +13,11 @@ From the fork checkout:
 ```powershell
 git clone https://github.com/mufasa1611/cody-pro.git
 cd cody-pro
-bun install
+.\install.bat
 .\cody-pro.cmd
 ```
+
+The installer checks Git, Node.js/npm, and Bun. If something is missing, it tries to install it, pulls the latest repo changes when the checkout is clean, installs dependencies, and creates the global `cody-pro` command.
 
 The fork config sets `operator` as the default primary agent, so this starts Cody Pro in operator mode from the repo root.
 
@@ -57,7 +59,7 @@ cody-pro --help
 If the global command is missing, reinstall the local shim:
 
 ```powershell
-.\script\install-cody-pro-global.ps1
+.\install.bat
 ```
 
 ## Local Model Discovery
@@ -89,3 +91,5 @@ Local model setup notes are in `CODY_LOCAL_MODELS.md`.
 - `opencode` still works; `cody-pro` is an alias while the fork is being adapted.
 - The first launch may run opencode's local database migration.
 - Keep dangerous infra actions permission-gated. Cody Pro agents should inspect first and ask before mutating systems.
+
+

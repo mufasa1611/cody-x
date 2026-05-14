@@ -1,9 +1,9 @@
-# Cody Pro Legacy Cody v1 Audit
+﻿# Cody Pro Legacy Cody v1 Audit
 
 Source audited:
 
 ```text
-C:\Users\Mufasa\crew-agent
+<legacy-cody-v1-checkout>
 ```
 
 ## Runtime Dependency Decision
@@ -48,3 +48,5 @@ If a missing workflow becomes important after the first TUI test, port it as a C
 ## Current Status
 
 Cody v1 is a reference only. It is not retired yet because host inventory, run ledger, self-update, rollback, and memo workflows still need a post-TUI decision.
+
+

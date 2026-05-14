@@ -2,15 +2,22 @@
 setlocal
 
 set "ROOT=%~dp0"
-set "BUN=%USERPROFILE%\AppData\Roaming\npm\bun.cmd"
+set "BUN="
 
-if not exist "%BUN%" (
-  echo Bun launcher not found at "%BUN%".
-  echo Install Bun with: npm install -g bun
+where bun >nul 2>nul
+if %ERRORLEVEL%==0 set "BUN=bun"
+
+if not defined BUN if exist "%USERPROFILE%\.bun\bin\bun.exe" set "BUN=%USERPROFILE%\.bun\bin\bun.exe"
+if not defined BUN if exist "%USERPROFILE%\AppData\Roaming\npm\bun.cmd" set "BUN=%USERPROFILE%\AppData\Roaming\npm\bun.cmd"
+
+if not defined BUN (
+  echo Bun was not found.
+  echo Run install.ps1 from this checkout, or install Bun from https://bun.sh and retry.
   exit /b 1
 )
 
-set "PATH=%USERPROFILE%\AppData\Roaming\npm;%PATH%"
+if exist "%USERPROFILE%\.bun\bin" set "PATH=%USERPROFILE%\.bun\bin;%PATH%"
+if exist "%USERPROFILE%\AppData\Roaming\npm" set "PATH=%USERPROFILE%\AppData\Roaming\npm;%PATH%"
 set "CODY_PRO=1"
 
 set "CODY_DISCOVER_MODELS=1"

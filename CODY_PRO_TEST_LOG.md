@@ -1,11 +1,11 @@
-# Cody Pro Test Log
+﻿# Cody Pro Test Log
 
 ## 2026-05-14
 
 ### Passed
 
 ```powershell
-Set-Location D:\cody-pro\packages\opencode
+cd packages/opencode
 bun run typecheck
 ```
 
@@ -27,10 +27,12 @@ Focused smoke checks completed during the Cody tool milestones:
 ### Timed Out
 
 ```powershell
-Set-Location D:\cody-pro\packages\opencode
+cd packages/opencode
 bun test --timeout 30000
 ```
 
 Result: timed out before useful test output was emitted. A leftover Bun test process was stopped manually.
 
 Status: keep `Run longer full test suite with extended timeout` open until the suite can be split or run with better output capture.
+
+

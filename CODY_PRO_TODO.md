@@ -1,10 +1,10 @@
-# Cody Pro Todo
+﻿# Cody Pro Todo
 
 Last updated: 2026-05-13
 
 ## Done
 
-- [x] Create `D:\cody-pro` as an opencode-based fork.
+- [x] Create `<repo>` as an opencode-based fork.
 - [x] Initialize git and commit the clean fork baseline.
 - [x] Install Bun and verify dependency install.
 - [x] Verify `packages/opencode` typecheck.
@@ -22,7 +22,7 @@ Last updated: 2026-05-13
 - [x] Start command from repo root:
 
 ```powershell
-Set-Location D:\cody-pro
+cd cody-pro
 .\cody-pro.cmd
 ```
 
@@ -44,7 +44,7 @@ operator debug: pass
 
 ## Milestone 1: First TUI Polish
 
-- [ ] Run interactive TUI test from `D:\cody-pro`.
+- [ ] Run interactive TUI test from `<repo>`.
 - [ ] Confirm first database migration behavior is clean.
 - [ ] Confirm `operator` is selected by default in a new session.
 - [ ] Identify remaining visible opencode wording in the TUI.
@@ -80,7 +80,7 @@ operator debug: pass
 
 ## Milestone 5: Legacy Cody v1 Audit
 
-- [x] Compare Cody v1 workflows from `C:\Users\Mufasa\crew-agent`.
+- [x] Compare Cody v1 workflows from `<legacy-cody-v1-checkout>`.
 - [x] Confirm Cody v1 is not required at runtime.
 - [x] Port only missing high-value workflows.
 - [x] Add tests or smoke scripts for each ported workflow.
@@ -93,3 +93,5 @@ operator debug: pass
 - [x] Add release notes/changelog.
 - [ ] Run longer full test suite with extended timeout.
 - [ ] Tag the first usable Cody Pro checkpoint.
+
+

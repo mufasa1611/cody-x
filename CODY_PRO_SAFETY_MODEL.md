@@ -1,4 +1,4 @@
-# Cody Pro Safety Model
+﻿# Cody Pro Safety Model
 
 ## Current Rule
 
@@ -40,3 +40,5 @@ Before Cody Pro gets any mutation tool, that tool must have:
 - `cody-backup-inventory`
 
 No Cody mutation tool exists yet.
+
+

@@ -1,4 +1,4 @@
-# Cody Pro Plan
+﻿# Cody Pro Plan
 
 ## Direction
 
@@ -9,8 +9,8 @@ This is a separate path from `D:\cody-v2`, which remains the Python clean-room r
 ## Source Baselines
 
 - Opencode snapshot: `D:\opencode`
-- Cody Pro fork: `D:\cody-pro`
-- Cody v1 reference: `C:\Users\Mufasa\crew-agent`
+- Cody Pro fork: `<repo>`
+- Cody v1 reference: `<legacy-cody-v1-checkout>`
 - Cody v2 reference: `D:\cody-v2`
 
 ## Strategy
@@ -26,7 +26,7 @@ This is a separate path from `D:\cody-v2`, which remains the Python clean-room r
 
 ### Milestone 0: Fork Hygiene
 
-- Initialize git history for `D:\cody-pro`.
+- Initialize git history for `<repo>`.
 - Verify Bun install and baseline typecheck/test commands.
 - Document local setup and smoke commands.
 - Identify the minimum package names and command aliases to rename.
@@ -81,7 +81,7 @@ Add web research support around opencode's tool/plugin system:
 
 ### Milestone 6: Legacy Cody v1 Audit
 
-- Treat Cody v1 at `C:\Users\Mufasa\crew-agent` as a checklist source only.
+- Treat Cody v1 at `<legacy-cody-v1-checkout>` as a checklist source only.
 - Do not keep Cody v1 as an active runtime dependency.
 - Identify any useful workflows not covered by Cody Pro.
 - Port only missing high-value pieces.
@@ -93,3 +93,5 @@ Add web research support around opencode's tool/plugin system:
 - Do not remove opencode features unless they conflict with Cody's local safety model.
 - Dangerous host/server operations must be permission-gated.
 - Cody v1 is a legacy reference only; Cody Pro is the active product path.
+
+

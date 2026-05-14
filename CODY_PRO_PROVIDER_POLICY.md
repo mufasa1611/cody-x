@@ -1,4 +1,4 @@
-# Cody Pro Provider Policy
+﻿# Cody Pro Provider Policy
 
 Cody Pro is local-first, not local-only.
 
@@ -7,7 +7,7 @@ Cody Pro is local-first, not local-only.
 The launcher discovers local models and writes generated provider config to:
 
 ```text
-D:\cody-pro\.opencode\generated\opencode.jsonc
+<repo>\.opencode\generated\opencode.jsonc
 ```
 
 Generated provider IDs:
@@ -38,3 +38,5 @@ cody-pro models opencode
 ```
 
 Local provider commands should work without cloud credentials. Cloud provider commands may require their normal upstream authentication, but they should remain present.
+
+
