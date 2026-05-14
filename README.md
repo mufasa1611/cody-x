@@ -1,153 +1,232 @@
-> [!IMPORTANT]
-> This checkout is the local Cody Pro fork of opencode.
->
-> Start here for Cody-specific work:
->
-> - [CODY_QUICKSTART.md](CODY_QUICKSTART.md)
-> - [CODY_STATUS.md](CODY_STATUS.md)
-> - [CODY_TODO.md](CODY_TODO.md)
-> - [CODY_LOCAL_MODELS.md](CODY_LOCAL_MODELS.md)
->
-> The upstream opencode README remains below while Cody Pro is being adapted.
+# Cody Pro
 
-<p align="center">
-  <a href="https://opencode.ai">
-    <picture>
-      <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
-      <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="OpenCode logo">
-    </picture>
-  </a>
-</p>
-<p align="center">The open source AI coding agent.</p>
-<p align="center">
-  <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/opencode-ai"><img alt="npm" src="https://img.shields.io/npm/v/opencode-ai?style=flat-square" /></a>
-  <a href="https://github.com/your-org/cody/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/anomalyco/opencode/publish.yml?style=flat-square&branch=dev" /></a>
-</p>
+Cody Pro is a local-first infrastructure and coding agent built as an opencode-based fork.
 
-<p align="center">
-  <a href="README.md">English</a> |
-  <a href="README.zh.md">简体中文</a> |
-  <a href="README.zht.md">繁體中文</a> |
-  <a href="README.ko.md">한국어</a> |
-  <a href="README.de.md">Deutsch</a> |
-  <a href="README.es.md">Español</a> |
-  <a href="README.fr.md">Français</a> |
-  <a href="README.it.md">Italiano</a> |
-  <a href="README.da.md">Dansk</a> |
-  <a href="README.ja.md">日本語</a> |
-  <a href="README.pl.md">Polski</a> |
-  <a href="README.ru.md">Русский</a> |
-  <a href="README.bs.md">Bosanski</a> |
-  <a href="README.ar.md">العربية</a> |
-  <a href="README.no.md">Norsk</a> |
-  <a href="README.br.md">Português (Brasil)</a> |
-  <a href="README.th.md">ไทย</a> |
-  <a href="README.tr.md">Türkçe</a> |
-  <a href="README.uk.md">Українська</a> |
-  <a href="README.bn.md">বাংলা</a> |
-  <a href="README.gr.md">Ελληνικά</a> |
-  <a href="README.vi.md">Tiếng Việt</a>
-</p>
+The goal is to keep opencode's mature TypeScript/Bun runtime, TUI, sessions, providers, permissions, plugins, MCP, LSP, SDK, and app structure, then add Cody-specific local infrastructure agents, guarded tools, local model discovery, and safer operations workflows around it.
 
-[![OpenCode Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://opencode.ai)
+This repository is the active Cody Pro path. The older Cody v1 repo is only a legacy checklist, not a runtime dependency.
 
----
+## Current Status
 
-### Installation
+Cody Pro is usable for the first TUI test.
 
-```bash
-# YOLO
-curl -fsSL https://opencode.ai/install | bash
+Current reliable gates:
 
-# Package managers
-npm i -g opencode-ai@latest        # or bun/pnpm/yarn
-scoop install opencode             # Windows
-choco install opencode             # Windows
-brew install anomalyco/tap/opencode # macOS and Linux (recommended, always up to date)
-brew install opencode              # macOS and Linux (official brew formula, updated less)
-sudo pacman -S opencode            # Arch Linux (Stable)
-paru -S opencode-bin               # Arch Linux (Latest from AUR)
-mise use -g opencode               # Any OS
-nix run nixpkgs#opencode           # or github:anomalyco/opencode for latest dev branch
+- `cody-pro --help`: Cody Pro banner and command wording.
+- `cody-pro debug agent operator`: Cody operator and tools load.
+- `cody-pro models ollama-local`: local Ollama models list.
+- `cody-pro models llama-cpp-local`: discovered GGUF models list.
+- `bun run typecheck` in `packages/opencode`: passes.
+- Focused Cody tool smoke tests: pass.
+
+Known gap:
+
+- Full monorepo `bun test --timeout 30000` still times out before useful output. This is tracked in [CODY_TEST_LOG.md](CODY_TEST_LOG.md).
+
+## Start Cody Pro
+
+From anywhere after the global shim is installed:
+
+```powershell
+cody-pro
 ```
 
-> [!TIP]
-> Remove versions older than 0.1.x before installing.
+Explicit operator launch:
 
-### Desktop App (BETA)
-
-OpenCode is also available as a desktop application. Download directly from the [releases page](https://github.com/your-org/cody/releases) or [opencode.ai/download](https://opencode.ai/download).
-
-| Platform              | Download                           |
-| --------------------- | ---------------------------------- |
-| macOS (Apple Silicon) | `cody-desktop-mac-arm64.dmg`   |
-| macOS (Intel)         | `cody-desktop-mac-x64.dmg`     |
-| Windows               | `cody-desktop-windows-x64.exe` |
-| Linux                 | `.deb`, `.rpm`, or `.AppImage`     |
-
-```bash
-# macOS (Homebrew)
-brew install --cask cody-desktop
-# Windows (Scoop)
-scoop bucket add extras; scoop install extras/cody-desktop
+```powershell
+cody-pro --agent operator
 ```
 
-#### Installation Directory
+From the repo root:
 
-The install script respects the following priority order for the installation path:
-
-1. `$CODY_INSTALL_DIR` - Custom installation directory
-2. `$XDG_BIN_DIR` - XDG Base Directory Specification compliant path
-3. `$HOME/bin` - Standard user binary directory (if it exists or can be created)
-4. `$HOME/.cody/bin` - Default fallback
-
-```bash
-# Examples
-CODY_INSTALL_DIR=/usr/local/bin curl -fsSL https://opencode.ai/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://opencode.ai/install | bash
+```powershell
+Set-Location D:\cody-pro
+.\cody-pro.cmd
 ```
 
-### Agents
+## Repository Layout
 
-OpenCode includes two built-in agents you can switch between with the `Tab` key.
+Important Cody Pro files:
 
-- **build** - Default, full-access agent for development work
-- **plan** - Read-only agent for analysis and code exploration
-  - Denies file edits by default
-  - Asks permission before running bash commands
-  - Ideal for exploring unfamiliar codebases or planning changes
+- [CODY_QUICKSTART.md](CODY_QUICKSTART.md): first-use commands.
+- [CODY_STATUS.md](CODY_STATUS.md): current implementation status.
+- [CODY_TODO.md](CODY_TODO.md): remaining milestones.
+- [CODY_PLAN.md](CODY_PLAN.md): project direction and milestone plan.
+- [CODY_LOCAL_MODELS.md](CODY_LOCAL_MODELS.md): local model setup.
+- [CODY_INFRA_TOOLS.md](CODY_INFRA_TOOLS.md): guarded infra tool docs.
+- [CODY_WEB_RESEARCH.md](CODY_WEB_RESEARCH.md): web research tool docs.
+- [CODY_SAFETY_MODEL.md](CODY_SAFETY_MODEL.md): mutation and approval rules.
+- [CODY_EXTENSION_POINTS.md](CODY_EXTENSION_POINTS.md): where Cody extends opencode.
+- [CODY_PROVIDER_POLICY.md](CODY_PROVIDER_POLICY.md): local-first provider policy.
+- [CODY_LEGACY_AUDIT.md](CODY_LEGACY_AUDIT.md): Cody v1 audit.
+- [CODY_INSTALL_UPDATE.md](CODY_INSTALL_UPDATE.md): local install and update policy.
+- [CHANGELOG.md](CHANGELOG.md): release notes.
 
-Also included is a **general** subagent for complex searches and multistep tasks.
-This is used internally and can be invoked using `@general` in messages.
+Core runtime still lives under the upstream monorepo packages, especially:
 
-Learn more about [agents](https://opencode.ai/docs/agents).
+```text
+packages/opencode
+```
 
-### Documentation
+Cody-specific local extensions live under:
 
-For more info on how to configure OpenCode, [**head over to our docs**](https://opencode.ai/docs).
+```text
+.cody/agent
+.cody/tool
+script
+```
 
-### Contributing
+## Local Model Discovery
 
-If you're interested in contributing to OpenCode, please read our [contributing docs](./CONTRIBUTING.md) before submitting a pull request.
+The Cody launcher scans local drives on first startup and generates local provider config at:
 
-### Building on OpenCode
+```text
+.cody/generated/opencode.jsonc
+```
 
-If you are working on a project that's related to OpenCode and is using "cody" as part of its name, for example "opencode-dashboard" or "opencode-mobile", please add a note to your README to clarify that it is not built by the OpenCode team and is not affiliated with us in any way.
+Generated providers:
 
-### FAQ
+- `ollama-local`
+- `llama-cpp-local`
 
-#### How is this different from Claude Code?
+Smoke checks:
 
-It's very similar to Claude Code in terms of capability. Here are the key differences:
+```powershell
+cody-pro models ollama-local
+cody-pro models llama-cpp-local
+```
 
-- 100% open source
-- Not coupled to any provider. Although we recommend the models we provide through [OpenCode Zen](https://opencode.ai/zen), OpenCode can be used with Claude, OpenAI, Google, or even local models. As models evolve, the gaps between them will close and pricing will drop, so being provider-agnostic is important.
-- Built-in opt-in LSP support
-- A focus on TUI. OpenCode is built by neovim users and the creators of [terminal.shop](https://terminal.shop); we are going to push the limits of what's possible in the terminal.
-- A client/server architecture. This, for example, can allow OpenCode to run on your computer while you drive it remotely from a mobile app, meaning that the TUI frontend is just one of the possible clients.
+Cloud providers are still available through opencode's normal provider system, but they are not required for local startup.
 
----
+## Cody Agents
 
-**Join our community** [Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)
+Cody Pro adds these local agents:
+
+- `operator`: default primary agent for coordinated Cody Pro operations.
+- `infra-audit`: read-only infrastructure audit.
+- `windows-admin`: guarded Windows diagnostics.
+- `ssh-operator`: guarded remote host inspection.
+- `docker-operator`: Docker and Compose inspection.
+- `systemd-operator`: Linux service inspection.
+- `proxmox-operator`: Proxmox node, guest, storage, and backup inspection.
+- `backup-operator`: backup inventory and rollback planning.
+- `web-research`: isolated web research with citations and no local/admin permissions.
+
+Check them with:
+
+```powershell
+cody-pro agent list
+cody-pro debug agent operator
+```
+
+## Guarded Tools
+
+Cody Pro currently adds read-only tools only:
+
+- `cody-windows-inspect`
+- `cody-ssh-inspect`
+- `cody-docker-inspect`
+- `cody-systemd-inspect`
+- `cody-proxmox-inspect`
+- `cody-backup-inventory`
+- `cody-web-search`
+- `cody-web-read`
+- `cody-source-summarize`
+- `cody-citation-format`
+
+There are no Cody mutation tools yet. Any future mutation tool must be separate from inspection tools, validated by explicit arguments, and approval-gated.
+
+## Safety Model
+
+Cody Pro is local-first and conservative:
+
+- Inspect before changing anything.
+- Use predefined read-only tools before shell commands.
+- Ask before restart, delete, stop, reboot, restore, prune, credential changes, network exposure, or any other mutation.
+- Keep web research isolated from local/admin tools.
+- Keep Cody v1 as a reference only, not a dependency.
+
+## Development
+
+Install dependencies:
+
+```powershell
+Set-Location D:\cody-pro
+bun install
+```
+
+Typecheck the core Cody Pro runtime:
+
+```powershell
+Set-Location D:\cody-pro\packages\opencode
+bun run typecheck
+```
+
+Run the pre-push monorepo typecheck:
+
+```powershell
+Set-Location D:\cody-pro
+bun turbo typecheck
+```
+
+Useful smoke tests:
+
+```powershell
+cody-pro --help
+cody-pro debug agent operator
+cody-pro debug agent windows-admin --tool cody-windows-inspect --params '"{\"check\":\"system\",\"timeoutSeconds\":10}"'
+cody-pro debug agent web-research --tool cody-web-read --params '"{\"url\":\"https://example.com\",\"timeoutSeconds\":10}"'
+```
+
+## Install And Update
+
+The local checkout is the source of truth:
+
+```text
+D:\cody-pro
+```
+
+Global shims route to `D:\cody-pro\cody-pro.cmd`:
+
+```text
+C:\Users\Mufasa\AppData\Roaming\npm\cody-pro.ps1
+C:\Users\Mufasa\AppData\Roaming\npm\cody-pro.cmd
+```
+
+Reinstall the global command if needed:
+
+```powershell
+Set-Location D:\cody-pro
+.\script\install-cody-pro-global.ps1
+```
+
+Update from git:
+
+```powershell
+Set-Location D:\cody-pro
+git pull --ff-only
+bun install
+Set-Location D:\cody-pro\packages\opencode
+bun run typecheck
+```
+
+## Upstream Base
+
+Cody Pro is based on opencode. We keep the upstream architecture intentionally because it is already mature and tested.
+
+Upstream opencode code, package names, internal APIs, and some documentation paths still exist where they are part of the runtime. Cody-specific behavior should be added through agents, tools, plugins, provider config, commands, and launcher behavior before changing deep core internals.
+
+## Next Step
+
+Run the first interactive TUI test:
+
+```powershell
+cody-pro
+```
+
+Then check:
+
+- The startup banner reads Cody Pro.
+- The default agent is `operator`.
+- Local models are available.
+- Any remaining visible opencode wording in the TUI is listed for the next branding pass.
