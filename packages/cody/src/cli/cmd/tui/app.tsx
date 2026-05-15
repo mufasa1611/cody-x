@@ -432,6 +432,22 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
         },
       },
       {
+        name: "permissions.setMode",
+        title: "Set permission level",
+        category: "System",
+        slashName: "permissions",
+        run: () => {
+          const modeUrl = sdk.url + "/api/permissions/mode"
+          dialog.replace(() => <DialogSelect
+            title="Permission Level"
+            options={[
+              { title: "Restricted", description: "Read-only, no changes", value: "restricted", onSelect: async (d) => { d.clear(); try { await sdk.fetch(modeUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "restricted" }) }) } catch {} } },
+              { title: "Standard", description: "Ask before mutations (default)", value: "standard", onSelect: async (d) => { d.clear(); try { await sdk.fetch(modeUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "standard" }) }) } catch {} } },
+              { title: "Full", description: "Auto this session, destructive ops still protected", value: "full", onSelect: async (d) => { d.clear(); try { await sdk.fetch(modeUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "full" }) }) } catch {} } },
+            ]} />)
+        },
+      },
+      {
         name: "model.list",
         title: "Switch model",
         suggested: true,
