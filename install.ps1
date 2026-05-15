@@ -60,15 +60,10 @@ if (-not (Test-CodyProCheckout $root)) {
 Set-Location $root
 
 if (Test-Path (Join-Path $root ".git")) {
-  $dirty = git status --porcelain
-  if ($dirty) {
-    Write-Host "Local changes detected. Skipping git pull to avoid overwriting work."
-  } else {
-    Write-Host "Updating Cody Pro checkout..."
-    git pull --ff-only
-    if ($LASTEXITCODE -ne 0) {
-      Write-Host "git pull --ff-only failed. Continuing with the current checkout."
-    }
+  Write-Host "Updating Cody Pro checkout..."
+  git pull --ff-only
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host "git pull --ff-only failed. Continuing with the current checkout."
   }
 } else {
   Write-Host "No .git directory found. Skipping repository update."
