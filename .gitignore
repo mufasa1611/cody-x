@@ -44,3 +44,6 @@ CODY_STATUS.md
 CODY_TODO.md
 CODY_TEST_LOG.md
 CODY_LEGACY_AUDIT.md
+
+# Backup files
+*.bak
