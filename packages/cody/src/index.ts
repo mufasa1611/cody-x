@@ -58,13 +58,8 @@ const args = hideBin(process.argv)
 const cliName = process.env.CODY_PRO === "0" ? "cody" : "cody-pro"
 
 function show(out: string) {
-  const text = out.trimStart()
-  if (!text.startsWith(`${cliName} `)) {
-    process.stderr.write(UI.logo() + EOL + EOL)
-    process.stderr.write(text)
-    return
-  }
-  process.stderr.write(out)
+  process.stderr.write(UI.logo() + EOL + EOL)
+  process.stderr.write(out.trimStart())
 }
 
 const cli = yargs(args)
@@ -73,8 +68,6 @@ const cli = yargs(args)
   .wrap(100)
   .help("help", "show help")
   .alias("help", "h")
-  .version("version", "show version number", InstallationVersion)
-  .alias("version", "v")
   .option("print-logs", {
     describe: "print logs to stderr",
     type: "boolean",
@@ -199,6 +192,10 @@ try {
       if (!out) return
       show(out)
     })
+  } else if (args.includes("-v") || args.includes("--version")) {
+    process.stderr.write(UI.logo() + EOL + EOL)
+    process.stderr.write(InstallationVersion + EOL)
+    process.exit(0)
   } else {
     await cli.parse()
   }
