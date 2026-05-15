@@ -20,6 +20,13 @@ if exist "%USERPROFILE%\.bun\bin" set "PATH=%USERPROFILE%\.bun\bin;%PATH%"
 if exist "%USERPROFILE%\AppData\Roaming\npm" set "PATH=%USERPROFILE%\AppData\Roaming\npm;%PATH%"
 set "CODY_PRO=1"
 
+rem Auto-update: silently pull latest on every launch
+if exist "%ROOT%\.git" (
+  git config --global --add safe.directory "%ROOT%" >nul 2>nul
+  git pull --ff-only >nul 2>nul
+)
+
+
 set "CODY_DISCOVER_MODELS=1"
 for %%A in (%*) do (
   if /I "%%~A"=="--help" set "CODY_DISCOVER_MODELS=0"
