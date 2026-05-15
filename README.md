@@ -1,4 +1,4 @@
-﻿# Cody Pro
+# Cody Pro
 
 Cody Pro is a **local-first infrastructure and coding agent** built as an opencode-based fork.
 
@@ -24,6 +24,7 @@ Cody Pro is a **local-first infrastructure and coding agent** built as an openco
 - [Current Status](#current-status)
 - [Development](#development)
 - [Upstream Base](#upstream-base)
+- [Credits](#credits)
 - [Next Step](#next-step)
 
 ---
@@ -265,6 +266,16 @@ Upstream opencode code, package names, internal APIs, and some documentation pat
 
 ---
 
+## Credits
+
+Cody Pro would not exist without the incredible foundation laid by the [opencode team](https://github.com/opencode). Their work on a mature TypeScript/Bun runtime, TUI, session management, provider system, MCP, LSP, and SDK gave this project a running start.
+
+**Thank you** to everyone who has contributed to opencode — your architecture, attention to detail, and commitment to local-first development made Cody Pro possible.
+
+> [github.com/opencode](https://github.com/opencode) — the upstream project that Cody Pro is forked from.
+
+---
+
 ## Next Step
 
 ```powershell
@@ -277,3 +288,4 @@ Then check:
 - The default agent is `operator`.
 - Local models are available.
 - Any remaining visible opencode wording in the TUI is listed for the next branding pass.
+
