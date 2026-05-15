@@ -1,4 +1,4 @@
-﻿# Cody Pro Quickstart
+# Cody Pro Quickstart
 
 ## Start The TUI
 
@@ -8,18 +8,34 @@ Global command:
 cody-pro
 ```
 
-From the fork checkout:
+Install with one command from PowerShell:
+
+```powershell
+iwr https://raw.githubusercontent.com/mufasa1611/cody-pro/master/install.ps1 | iex
+```
+
+Or from CMD:
+
+```cmd
+powershell -NoP -c "iwr https://raw.githubusercontent.com/mufasa1611/cody-pro/master/install.ps1 | iex"
+```
+
+The installer clones the repository, checks Git/Node.js/Bun (installing missing tools with winget when possible), runs bun install, and creates the global cody-pro command.
+
+If you prefer to clone manually:
 
 ```powershell
 git clone https://github.com/mufasa1611/cody-pro.git
 cd cody-pro
 .\install.bat
+```
+
+From the checkout directory:
+
+```powershell
 .\cody-pro.cmd
 ```
 
-The installer checks Git, Node.js/npm, and Bun. If something is missing, it tries to install it, pulls the latest repo changes when the checkout is clean, installs dependencies, and creates the global `cody-pro` command.
-
-You can also download only `install.bat` and run it from anywhere. If it is not inside a Cody Pro checkout, it clones the repository to `%LOCALAPPDATA%\CodyPro\cody-pro` first.
 
 The fork config sets `operator` as the default primary agent, so this starts Cody Pro in operator mode from the repo root.
 
@@ -29,7 +45,7 @@ Equivalent Bun command:
 bun run cody-pro
 ```
 
-Cody Pro branding is the default in this fork, even when launching from `packages/opencode`. Set `CODY_PRO=0` only if you need to inspect the inherited upstream opencode branding.
+Cody Pro branding is the default in this fork, even when launching from `packages/opencode`. Set `CODY_PRO=0` only if you need to inspect the inherited upstream branding.
 
 Pass a project path if you want Cody Pro to open somewhere else:
 
@@ -43,7 +59,7 @@ Start with a primary agent:
 .\cody-pro.cmd --agent operator
 ```
 
-You can still explicitly choose an upstream opencode agent:
+You can still explicitly choose an upstream agent:
 
 ```powershell
 .\cody-pro.cmd --agent build
@@ -66,7 +82,7 @@ If the global command is missing, reinstall the local shim:
 
 ## Local Model Discovery
 
-On first normal startup, Cody Pro scans local drives for Ollama models and `.gguf` files, then writes a generated config:
+On first normal startup, Cody Pro discovers local Ollama models and `.gguf` files, then writes a generated config:
 
 ```text
 .opencode\generated\opencode.jsonc
@@ -90,8 +106,8 @@ Local model setup notes are in `CODY_LOCAL_MODELS.md`.
 
 ## Notes
 
-- `opencode` still works; `cody-pro` is an alias while the fork is being adapted.
-- The first launch may run opencode's local database migration.
+- The upstream `opencode` entry point also works for testing upstream behavior.
+- The first launch may run a local database migration.
 - Keep dangerous infra actions permission-gated. Cody Pro agents should inspect first and ask before mutating systems.
 
 

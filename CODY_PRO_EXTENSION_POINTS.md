@@ -1,6 +1,6 @@
-﻿# Cody Pro Extension Points
+# Cody Pro Extension Points
 
-This fork keeps opencode as the core runtime and adds Cody behavior around the supported local extension surfaces.
+This fork uses opencode as its runtime foundation and adds Cody behavior around the supported local extension surfaces.
 
 ## Active Extension Points
 
@@ -12,7 +12,7 @@ Location:
 <repo>\.opencode\agent\*.md
 ```
 
-Use this for Cody routing, safety policy, agent purpose, and default permissions. These files are loaded by opencode's agent config loader and do not require source patches.
+Use this for Cody routing, safety policy, agent purpose, and default permissions. These files are loaded by the agent config loader and do not require source patches.
 
 Current Cody agents:
 
@@ -34,7 +34,7 @@ Location:
 <repo>\.opencode\tool\*.ts
 ```
 
-Use this for Cody-specific capabilities that can be loaded as opencode tools. Tools should be narrow, structured, and explicit about read-only versus mutation behavior.
+Use this for Cody-specific capabilities that can be loaded as tools. Tools should be narrow, structured, and explicit about read-only versus mutation behavior.
 
 Current Cody tools:
 
@@ -85,7 +85,7 @@ Use this for Cody startup behavior before control reaches the Cody Pro CLI, incl
 
 ## Avoid For Now
 
-- Forking core opencode session logic unless an extension surface cannot support the Cody behavior.
+- Forking core session logic unless an extension surface cannot support the Cody behavior.
 - Adding mutation tools before read-only inspection has test coverage.
 - Editing generated model config by hand.
 

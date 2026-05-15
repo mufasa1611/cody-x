@@ -1,6 +1,6 @@
-﻿# Cody Pro Local Models
+# Cody Pro Local Models
 
-Cody Pro keeps opencode's provider system. Use these snippets when you want local/private models through Ollama, LM Studio, or another OpenAI-compatible server.
+Cody Pro keeps the upstream provider system. Use these snippets when you want local/private models through Ollama, LM Studio, or another OpenAI-compatible server.
 
 Do not paste all examples at once. Pick one provider and model that actually exists on your machine.
 
@@ -84,7 +84,7 @@ Launch Cody Pro with:
 - Keep `operator` as the default agent unless you are testing upstream agent behavior.
 - If tool calls fail with a local model, choose a model that supports tool calling or disable tool-heavy workflows.
 - If context is too small, increase the model/server context setting first, then update the `limit.context` value.
-- Cloud providers still work through opencode's normal `/connect` and `providers` commands.
+- Cloud providers still work through the normal /connect and providers commands.
 
 ## Auto Discovery
 
