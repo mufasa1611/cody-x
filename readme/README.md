@@ -1,4 +1,4 @@
-# Cody Pro Readme Archive
+﻿# Cody Pro Readme Archive
 
 The public Cody Pro README lives at the repository root:
 
@@ -6,4 +6,7 @@ The public Cody Pro README lives at the repository root:
 
 This folder keeps non-root README material so the repository root stays focused on Cody Pro.
 
-The `upstream/` folder contains short archive notes for translated README files inherited from the upstream opencode repository. They are not Cody Pro installation guides.
+The `upstream/` directory containing legacy translated stubs from the upstream opencode
+repository has been removed. All 21 files were identical English archive notices —
+no actual translations. The original upstream translations can be retrieved from the
+[opencode repository](https://github.com/opencode) if needed.
