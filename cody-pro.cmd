@@ -21,11 +21,11 @@ if exist "%USERPROFILE%\AppData\Roaming\npm" set "PATH=%USERPROFILE%\AppData\Roa
 set "CODY_PRO=1"
 
 rem Auto-update: silently pull latest on every launch
+rem Check for updates on every launch
 if exist "%ROOT%\.git" (
   git config --global --add safe.directory "%ROOT%" >nul 2>nul
-  git pull --ff-only >nul 2>nul
+  git pull --ff-only 2>nul
 )
-
 
 set "CODY_DISCOVER_MODELS=1"
 for %%A in (%*) do (
