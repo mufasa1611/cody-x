@@ -251,13 +251,6 @@ if not exist "%ROOT%\.git" (
 )
 
 pushd "%ROOT%"
-set "DIRTY="
-for /f "delims=" %%A in ('git status --porcelain') do set "DIRTY=1"
-if defined DIRTY (
-  echo [warn] Local changes detected. Skipping git pull to avoid overwriting work.
-  popd
-  exit /b 0
-)
 
 echo Updating Cody Pro checkout...
 git pull --ff-only
