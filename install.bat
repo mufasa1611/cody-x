@@ -81,6 +81,8 @@ if "%HAS_CHECKOUT%"=="1" (
   )
   set "ROOT=%DEFAULT_ROOT%"
   echo [ok] Cody Pro cloned to "%ROOT%".
+  echo [ok] Checking Git safe directory configuration...
+  git config --global --add safe.directory "%ROOT%" >nul 2>nul
 )
 
 call :UpdateCheckout
@@ -252,6 +254,8 @@ if not exist "%ROOT%\.git" (
 
 pushd "%ROOT%"
 
+rem Avoid Git dubious ownership error when clone runs under a different user context
+git config --global --add safe.directory "%ROOT%" >nul 2>nul
 echo Updating Cody Pro checkout...
 git pull --ff-only
 if %ERRORLEVEL% neq 0 (
