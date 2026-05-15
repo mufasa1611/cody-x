@@ -131,6 +131,7 @@ export interface Interface {
   readonly ask: (input: AskInput) => Effect.Effect<void, Error>
   readonly reply: (input: ReplyInput) => Effect.Effect<void>
   readonly list: () => Effect.Effect<ReadonlyArray<Request>>
+  readonly setMode: (mode: "restricted" | "standard" | "full") => Effect.Effect<void>
 }
 
 interface PendingEntry {
@@ -141,6 +142,7 @@ interface PendingEntry {
 interface State {
   pending: Map<PermissionID, PendingEntry>
   approved: Ruleset
+  mode: "restricted" | "standard" | "full"
 }
 
 export function evaluate(permission: string, pattern: string, ...rulesets: Ruleset[]): Rule {
@@ -161,6 +163,7 @@ export const layer = Layer.effect(
         const state = {
           pending: new Map<PermissionID, PendingEntry>(),
           approved: row?.data ?? [],
+          mode: "standard" as const,
         }
 
         yield* Effect.addFinalizer(() =>
@@ -178,12 +181,19 @@ export const layer = Layer.effect(
 
     const ask = Effect.fn("Permission.ask")(function* (input: AskInput) {
       const { approved, pending } = yield* InstanceState.get(state)
+      const mode = (yield* InstanceState.get(state)).mode
       const { ruleset, ...request } = input
       let needsAsk = false
 
       for (const pattern of request.patterns) {
         const rule = evaluate(request.permission, pattern, ruleset, approved)
         log.info("evaluated", { permission: request.permission, pattern, action: rule })
+        if (mode === "full" && request.permission === "edit") continue
+        if (mode === "restricted" && request.permission === "edit") {
+          return yield* new DeniedError({
+            ruleset: ruleset.filter((rule) => Wildcard.match(request.permission, rule.permission)),
+          })
+        }
         if (rule.action === "deny") {
           return yield* new DeniedError({
             ruleset: ruleset.filter((rule) => Wildcard.match(request.permission, rule.permission)),
@@ -276,7 +286,12 @@ export const layer = Layer.effect(
       return Array.from(pending.values(), (item) => item.info)
     })
 
-    return Service.of({ ask, reply, list })
+    const setMode = Effect.fn("Permission.setMode")(function* (mode: "restricted" | "standard" | "full") {
+      const s = yield* InstanceState.get(state)
+      s.mode = mode
+    })
+
+    return Service.of({ ask, reply, list, setMode })
   }),
 )
 

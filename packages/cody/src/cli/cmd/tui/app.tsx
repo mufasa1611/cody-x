@@ -21,6 +21,7 @@ import { win32DisableProcessedInput, win32InstallCtrlCGuard } from "./win32"
 import { Flag } from "@cody/core/flag/flag"
 import semver from "semver"
 import { DialogProvider, useDialog } from "@tui/ui/dialog"
+import { DialogSelect } from "@tui/ui/dialog-select"
 import { DialogProvider as DialogProviderList } from "@tui/component/dialog-provider"
 import { ErrorComponent } from "@tui/component/error-component"
 import { PluginRouteMissing } from "@tui/component/plugin-route-missing"
@@ -428,6 +429,21 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
             type: "home",
           })
           dialog.clear()
+        },
+      },
+      {
+        name: "permissions.setMode",
+        title: "Set permission level",
+        category: "System",
+        slashName: "permissions",
+        run: () => {
+          dialog.replace(() => <DialogSelect
+            title="Permission Level"
+            options={[
+              { title: "Restricted", description: "Read-only, no changes", value: "restricted" },
+              { title: "Standard", description: "Ask before mutations (default)", value: "standard" },
+              { title: "Full", description: "Auto this session, destructive ops still protected", value: "full" },
+            ]} />)
         },
       },
       {

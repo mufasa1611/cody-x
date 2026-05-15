@@ -69,5 +69,26 @@ export const PermissionRoutes = lazy(() =>
           const svc = yield* Permission.Service
           return yield* svc.list()
         }),
-    ),
+    )
+    .post(
+      "/mode",
+      describeRoute({
+        summary: "Set permission mode",
+        description: "Override permission level for the current session.",
+        operationId: "permission.setMode",
+        responses: {
+          200: {
+            description: "Mode set",
+          },
+        },
+      }),
+      validator("json", z.object({ mode: z.enum(["restricted", "standard", "full"]) })),
+      async (c) =>
+        jsonRequest("PermissionRoutes.setMode", c, function* () {
+          const { mode } = c.req.valid("json")
+          const svc = yield* Permission.Service
+          yield* svc.setMode(mode)
+          return { ok: true }
+        }),
+    )
 )
