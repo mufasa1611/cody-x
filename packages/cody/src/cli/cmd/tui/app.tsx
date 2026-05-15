@@ -432,21 +432,6 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
         },
       },
       {
-        name: "permissions.setMode",
-        title: "Set permission level",
-        category: "System",
-        slashName: "permissions",
-        run: () => {
-          dialog.replace(() => <DialogSelect
-            title="Permission Level"
-            options={[
-              { title: "Restricted", description: "Read-only, no changes", value: "restricted" },
-              { title: "Standard", description: "Ask before mutations (default)", value: "standard" },
-              { title: "Full", description: "Auto this session, destructive ops still protected", value: "full" },
-            ]} />)
-        },
-      },
-      {
         name: "model.list",
         title: "Switch model",
         suggested: true,
