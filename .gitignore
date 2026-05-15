@@ -47,3 +47,5 @@ CODY_LEGACY_AUDIT.md
 
 # Backup files
 *.bak
+# Personal planning
+personalize-todo-list.md
