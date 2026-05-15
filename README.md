@@ -25,7 +25,21 @@ Known gap:
 
 ## Start Cody Pro
 
-Clone the repo and run the Cody Pro installer:
+Install with one command from PowerShell (no files to download):
+
+```powershell
+iwr https://raw.githubusercontent.com/mufasa1611/cody-pro/master/install.ps1 | iex
+```
+
+Or from CMD:
+
+```cmd
+powershell -NoP -c "iwr https://raw.githubusercontent.com/mufasa1611/cody-pro/master/install.ps1 | iex"
+```
+
+The installer clones the repository, checks Git/Node.js/Bun (installing missing tools with `winget` when possible), runs `bun install`, and creates the global `cody-pro` command.
+
+If you prefer to clone manually first:
 
 ```powershell
 git clone https://github.com/mufasa1611/cody-pro.git
@@ -33,13 +47,7 @@ cd cody-pro
 .\install.bat
 ```
 
-Or download only `install.bat` and run it from anywhere. If it is not inside a Cody Pro checkout, it clones the repository to `%LOCALAPPDATA%\CodyPro\cody-pro` first.
-
-The Windows installer checks Git, Node.js/npm, and Bun. If something is missing, it tries to install it with `winget` or Bun's official installer. It clones the repo when needed, runs `git pull --ff-only` when the checkout is clean, installs dependencies, and creates the global `cody-pro` command.
-
-If Git is not installed, the installer tries to install Git with `winget` before cloning.
-
-From anywhere after the global shim is installed:
+Either way, once installed, run from anywhere:
 
 ```powershell
 cody-pro
@@ -91,7 +99,7 @@ script
 
 ## Local Model Discovery
 
-The Cody launcher scans local drives on first startup and generates local provider config at:
+On first launch the Cody launcher discovers Ollama and GGUF models and generates local provider config at:
 
 ```text
 .cody/generated/opencode.jsonc
