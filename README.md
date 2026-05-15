@@ -275,17 +275,3 @@ Cody Pro would not exist without the incredible foundation laid by the [opencode
 > [github.com/opencode](https://github.com/opencode) — the upstream project that Cody Pro is forked from.
 
 ---
-
-## Next Step
-
-```powershell
-cody-pro
-```
-
-Then check:
-
-- The startup banner reads **Cody Pro**.
-- The default agent is `operator`.
-- Local models are available.
-- Any remaining visible opencode wording in the TUI is listed for the next branding pass.
-
