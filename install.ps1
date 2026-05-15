@@ -56,10 +56,12 @@ if (-not (Test-CodyProCheckout $root)) {
     throw "Failed to clone Cody Pro from $repoUrl."
   }
 }
+git config --global --add safe.directory "$root" 2>$null
 
 Set-Location $root
 
 if (Test-Path (Join-Path $root ".git")) {
+git config --global --add safe.directory "$root" 2>$null
   Write-Host "Updating Cody Pro checkout..."
   git pull --ff-only
   if ($LASTEXITCODE -ne 0) {
