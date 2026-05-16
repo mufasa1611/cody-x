@@ -37,6 +37,29 @@ if (-not $scriptRoot) {
   $scriptRoot = (Get-Location).Path
 }
 
+# Self-update check: only when running from a local file (not piped from iex)
+if ($scriptPath -and -not $env:CODY_INSTALLER_SELF_UPDATED) {
+  $installerUrl = "https://raw.githubusercontent.com/mufasa1611/cody_pro/master/install.ps1"
+  try {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    $response = Invoke-WebRequest -UseBasicParsing -Uri $installerUrl
+    $currentContent = Get-Content -Raw -Path $scriptPath
+    if ($response.Content -ne $currentContent) {
+      Write-Host "[info] New installer found. Running latest installer from GitHub..."
+      $env:CODY_INSTALLER_SELF_UPDATED = "1"
+      $tmpFile = [System.IO.Path]::GetTempFileName() + ".ps1"
+      Set-Content -Path $tmpFile -Value $response.Content -Encoding UTF8
+      & powershell -NoProfile -ExecutionPolicy Bypass -File $tmpFile
+      $exitCode = $LASTEXITCODE
+      Remove-Item -Path $tmpFile -Force -ErrorAction SilentlyContinue
+      exit $exitCode
+    }
+    Write-Host "[ok] Installer is up to date."
+  } catch {
+    Write-Host "[warn] Could not check for installer updates: $($_.Exception.Message)"
+  }
+}
+
 $root = if (Test-CodyProCheckout $scriptRoot) { $scriptRoot } else { $defaultRoot }
 
 Ensure-Command "git" "Git.Git" "Git"

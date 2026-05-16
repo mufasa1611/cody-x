@@ -32,6 +32,7 @@ import { PrCommand } from "./cli/cmd/pr"
 import { SessionCommand } from "./cli/cmd/session"
 import { DbCommand } from "./cli/cmd/db"
 import path from "path"
+import { execSync } from "child_process"
 import { Global } from "@cody/core/global"
 import { JsonMigration } from "@/storage/json-migration"
 import { Database } from "@/storage/db"
@@ -57,6 +58,24 @@ process.on("uncaughtException", (e) => {
 
 const args = hideBin(process.argv)
 const cliName = process.env.CODY_PRO === "0" ? "cody" : "cody-pro"
+
+function tryAutoUpdate() {
+  try {
+    const repoRoot = execSync("git rev-parse --show-toplevel", { encoding: "utf8", timeout: 5000 }).trim()
+    if (!repoRoot) return
+    execSync("git fetch origin master --quiet", { cwd: repoRoot, encoding: "utf8", timeout: 15000 })
+    const behind = execSync("git rev-list --count HEAD..origin/master", { cwd: repoRoot, encoding: "utf8", timeout: 5000 }).trim()
+    if (behind === "0" || behind === "") return
+    process.stderr.write("\n  \x1B[1mUpdating Cody Pro...\x1B[22m\n")
+    execSync("git pull --ff-only", { cwd: repoRoot, encoding: "utf8", timeout: 30000 })
+    execSync("bun install", { cwd: repoRoot, encoding: "utf8", timeout: 120000 })
+    execSync("bun run build", { cwd: path.join(repoRoot, "packages", "app"), encoding: "utf8", timeout: 120000 })
+    process.stderr.write("  \x1B[32mUpdate complete. Restart Cody Pro to use the latest version.\x1B[0m\n")
+    process.exit(0)
+  } catch {
+    // Auto-update is best-effort; silently continue if anything fails
+  }
+}
 
 function show(out: string) {
   process.stderr.write(UI.logo() + EOL + EOL)
@@ -301,6 +320,7 @@ try {
   // Explicitly exit to avoid any hanging subprocesses.
   process.exit()
 }
+
 
 
 
