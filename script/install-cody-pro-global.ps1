@@ -3,8 +3,10 @@ $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
 $target = Join-Path $env:APPDATA "npm"
-$cmdShim = Join-Path $target "cody-pro.cmd"
-$psShim = Join-Path $target "cody-pro.ps1"
+$cmdShim = Join-Path $target "cody_pro.cmd"
+$psShim = Join-Path $target "cody_pro.ps1"
+$cmdShimLegacy = Join-Path $target "cody-pro.cmd"
+$psShimLegacy = Join-Path $target "cody-pro.ps1"
 
 if (-not (Test-Path (Join-Path $root "cody-pro.cmd"))) {
   throw "Cody Pro launcher not found at $root\cody-pro.cmd"
@@ -12,76 +14,42 @@ if (-not (Test-Path (Join-Path $root "cody-pro.cmd"))) {
 
 function Get-BunCommand {
   $cmd = Get-Command bun -ErrorAction SilentlyContinue
-  if ($cmd) {
-    return $cmd.Source
-  }
-
+  if ($cmd) { return $cmd.Source }
   $defaultBun = Join-Path $env:USERPROFILE ".bun\bin\bun.exe"
-  if (Test-Path $defaultBun) {
-    return $defaultBun
-  }
-
+  if (Test-Path $defaultBun) { return $defaultBun }
   $npmBun = Join-Path $env:APPDATA "npm\bun.cmd"
-  if (Test-Path $npmBun) {
-    return $npmBun
-  }
-
+  if (Test-Path $npmBun) { return $npmBun }
   return $null
 }
 
 function Add-UserPathEntry($entry) {
-  $full = [System.IO.Path]::GetFullPath($entry).TrimEnd('\')
+  $full = [System.IO.Path]::GetFullPath($entry).TrimEnd("\")
   $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
   $items = @()
-  if ($userPath) {
-    $items = $userPath -split ';' | Where-Object { $_ -and $_.Trim() }
-  }
-
+  if ($userPath) { $items = $userPath -split ";" | Where-Object { $_ -and $_.Trim() } }
   $exists = $false
   foreach ($item in $items) {
     $expanded = [Environment]::ExpandEnvironmentVariables($item)
-    try {
-      $normalized = [System.IO.Path]::GetFullPath($expanded).TrimEnd('\')
-    } catch {
-      $normalized = $expanded.TrimEnd('\')
-    }
-    if ($normalized.Equals($full, [System.StringComparison]::OrdinalIgnoreCase)) {
-      $exists = $true
-      break
-    }
+    try { $normalized = [System.IO.Path]::GetFullPath($expanded).TrimEnd("\") }
+    catch { $normalized = $expanded.TrimEnd("\") }
+    if ($normalized.Equals($full, [System.StringComparison]::OrdinalIgnoreCase)) { $exists = $true; break }
   }
-
   if (-not $exists) {
-    $next = @($items + $full) -join ';'
+    $next = @($items + $full) -join ";"
     [Environment]::SetEnvironmentVariable("Path", $next, "User")
-    Write-Host "Added Cody Pro command directory to user PATH:"
-    Write-Host "  $full"
-  } else {
-    Write-Host "Cody Pro command directory is already in user PATH:"
-    Write-Host "  $full"
+    Write-Host "Added Cody Pro command directory to user PATH: $full"
   }
-
-  $currentItems = @($env:PATH -split ';' | Where-Object { $_ -and $_.Trim() })
+  $currentItems = @($env:PATH -split ";" | Where-Object { $_ -and $_.Trim() })
   $inCurrent = $false
   foreach ($item in $currentItems) {
     $expanded = [Environment]::ExpandEnvironmentVariables($item)
-    try {
-      $normalized = [System.IO.Path]::GetFullPath($expanded).TrimEnd('\')
-    } catch {
-      $normalized = $expanded.TrimEnd('\')
-    }
-    if ($normalized.Equals($full, [System.StringComparison]::OrdinalIgnoreCase)) {
-      $inCurrent = $true
-      break
-    }
+    try { $normalized = [System.IO.Path]::GetFullPath($expanded).TrimEnd("\") }
+    catch { $normalized = $expanded.TrimEnd("\") }
+    if ($normalized.Equals($full, [System.StringComparison]::OrdinalIgnoreCase)) { $inCurrent = $true; break }
   }
-  if (-not $inCurrent) {
-    $env:PATH = "$full;$env:PATH"
-  }
-
+  if (-not $inCurrent) { $env:PATH = "$full;$env:PATH" }
   try {
-    if (-not ("CodyPro.NativeMethods" -as [type])) {
-      Add-Type @"
+    Add-Type @"
 using System;
 using System.Runtime.InteropServices;
 namespace CodyPro {
@@ -91,11 +59,10 @@ namespace CodyPro {
   }
 }
 "@
-    }
     $result = [UIntPtr]::Zero
     [CodyPro.NativeMethods]::SendMessageTimeout([IntPtr]0xffff, 0x1a, [UIntPtr]::Zero, "Environment", 0x0002, 5000, [ref]$result) | Out-Null
   } catch {
-    Write-Host "[warn] Could not broadcast PATH update. Open a new terminal if cody-pro is not recognized."
+    Write-Host "[warn] Could not broadcast PATH update. Open a new terminal if cody_pro is not recognized."
   }
 }
 
@@ -105,24 +72,26 @@ if (-not (Get-BunCommand)) {
 }
 
 $bun = Get-BunCommand
-if (-not $bun) {
-  throw "Bun installation did not produce a usable bun command. Install Bun from https://bun.sh and retry."
-}
+if (-not $bun) { throw "Bun installation did not produce a usable bun command." }
 
 Write-Host "Using Bun: $bun"
 New-Item -ItemType Directory -Force -Path $target | Out-Null
 
+# Create cody_pro command (proxy-enabled)
 @"
 @echo off
 setlocal
-
 set "CODY_ROOT=$root"
-
 if not exist "%CODY_ROOT%\cody-pro.cmd" (
   echo Cody Pro launcher not found at "%CODY_ROOT%\cody-pro.cmd".
   exit /b 1
 )
-
+:: Load proxy settings from .env
+if exist "%CODY_ROOT%\.env" (
+  for /f "usebackq tokens=*" %%a in ("%CODY_ROOT%\.env") do (
+    for /f "tokens=1,* delims==" %%b in ("%%a") do set "%%b=%%c"
+  )
+)
 call "%CODY_ROOT%\cody-pro.cmd" %*
 exit /b %ERRORLEVEL%
 "@ | Set-Content -Encoding ASCII -Path $cmdShim
@@ -131,24 +100,55 @@ exit /b %ERRORLEVEL%
 #!/usr/bin/env pwsh
 `$root = "$root"
 `$launcher = Join-Path `$root "cody-pro.cmd"
-
 if (-not (Test-Path `$launcher)) {
   Write-Error "Cody Pro launcher not found at `$launcher."
   exit 1
 }
-
+# Load proxy settings from .env
+`$envFile = Join-Path `$root ".env"
+if (Test-Path `$envFile) {
+  Get-Content `$envFile | ForEach-Object {
+    if (`$_ -match "^(\w+)=(.*)") {
+      [Environment]::SetEnvironmentVariable(`$matches[1], `$matches[2], "Process")
+    }
+  }
+}
 & `$launcher @args
 exit `$LASTEXITCODE
 "@ | Set-Content -Encoding ASCII -Path $psShim
 
-Write-Host "Installed global Cody Pro command:"
-Write-Host "  $cmdShim"
-Write-Host "  $psShim"
+# Also create cody-pro shim (no proxy, for compatibility)
+@"
+@echo off
+setlocal
+set "CODY_ROOT=$root"
+if not exist "%CODY_ROOT%\cody-pro.cmd" (
+  echo Cody Pro launcher not found at "%CODY_ROOT%\cody-pro.cmd".
+  exit /b 1
+)
+call "%CODY_ROOT%\cody-pro.cmd" %*
+exit /b %ERRORLEVEL%
+"@ | Set-Content -Encoding ASCII -Path $cmdShimLegacy
+
+@"
+#!/usr/bin/env pwsh
+`$root = "$root"
+`$launcher = Join-Path `$root "cody-pro.cmd"
+if (-not (Test-Path `$launcher)) {
+  Write-Error "Cody Pro launcher not found at `$launcher."
+  exit 1
+}
+& `$launcher @args
+exit `$LASTEXITCODE
+"@ | Set-Content -Encoding ASCII -Path $psShimLegacy
+
+Write-Host "Installed global commands:"
+Write-Host "  cody_pro  (with proxy from .env)"
+Write-Host "  cody-pro  (without proxy)"
 
 Add-UserPathEntry $target
 
-if (-not (Get-Command cody-pro -ErrorAction SilentlyContinue)) {
-  throw "Cody Pro shim was created, but cody-pro is still not available on PATH. Open a new terminal or run $cmdShim directly."
+if (-not (Get-Command cody_pro -ErrorAction SilentlyContinue)) {
+  throw "cody_pro shim was created but is not on PATH."
 }
-
-Write-Host "[ok] cody-pro is available on PATH."
+Write-Host "[ok] cody_pro is available on PATH."

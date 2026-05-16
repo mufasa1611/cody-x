@@ -1,8 +1,8 @@
 #!/usr/bin/env pwsh
 $ErrorActionPreference = "Stop"
 
-$repoUrl = "https://github.com/mufasa1611/cody-pro.git"
-$defaultRoot = Join-Path $env:LOCALAPPDATA "CodyPro\cody-pro"
+$repoUrl = "https://github.com/your-org/cody.git"
+$defaultRoot = Join-Path $env:LOCALAPPDATA "CodyPro\cody_pro"
 
 function Test-CodyProCheckout($path) {
   $packagePath = Join-Path $path "package.json"
@@ -17,18 +17,15 @@ function Ensure-Command($commandName, $wingetId, $label) {
     Write-Host "[ok] $label found."
     return
   }
-
   $winget = Get-Command winget -ErrorAction SilentlyContinue
   if (-not $winget) {
     throw "$label is required. Install $label or install winget, then rerun this installer."
   }
-
   Write-Host "$label not found. Installing $label with winget..."
   winget install --id $wingetId --exact --source winget --accept-package-agreements --accept-source-agreements
   if ($LASTEXITCODE -ne 0) {
     throw "Failed to install $label with winget."
   }
-
   $env:PATH = "$env:ProgramFiles\Git\cmd;$env:ProgramFiles\nodejs;$env:PATH"
   if (-not (Get-Command $commandName -ErrorAction SilentlyContinue)) {
     throw "$label was installed, but $commandName is not available in this terminal. Reopen the terminal and rerun this installer."
@@ -61,7 +58,6 @@ git config --global --add safe.directory "$root" 2>$null
 Set-Location $root
 
 if (Test-Path (Join-Path $root ".git")) {
-git config --global --add safe.directory "$root" 2>$null
   Write-Host "Updating Cody Pro checkout..."
   git pull --ff-only
   if ($LASTEXITCODE -ne 0) {
@@ -72,28 +68,14 @@ git config --global --add safe.directory "$root" 2>$null
 }
 
 Ensure-Command "node" "OpenJS.NodeJS.LTS" "Node.js LTS"
-if (Get-Command npm -ErrorAction SilentlyContinue) {
-  Write-Host "[ok] npm found."
-} else {
-  Write-Host "[warn] npm was not found after Node.js check. Cody Pro does not require npm for startup, but Node.js should normally provide it."
-}
 
 function Get-BunCommand {
   $cmd = Get-Command bun -ErrorAction SilentlyContinue
-  if ($cmd) {
-    return $cmd.Source
-  }
-
+  if ($cmd) { return $cmd.Source }
   $defaultBun = Join-Path $env:USERPROFILE ".bun\bin\bun.exe"
-  if (Test-Path $defaultBun) {
-    return $defaultBun
-  }
-
+  if (Test-Path $defaultBun) { return $defaultBun }
   $npmBun = Join-Path $env:APPDATA "npm\bun.cmd"
-  if (Test-Path $npmBun) {
-    return $npmBun
-  }
-
+  if (Test-Path $npmBun) { return $npmBun }
   return $null
 }
 
@@ -112,26 +94,25 @@ $env:PATH = "$bunDir;$env:PATH"
 
 Write-Host "Installing Cody Pro dependencies..."
 & $bun install
-if ($LASTEXITCODE -ne 0) {
-  exit $LASTEXITCODE
-}
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host "Installing global cody-pro command..."
+Write-Host "Creating .env with proxy settings..."
+$envContent = "HTTPS_PROXY=http://192.168.68.68:8888`r`nHTTP_PROXY=http://192.168.68.68:8888"
+Set-Content -Path (Join-Path $root ".env") -Value $envContent -Encoding UTF8
+
+Write-Host "Installing global cody_pro command..."
 & (Join-Path $root "script\install-cody-pro-global.ps1")
-if ($LASTEXITCODE -ne 0) {
-  exit $LASTEXITCODE
-}
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-if (-not (Get-Command cody-pro -ErrorAction SilentlyContinue)) {
+if (-not (Get-Command cody_pro -ErrorAction SilentlyContinue) -and -not (Get-Command cody-pro -ErrorAction SilentlyContinue)) {
   $shimDir = Join-Path $env:APPDATA "npm"
   $env:PATH = "$shimDir;$env:PATH"
 }
 
-if (-not (Get-Command cody-pro -ErrorAction SilentlyContinue)) {
-  throw "cody-pro was installed but is not available on PATH. Open a new terminal and retry."
-}
-
 Write-Host ""
-Write-Host "Cody Pro is installed."
+Write-Host "Cody Pro (proxy-enabled) is installed."
 Write-Host "Start it with:"
-Write-Host "  cody-pro"
+Write-Host "  cody_pro"
+Write-Host ""
+Write-Host "To update proxy settings, edit .env in:"
+Write-Host "  $root\.env"

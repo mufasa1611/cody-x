@@ -1,57 +1,170 @@
 # Cody Pro
 
-Cody Pro is a **local-first infrastructure and coding agent** built as an opencode-based fork.
+Cody Pro is a **local-first infrastructure and coding agent** built as an opencode-based fork with **built-in proxy support** for bypassing API rate limits.
 
-**From opencode we keep:** the mature TypeScript/Bun runtime, TUI, sessions, providers, permissions, plugins, MCP, LSP, SDK, and app structure.
-
-**Cody Pro adds:** local infrastructure agents, guarded read-only tools, local model discovery (Ollama + GGUF), safer operations workflows, and approval-gated mutation.
-
-> This repository is the active Cody Pro path. The older Cody v1 repo is only a legacy reference, not a runtime dependency.
+**What makes this fork different:** Pre-configured proxy stack (tinyproxy + Tor) to bypass OpenCode Zen free-tier rate limits by routing traffic through a different exit IP.
 
 ---
 
 ## Table of Contents
 
 - [Quick Start](#quick-start)
-- [What's Included](#whats-included)
-  - [Agents](#agents)
-  - [Guarded Tools](#guarded-tools)
-- [Local Model Discovery](#local-model-discovery)
-- [Repository Layout](#repository-layout)
+- [Proxy Setup](#proxy-setup)
+- [Rate Limit Bypass](#rate-limit-bypass)
 - [Installation](#installation)
-- [Update & Maintenance](#update--maintenance)
-- [Safety Model](#safety-model)
-- [Current Status](#current-status)
-- [Development](#development)
-- [Upstream Base](#upstream-base)
+- [Commands](#commands)
+- [What's Included](#whats-included)
+- [Permission Fix](#permission-fix)
+- [Repository Layout](#repository-layout)
 - [Credits](#credits)
-- [Next Step](#next-step)
 
 ---
 
 ## Quick Start
 
 ```powershell
-# Install with one command (no files to download)
-iwr https://raw.githubusercontent.com/mufasa1611/cody-pro/master/install.ps1 | iex
+# Clone and install
+git clone https://github.com/your-org/cody.git
+cd cody_pro
+.\install.bat
 
-# Run the TUI from anywhere
-cody-pro
+# Run with proxy enabled
+cody_pro
 ```
 
-Or if you already have the repo cloned:
+Or use the one-line installer:
 
 ```powershell
-.\cody-pro.cmd
+iwr https://raw.githubusercontent.com/mufasa1611/cody_pro/master/install.ps1 | iex
 ```
 
-Explicit operator launch:
+---
+
+## Proxy Setup
+
+This fork includes a **pre-configured proxy stack** to route OpenCode API traffic through a different exit IP:
+
+### Components
+
+| Component | Role |
+|-----------|------|
+| `tinyproxy` | HTTP proxy running on your server (port 8888) |
+| `Tor` | SOCKS5 proxy for automatic IP rotation |
+| `.env` | Auto-loaded by Bun to set `HTTPS_PROXY` |
+
+### Architecture
+
+```
+Windows (Cody Pro)
+  -> HTTPS_PROXY=http://your-server:8888
+    -> tinyproxy
+      -> Normal traffic: direct (your server IP)
+      -> opencode.ai: Tor upstream (random exit IP)
+```
+
+The `.env` file in the repo root sets the proxy environment variables automatically when running via Bun:
+
+```
+HTTPS_PROXY=http://192.168.68.68:8888
+HTTP_PROXY=http://192.168.68.68:8888
+```
+
+### Setting up your own proxy server
+
+1. Install tinyproxy on your server:
+
+```bash
+apt-get install tinyproxy
+```
+
+2. Configure tinyproxy to allow your local network (`/etc/tinyproxy/tinyproxy.conf`):
+
+```
+Allow 127.0.0.1
+Allow 192.168.0.0/16
+```
+
+3. (Optional) Add Tor upstream for automatic IP rotation:
+
+```
+upstream socks5 127.0.0.1:9050 ".opencode.ai"
+upstream socks5 127.0.0.1:9050 "api.opencode.ai"
+upstream socks5 127.0.0.1:9050 "app.opencode.ai"
+```
+
+4. Update `.env` with your proxy server IP.
+
+---
+
+## Rate Limit Bypass
+
+OpenCode Zen enforces free-tier rate limits based on IP address. This fork bypasses them by:
+
+1. **Routing traffic through a different IP** via tinyproxy
+2. **Automatic Tor fallback** when the direct proxy IP hits the limit
+3. **Tor rotates exit IPs** every ~10 minutes, giving fresh quota each time
+
+**How it works:**
+
+| Route | Exit IP | Latency |
+|-------|---------|---------|
+| Direct (default) | Your proxy server IP | ~0.1s |
+| Tor (fallback) | Random Tor exit node | ~0.6s |
+
+The tinyproxy config already has the Tor upstream rule in place. When the proxy IP hits OpenCode's limit, traffic automatically routes through Tor.
+
+---
+
+## Installation
+
+### One-line install
 
 ```powershell
-cody-pro --agent operator
+iwr https://raw.githubusercontent.com/mufasa1611/cody_pro/master/install.ps1 | iex
 ```
 
-> See [Installation](#installation) below for manual setup and full platform details.
+From CMD:
+
+```cmd
+powershell -NoP -c "iwr https://raw.githubusercontent.com/mufasa1611/cody_pro/master/install.ps1 | iex"
+```
+
+The installer:
+1. Clones this repository
+2. Checks Git/Bun (installs missing tools via winget)
+3. Runs `bun install`
+4. Creates `.env` with proxy settings
+5. Creates global `cody_pro` command
+
+### Manual install
+
+```powershell
+git clone https://github.com/your-org/cody.git
+cd cody_pro
+.\install.bat
+```
+
+### Update proxy settings
+
+Edit `.env` in the repo root:
+
+```
+HTTPS_PROXY=http://your-server:8888
+HTTP_PROXY=http://your-server:8888
+```
+
+---
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `cody_pro` | Run with proxy (auto-loads `.env`) |
+| `cody-pro` | Run without proxy (original behavior) |
+| `cody_pro --agent operator` | Run operator agent with proxy |
+| `cody-pro --agent operator` | Run operator agent without proxy |
+
+The installer creates `cody_pro` as the global command. The original `cody-pro` binary is also available.
 
 ---
 
@@ -69,18 +182,9 @@ cody-pro --agent operator
 | `systemd-operator` | Linux service inspection |
 | `proxmox-operator` | Proxmox node, guest, storage, and backup inspection |
 | `backup-operator` | Backup inventory and rollback planning |
-| `web-research` | Isolated web research with citations and no local/admin permissions |
-
-Check them with:
-
-```powershell
-cody-pro agent list
-cody-pro debug agent operator
-```
+| `web-research` | Isolated web research with citations |
 
 ### Guarded Tools
-
-All current Cody Pro tools are **read-only**:
 
 | Tool | Scope |
 |---|---|
@@ -90,188 +194,39 @@ All current Cody Pro tools are **read-only**:
 | `cody-systemd-inspect` | systemd version, failed units, services, timers, journal |
 | `cody-proxmox-inspect` | Proxmox nodes, guests, storage, snapshots, backups |
 | `cody-backup-inventory` | Backup summary, inventory, recent/large files, checksums |
-| `cody-web-search` | Web search via Bing with citations |
+| `cody-web-search` | Web search with citations |
 | `cody-web-read` | Web page fetch and text extraction |
 | `cody-source-summarize` | Compact source notes from provided text |
 | `cody-citation-format` | Format source notes into markdown citations |
 
-> There are no Cody mutation tools yet. Any future mutation tool must be separate from inspection tools, validated by explicit arguments, and approval-gated.
-
 ---
 
-## Local Model Discovery
+## Permission Fix
 
-On first launch the Cody launcher discovers Ollama and GGUF models and generates local provider config at:
+This fork includes a critical fix for the `/permissions` command.
 
-```
-.cody/generated/opencode.jsonc
-```
+**Bug:** Full permission mode was inverted ? it auto-allowed destructive `edit` operations but still asked for safe operations like `read`, `glob`, and `bash`.
 
-Generated providers: `ollama-local`, `llama-cpp-local`
+**Fix:** Full mode now correctly auto-allows non-destructive operations while still protecting destructive `edit` operations. Explicit "deny" rules are also respected in all modes.
 
-Smoke checks:
-
-```powershell
-cody-pro models ollama-local
-cody-pro models llama-cpp-local
-```
-
-Cloud providers are still available through opencode's normal provider system, but they are not required for local startup.
+**File:** `src/permission/index.ts`
 
 ---
 
 ## Repository Layout
 
-### Cody Pro documentation
-
-| File | Covers |
-|---|---|
-| [CODY_QUICKSTART.md](CODY_QUICKSTART.md) | First-use commands |
-| [CODY_LOCAL_MODELS.md](CODY_LOCAL_MODELS.md) | Local model setup (Ollama, GGUF) |
-| [CODY_INFRA_TOOLS.md](CODY_INFRA_TOOLS.md) | Guarded infra tool documentation |
-| [CODY_WEB_RESEARCH.md](CODY_WEB_RESEARCH.md) | Web research tool documentation |
-| [CODY_SAFETY_MODEL.md](CODY_SAFETY_MODEL.md) | Mutation and approval rules |
-| [CODY_EXTENSION_POINTS.md](CODY_EXTENSION_POINTS.md) | Where Cody extends opencode |
-| [CODY_PROVIDER_POLICY.md](CODY_PROVIDER_POLICY.md) | Local-first provider policy |
-| [CODY_INSTALL_UPDATE.md](CODY_INSTALL_UPDATE.md) | Local install and update policy |
-| [CHANGELOG.md](CHANGELOG.md) | Release notes |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines |
-| [SECURITY.md](SECURITY.md) | Security policies |
-
-### Source tree
-
 ```
-packages/cody/        — Core runtime (upstream monorepo)
-.cody/agent/          — Cody-specific agent definitions
-.cody/tool/           — Cody-specific tool implementations
-script/                   — Installer and utility scripts
-readme/                   — Archive and translated README material
+packages/cody/     ? Core runtime
+.cody/agent/       ? Agent definitions
+.cody/tool/        ? Tool implementations
+.env                   ? Proxy configuration (repo-specific)
+script/                ? Installer and utility scripts
+readme/                ? Archive README material
 ```
-
----
-
-## Installation
-
-### One-line install
-
-```powershell
-iwr https://raw.githubusercontent.com/mufasa1611/cody-pro/master/install.ps1 | iex
-```
-
-From CMD:
-
-```cmd
-powershell -NoP -c "iwr https://raw.githubusercontent.com/mufasa1611/cody-pro/master/install.ps1 | iex"
-```
-
-The installer clones the repository, checks Git/Node.js/Bun (installing missing tools with `winget` when possible), runs `bun install`, and creates a global `cody-pro` command.
-
-### Manual clone
-
-```powershell
-git clone https://github.com/mufasa1611/cody-pro.git
-cd cody-pro
-.\install.bat
-```
-
-### Platform notes
-
-| Platform | Install command | Global shim |
-|---|---|---|
-| Windows | `.\install.bat` | `%APPDATA%\npm\cody-pro.cmd` + `.ps1` |
-| macOS / Linux | `./install` | `<prefix>/bin/cody-pro` |
-
-On Windows, the installer also checks Node.js/npm for users who need the wider JavaScript toolchain, but Cody Pro startup uses Bun.
-
-### Verify installation
-
-```powershell
-cody-pro --help
-cody-pro debug agent operator
-```
-
----
-
-## Update & Maintenance
-
-The local checkout is the source of truth — clone it anywhere you want; the installer records that path in the generated global command.
-
-```powershell
-git pull --ff-only
-.\install.bat
-cd packages\opencode
-bun run typecheck
-```
-
----
-
-## Safety Model
-
-Cody Pro is local-first and conservative:
-
-- **Inspect** before changing anything.
-- Use **predefined read-only tools** before shell commands.
-- **Ask before** restart, delete, stop, reboot, restore, prune, credential changes, network exposure, or any other mutation.
-- Keep **web research isolated** from local/admin tools.
-- Keep **Cody v1 as a reference** only, not a dependency.
-
----
-
-## Current Status
-
-Cody Pro is usable for the first TUI test. Reliable gates:
-
-| Gate | Command / Check |
-|---|---|
-| CLI help | `cody-pro --help` shows Cody Pro banner |
-| Operator loads | `cody-pro debug agent operator` succeeds |
-| Ollama models | `cody-pro models ollama-local` lists models |
-| GGUF models | `cody-pro models llama-cpp-local` lists models |
-| Typecheck | `bun run typecheck` in `packages/opencode` passes |
-| Tool smoke tests | Focused Cody tool tests pass |
-
----
-
-## Development
-
-```powershell
-# Install dependencies
-.\install.bat
-
-# Typecheck the core Cody Pro runtime
-cd packages\opencode
-bun run typecheck
-
-# Run the pre-push monorepo typecheck
-cd ..\..
-bun turbo typecheck
-```
-
-Useful smoke tests:
-
-```powershell
-cody-pro --help
-cody-pro debug agent operator
-cody-pro debug agent windows-admin --tool cody-windows-inspect --params '"{\"check\":\"system\",\"timeoutSeconds\":10}"'
-cody-pro debug agent web-research --tool cody-web-read --params '"{\"url\":\"https://example.com\",\"timeoutSeconds\":10}"'
-```
-
----
-
-## Upstream Base
-
-Cody Pro is based on [opencode](https://github.com/opencode). We keep the upstream architecture intentionally because it is already mature and tested.
-
-Upstream opencode code, package names, internal APIs, and some documentation paths still exist where they are part of the runtime. Cody-specific behavior should be added through **agents, tools, plugins, provider config, commands, and launcher behavior** before changing deep core internals.
 
 ---
 
 ## Credits
 
-Cody Pro would not exist without the incredible foundation laid by the [opencode team](https://github.com/opencode). Their work on a mature TypeScript/Bun runtime, TUI, session management, provider system, MCP, LSP, and SDK gave this project a running start.
+Based on [opencode](https://github.com/opencode) ? the upstream TypeScript/Bun runtime for local-first coding agents.
 
-**Thank you** to everyone who has contributed to opencode — your architecture, attention to detail, and commitment to local-first development made Cody Pro possible.
-
-> [github.com/opencode](https://github.com/opencode) — the upstream project that Cody Pro is forked from.
-
----

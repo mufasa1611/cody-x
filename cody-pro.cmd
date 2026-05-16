@@ -20,7 +20,16 @@ if exist "%USERPROFILE%\.bun\bin" set "PATH=%USERPROFILE%\.bun\bin;%PATH%"
 if exist "%USERPROFILE%\AppData\Roaming\npm" set "PATH=%USERPROFILE%\AppData\Roaming\npm;%PATH%"
 set "CODY_PRO=1"
 
-rem Auto-update: silently pull latest on every launch
+rem Load proxy settings from .env if present
+if exist "%ROOT%.env" (
+  for /f "usebackq tokens=*" %%a in ("%ROOT%.env") do (
+    for /f "tokens=1,* delims==" %%b in ("%%a") do (
+      if not "%%b"=="" set "%%b=%%c"
+    )
+  )
+)
+
+rem Auto-update: silently pull latest from mufasa1611/cody_pro on every launch
 rem Check for updates on every launch
 if exist "%ROOT%\.git" (
   git config --global --add safe.directory "%ROOT%" >nul 2>nul

@@ -1,12 +1,12 @@
 @echo off
 setlocal EnableExtensions
 
-set "REPO_URL=https://github.com/mufasa1611/cody-pro.git"
-set "INSTALLER_URL=https://raw.githubusercontent.com/mufasa1611/cody-pro/master/install.bat"
+set "REPO_URL=https://github.com/your-org/cody.git"
+set "INSTALLER_URL=https://raw.githubusercontent.com/mufasa1611/cody_pro/master/install.bat"
 set "DEFAULT_PARENT=%LOCALAPPDATA%\CodyPro"
-set "DEFAULT_ROOT=%DEFAULT_PARENT%\cody-pro"
+set "DEFAULT_ROOT=%DEFAULT_PARENT%\cody_pro"
 set "GLOBAL_BIN=%APPDATA%\npm"
-set "GLOBAL_CMD=%GLOBAL_BIN%\cody-pro.cmd"
+set "GLOBAL_CMD=%GLOBAL_BIN%\cody_pro.cmd"
 set "ROOT=%~dp0"
 if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
 
@@ -25,7 +25,7 @@ if %ERRORLEVEL% neq 0 (
   goto AfterSelfUpdate
 )
 
-set "LATEST_INSTALLER=%TEMP%\cody-pro-install-latest-%RANDOM%%RANDOM%.bat"
+set "LATEST_INSTALLER=%TEMP%\cody_pro-install-latest-%RANDOM%%RANDOM%.bat"
 echo Checking for installer updates...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri '%INSTALLER_URL%' -OutFile '%LATEST_INSTALLER%'; exit 0 } catch { Write-Host ('[warn] Could not download latest installer: ' + $_.Exception.Message); exit 1 }"
 if %ERRORLEVEL% neq 0 (
@@ -119,6 +119,20 @@ if %ERRORLEVEL% neq 0 (
 )
 
 echo.
+echo Creating .env with proxy settings...
+if not exist "%ROOT%\.env" (
+  >"%ROOT%\.env" echo HTTPS_PROXY=http://192.168.68.68:8888
+  >>"%ROOT%\.env" echo HTTP_PROXY=http://192.168.68.68:8888
+  echo [ok] .env created with proxy settings.
+) else (
+  echo [ok] .env already exists.
+)
+if %ERRORLEVEL% neq 0 (
+  popd
+  exit /b %ERRORLEVEL%
+)
+
+echo.
 echo Installing global cody-pro command...
 powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\install-cody-pro-global.ps1"
 if %ERRORLEVEL% neq 0 (
@@ -127,9 +141,9 @@ if %ERRORLEVEL% neq 0 (
 )
 
 echo.
-echo Verifying cody-pro command...
+echo Verifying cody_pro command...
 if not exist "%GLOBAL_CMD%" (
-  echo [error] Global cody-pro command shim was not created.
+  echo [error] Global cody_pro command shim was not created.
   echo Expected command shim:
   echo   "%GLOBAL_CMD%"
   popd
@@ -144,7 +158,7 @@ for /f "delims=" %%A in ('where cody-pro 2^>nul') do (
 )
 if not defined FOUND_GLOBAL_CMD (
   popd
-  echo [error] cody-pro was installed but the global command directory is not on PATH.
+  echo [error] cody_pro was installed but the global command directory is not on PATH.
   echo Expected PATH entry:
   echo   "%GLOBAL_BIN%"
   echo Expected command shim:
@@ -154,21 +168,21 @@ if not defined FOUND_GLOBAL_CMD (
   popd
   exit /b 1
 )
-call cody-pro --help >nul 2>nul
+call cody_pro --help >nul 2>nul
 if %ERRORLEVEL% neq 0 (
   popd
-  echo [error] cody-pro was found on PATH but failed to start.
+  echo [error] cody_pro was found on PATH but failed to start.
   popd
   exit /b 1
 )
 popd
-echo [ok] cody-pro is ready on PATH.
+echo [ok] cody_pro is ready on PATH.
 
 popd
 echo.
 echo Cody Pro installation complete.
 echo Start Cody Pro with:
-echo   cody-pro
+echo   cody_pro
 set "FINAL_PATH=%GLOBAL_BIN%;%USERPROFILE%\.bun\bin;%PATH%"
 endlocal & set "PATH=%FINAL_PATH%"
 exit /b 0
