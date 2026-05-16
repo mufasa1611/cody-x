@@ -1,9 +1,8 @@
-@echo off
+﻿@echo off
 setlocal EnableExtensions
 
-set "REPO_URL=https://%GIT_TOKEN%@github.com/your-org/cody.git"
-set "INSTALLER_URL=https://api.github.com/repos/mufasa1611/cody_pro/contents/install.bat"
-set "GIT_TOKEN=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u8"
+set "REPO_URL=https://github.com/your-org/cody.git"
+set "INSTALLER_URL=https://raw.githubusercontent.com/mufasa1611/cody_pro/master/install.bat"
 set "DEFAULT_PARENT=%LOCALAPPDATA%\CodyPro"
 set "DEFAULT_ROOT=%DEFAULT_PARENT%\cody_pro"
 set "GLOBAL_BIN=%APPDATA%\npm"
@@ -28,7 +27,7 @@ if %ERRORLEVEL% neq 0 (
 
 set "LATEST_INSTALLER=%TEMP%\cody_pro-install-latest-%RANDOM%%RANDOM%.bat"
 echo Checking for installer updates...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $h=@{Authorization='Bearer %GIT_TOKEN%'; Accept='application/vnd.github.v3.raw'}; Invoke-WebRequest -UseBasicParsing -Uri '%INSTALLER_URL%' -Headers $h -OutFile '%LATEST_INSTALLER%'; exit 0 } catch { Write-Host ('[warn] Could not download latest installer: ' + $_.Exception.Message); exit 1 }"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri '%INSTALLER_URL%' -OutFile '%LATEST_INSTALLER%'; exit 0 } catch { Write-Host ('[warn] Could not download latest installer: ' + $_.Exception.Message); exit 1 }"
 if %ERRORLEVEL% neq 0 (
   del "%LATEST_INSTALLER%" >nul 2>nul
   echo [warn] Continuing with the current installer.

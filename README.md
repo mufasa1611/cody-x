@@ -36,7 +36,7 @@ cody_pro
 Or use the one-line installer:
 
 ```powershell
-$t="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u8"; iex (iwr -UseBasicParsing -Uri "https://api.github.com/repos/mufasa1611/cody_pro/contents/install.ps1" -Headers @{Authorization="Bearer $t"; Accept="application/vnd.github.v3.raw"}).Content
+iwr https://raw.githubusercontent.com/mufasa1611/cody_pro/master/install.ps1 | iex
 ```
 
 ---
@@ -121,13 +121,13 @@ The tinyproxy config already has the Tor upstream rule in place. When the proxy 
 ### One-line install
 
 ```powershell
-$t="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u8"; iex (iwr -UseBasicParsing -Uri "https://api.github.com/repos/mufasa1611/cody_pro/contents/install.ps1" -Headers @{Authorization="Bearer $t"; Accept="application/vnd.github.v3.raw"}).Content
+iwr https://raw.githubusercontent.com/mufasa1611/cody_pro/master/install.ps1 | iex
 ```
 
 From CMD:
 
 ```cmd
-powershell -NoP -c "$t=""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u8""; iex (iwr -UseBasicParsing -Uri ""https://api.github.com/repos/mufasa1611/cody_pro/contents/install.ps1"" -Headers @{Authorization=""Bearer $t""; Accept=""application/vnd.github.v3.raw""}).Content"
+powershell -NoP -c "iwr https://raw.githubusercontent.com/mufasa1611/cody_pro/master/install.ps1 | iex"
 ```
 
 The installer:
