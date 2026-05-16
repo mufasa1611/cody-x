@@ -193,7 +193,7 @@ export const layer = Layer.effect(
             ruleset: ruleset.filter((rule) => Wildcard.match(request.permission, rule.permission)),
           })
         }
-        if (mode === "full" && request.permission !== "edit") continue
+        if (mode === "full") continue
         if (mode === "restricted" && request.permission === "edit") {
           return yield* new DeniedError({
             ruleset: ruleset.filter((rule) => Wildcard.match(request.permission, rule.permission)),
