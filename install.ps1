@@ -100,6 +100,38 @@ Write-Host "Creating .env with proxy settings..."
 $envContent = "HTTPS_PROXY=http://192.168.68.68:8888`r`nHTTP_PROXY=http://192.168.68.68:8888"
 Set-Content -Path (Join-Path $root ".env") -Value $envContent -Encoding UTF8
 
+Write-Host ""
+Write-Host "Scanning for local Ollama and GGUF models..."
+Write-Host "  (this runs once during install so first launch is fast)"
+Write-Host ""
+
+# Run model discovery with progress output
+$env:CODY_MODEL_DISCOVERY_QUIET = "0"
+$discoverScript = Join-Path $root "script\discover-local-models.ps1"
+if (Test-Path $discoverScript) {
+  & powershell -NoProfile -ExecutionPolicy Bypass -File $discoverScript -Root $root
+  $reportPath = Join-Path (Join-Path $root ".opencode\generated") "cody-local-models.report.json"
+  if (Test-Path $reportPath) {
+    try {
+      $report = Get-Content $reportPath -Raw | ConvertFrom-Json
+      $ollamaCount = $report.ollamaModelCount
+      $ggufCount = $report.ggufModelCount
+      $total = $ollamaCount + $ggufCount
+      if ($total -gt 0) {
+        Write-Host "[ok] Found $total local models ($ollamaCount Ollama, $ggufCount GGUF)"
+        Write-Host "  Models will be available in Cody Pro provider list."
+      } else {
+        Write-Host "[info] No local models found. Install Ollama or download GGUF files to use local models."
+      }
+    } catch {
+      Write-Host "[warn] Could not read model discovery report."
+    }
+  }
+  Write-Host ""
+} else {
+  Write-Host "[warn] Model discovery script not found. Skipping."
+}
+
 Write-Host "Installing global cody_pro command..."
 & (Join-Path $root "script\install-cody-pro-global.ps1")
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

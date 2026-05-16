@@ -133,6 +133,20 @@ if %ERRORLEVEL% neq 0 (
 )
 
 echo.
+echo Scanning for local Ollama and GGUF models...
+echo This runs once during install so first launch is faster.
+if not exist "%ROOT%\.opencode\generated\opencode.jsonc" (
+  powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\discover-local-models.ps1" -Root "%ROOT%"
+  if exist "%ROOT%\.opencode\generated\cody-local-models.report.json" (
+    echo [ok] Model discovery complete.
+  ) else (
+    echo [info] No local models found.
+  )
+) else (
+  echo [ok] Model config already exists, skipping.
+)
+
+echo.
 echo Installing global cody-pro command...
 powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\install-cody-pro-global.ps1"
 if %ERRORLEVEL% neq 0 (

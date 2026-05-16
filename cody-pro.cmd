@@ -54,7 +54,10 @@ if not "%CODY_SKIP_MODEL_DISCOVERY%"=="1" if "%CODY_DISCOVER_MODELS%"=="1" (
 )
 
 if "%CODY_SHOULD_DISCOVER_MODELS%"=="1" (
+  echo [cody-pro] Scanning for local Ollama and GGUF models...
+  echo [cody-pro] This runs once so subsequent launches are faster.
   powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%script\discover-local-models.ps1" -Root "%ROOT:~0,-1%"
+  echo [cody-pro] Model scanning complete.
 )
 
 if not defined CODY_CONFIG_DIR (
