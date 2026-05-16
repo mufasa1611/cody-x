@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal EnableExtensions
 
 set "REPO_URL=https://github.com/your-org/cody.git"
@@ -113,6 +113,18 @@ echo.
 echo Installing Cody Pro dependencies...
 pushd "%ROOT%"
 call bun install
+
+echo.
+echo Building Web UI...
+pushd "%ROOT%\packages\app"
+call bun run build
+if %ERRORLEVEL% neq 0 (
+  popd
+  echo [warn] Web UI build failed, server will proxy to app.opencode.ai.
+  goto AfterWebBuild
+)
+popd
+:AfterWebBuild
 if %ERRORLEVEL% neq 0 (
   popd
   exit /b %ERRORLEVEL%

@@ -1,4 +1,4 @@
-$ErrorActionPreference = "Stop"
+﻿$ErrorActionPreference = "Stop"
 
 $repoUrl = "https://github.com/your-org/cody.git"
 $defaultRoot = Join-Path $env:LOCALAPPDATA "CodyPro\cody_pro"
@@ -93,6 +93,14 @@ $env:PATH = "$bunDir;$env:PATH"
 
 Write-Host "Installing Cody Pro dependencies..."
 & $bun install
+
+Write-Host "Building Web UI..."
+Push-Location (Join-Path $root "packages\app")
+& $bun run build
+if ($LASTEXITCODE -ne 0) {
+  Write-Host "[warn] Web UI build failed, server will proxy to app.opencode.ai."
+}
+Pop-Location
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "Creating .env with proxy settings..."

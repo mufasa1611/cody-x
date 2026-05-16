@@ -1,4 +1,4 @@
-import yargs from "yargs"
+﻿import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { RunCommand } from "./cli/cmd/run"
 import { GenerateCommand } from "./cli/cmd/generate"
@@ -253,7 +253,7 @@ try {
   } else if (args.length === 0) {
     // No command given — show launcher prompt with arrow keys
     const mode = await launcherPrompt()
-    await cli.parse([mode])
+    await cli.parse(mode === "run" ? ["run", "--interactive"] : [mode])
   } else {
     await cli.parse()
   }
@@ -301,5 +301,6 @@ try {
   // Explicitly exit to avoid any hanging subprocesses.
   process.exit()
 }
+
 
 
