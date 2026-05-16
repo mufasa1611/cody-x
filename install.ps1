@@ -1,4 +1,3 @@
-﻿#!/usr/bin/env pwsh
 $ErrorActionPreference = "Stop"
 
 $repoUrl = "https://github.com/your-org/cody.git"
