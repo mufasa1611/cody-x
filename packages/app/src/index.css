@@ -7,6 +7,18 @@
   font-style: normal;
 }
 
+/* Arabic / RTL font support */
+html[dir="rtl"] {
+  --font-family-sans: "Noto Naskh Arabic", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Auto-detect text direction in markdown content for Arabic support */
+[data-component="markdown"],
+[data-component="text-part"] [data-slot="text-part-body"],
+[data-component="user-message"] [data-slot="user-message-text"] {
+  text-align: start;
+}
+
 @layer components {
   @keyframes session-progress-whip {
     0% {

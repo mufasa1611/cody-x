@@ -1,15 +1,25 @@
-{
+﻿{
   "$schema": "https://cody.dev/config.json",
   "default_agent": "operator",
+  "agent": {
+    "operator": {
+      "description": "Infrastructure and server operations agent. Handles system administration, Docker, Proxmox, SSH, backups, and server configuration.",
+      "mode": "primary"
+    },
+    "explore": {
+      "description": "Fast agent specialized for exploring codebases. Use this when you need to quickly find files by patterns, search code for keywords, or answer questions about the codebase.",
+      "mode": "subagent"
+    }
+  },
   "provider": {},
   "permission": {
     "edit": {
-      "packages/cody/migration/*": "ask",
-    },
+      "packages/cody/migration/*": "ask"
+    }
   },
   "mcp": {},
   "tools": {
     "github-triage": false,
-    "github-pr-search": false,
-  },
+    "github-pr-search": false
+  }
 }

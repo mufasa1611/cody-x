@@ -13,6 +13,7 @@ Cody Pro is a **local-first infrastructure and coding agent** built as an openco
 - [Rate Limit Bypass](#rate-limit-bypass)
 - [Installation](#installation)
 - [Commands](#commands)
+- [Web UI](#web-ui)
 - [What's Included](#whats-included)
 - [Permission Fix](#permission-fix)
 - [Repository Layout](#repository-layout)
@@ -166,6 +167,63 @@ HTTP_PROXY=http://your-server:8888
 
 The installer creates `cody_pro` as the global command. The original `cody-pro` binary is also available.
 
+
+## Web UI
+
+Cody Pro includes a **full-featured web interface** that mirrors the TUI with a richer rendering engine, perfect for **Arabic and RTL language support**.
+
+### Features
+
+- **Full chat/session UI** — same message timeline, prompt composer, and review panel as the TUI
+- **Arabic & RTL support** — detects browser language, sets `dir="rtl"`, applies Noto Naskh Arabic font
+- **Auto-direction detection** — markdown content uses `unicode-bidi: plaintext` for mixed LTR/RTL text
+- **17 languages** — including full Arabic translations (846 translated strings)
+- **Terminal panel** — WebSocket PTY terminal embedded in the browser
+- **File browser** — browse, select, and preview files
+- **Diff review** — side-by-side or inline diff views
+- **Theme support** — light/dark themes with color scheme switching
+
+### How to launch
+
+**Option 1: Combined launcher (recommended)**
+
+```powershell
+cody_pro_web
+```
+
+Or run `cody-pro-web.cmd` from the repo:
+
+```powershell
+.\cody-pro-web.cmd
+```
+
+This starts both the server (port 4096) and the web UI (port 3000) in one command.
+
+**Option 2: Run separately**
+
+```powershell
+# Terminal 1: Start the TUI/server
+cody_pro
+
+# Terminal 2: Start the web UI
+bun dev:web    # opens at http://localhost:3000
+```
+
+### Arabic language support
+
+1. The web UI auto-detects your browser's language setting
+2. Set your browser to Arabic, or use the command palette (Ctrl+K) → Language → العربية
+3. The page will automatically:
+   - Set `dir="rtl"` for right-to-left layout
+   - Apply Noto Naskh Arabic font for beautiful Arabic script
+   - Display all UI text in Arabic (846 translated strings)
+   - Auto-detect text direction in messages (handles mixed Arabic/English)
+
+### Screenshots
+
+(Add screenshots here after testing)
+
+---
 ---
 
 ## What's Included

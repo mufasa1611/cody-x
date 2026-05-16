@@ -134,6 +134,8 @@
     border: 1px solid var(--border-weak-base);
     padding: 8px 12px;
     border-radius: 6px;
+    unicode-bidi: plaintext;
+    text-align: start;
 
     [data-highlight="file"] {
       color: var(--syntax-property);
@@ -213,6 +215,8 @@
 
   [data-slot="text-part-body"] {
     margin-top: 0;
+    unicode-bidi: plaintext;
+    text-align: start;
   }
 
   [data-slot="text-part-copy-wrapper"] {

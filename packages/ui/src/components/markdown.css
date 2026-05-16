@@ -1,4 +1,6 @@
 [data-component="markdown"] {
+  unicode-bidi: plaintext;
+  text-align: start;
   /* Reset & Base Typography */
   min-width: 0;
   max-width: 100%;
