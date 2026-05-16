@@ -2,7 +2,7 @@
 param(
   [string]$Root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path,
   [switch]$Refresh,
-  [int]$MaxSeconds = $(if ($env:CODY_MODEL_SCAN_MAX_SECONDS) { [int]$env:CODY_MODEL_SCAN_MAX_SECONDS } else { 180 })
+  [int]$MaxSeconds = $(if ($env:CODY_MODEL_SCAN_MAX_SECONDS) { [int]$env:CODY_MODEL_SCAN_MAX_SECONDS } else { 15 })
 )
 
 $ErrorActionPreference = "SilentlyContinue"
@@ -118,7 +118,7 @@ function Add-OllamaManifestModels([string]$ManifestRoot) {
       $modelParts = $modelParts[1..($modelParts.Length - 1)]
     }
     if (-not $modelParts -or $modelParts.Length -eq 0) { return }
-    Add-OllamaModel (("{0}:{1}" -f ($modelParts -join "/"), $tag)) "manifest:$($_.FullName)"
+    Add-OllamaModel ("{0}:{1}" -f ($modelParts -join "/"), $tag) "manifest:$($_.FullName)"
   }
 }
 
@@ -167,47 +167,43 @@ function Find-OllamaModels {
 
 function Find-GgufModels {
   Show-CodyScan "scanning fixed drives for *.gguf files; max seconds: $MaxSeconds"
-  $skipNames = @(
-    "Windows",
-    "Program Files",
-    "Program Files (x86)",
-    "System Volume Information",
-    '$Recycle.Bin',
-    "Recovery",
-    "node_modules",
-    ".git",
-    ".svn",
-    ".hg",
-    ".turbo",
-    "target"
-  )
+  $skipNames = New-Object 'System.Collections.Generic.HashSet[string]'
+  @(
+    "Windows", "Program Files", "Program Files (x86)", "System Volume Information",
+    '$Recycle.Bin', "Recovery", "node_modules", ".git", ".svn", ".hg",
+    ".turbo", "target", "__pycache__", "site-packages", ".cache", ".conda",
+    "AppData", "ProgramData", "cache", "dist-info", "venv", ".venv", "env",
+    ".env", "bun", "npm", "pip", "share", "include", "lib", "libs",
+    "Conda", "conda", "PKG-INFO", ".github", ".vscode", "extensions",
+    "common7", "CommonExtensions", "VSSDK", "MSBuild", "dotnet",
+    "WindowsPowerShell", "PowerShell", "System32", "SysWOW64",
+    "assembly", "GAC", "WinMetadata",
+    "fontconfig", "freetype", "icu", "harfbuzz",
+    ".cargo", "registry", ".rustup",
+    ".openclaw", ".codex", "codex", "plugins", "vendor_imports",
+    "anything-llm", "crew-agent", "conda_envs",
+    "pinokio", "store", "files", "index-v5"
+  ) | ForEach-Object { [void]$skipNames.Add($_) }
 
   $queue = New-Object 'System.Collections.Generic.Queue[string]'
-  $driveRoots = New-Object 'System.Collections.Generic.List[string]'
   Get-PSDrive -PSProvider FileSystem | ForEach-Object {
     if ($_.Root -match '^[A-Za-z]:\\$' -and (Test-Path $_.Root)) {
       $queue.Enqueue($_.Root)
-      $driveRoots.Add($_.Root)
     }
   }
-  Show-CodyScan ("drives queued: " + ($driveRoots -join ", "))
+  Show-CodyScan ("drives queued: " + ($queue -join ", "))
 
   $visited = 0
-  $currentDrive = ""
   while ($queue.Count -gt 0) {
     if (Test-Expired) {
-      $notes.Add("GGUF scan stopped after $MaxSeconds seconds. Set CODY_MODEL_SCAN_MAX_SECONDS=0 and CODY_REFRESH_MODELS=1 for an unlimited refresh.")
+      $notes.Add("GGUF scan stopped after $MaxSeconds seconds.")
       break
     }
 
     $dir = $queue.Dequeue()
     $visited++
-    $drive = [System.IO.Path]::GetPathRoot($dir)
-    if ($drive -ne $currentDrive) {
-      $currentDrive = $drive
-      Show-CodyScan "scanning drive $currentDrive"
-    } elseif (($visited % 250) -eq 0) {
-      Show-CodyScan "scanning: $dir (visited $visited folders, found $($ggufModels.Count) GGUF models)"
+    if (($visited % 500) -eq 0) {
+      Show-CodyScan "visited $visited folders, found $($ggufModels.Count) GGUF models"
     }
 
     Get-ChildItem -LiteralPath $dir -File -Filter "*.gguf" -Force -ErrorAction SilentlyContinue | ForEach-Object {
@@ -215,11 +211,14 @@ function Find-GgufModels {
     }
 
     Get-ChildItem -LiteralPath $dir -Directory -Force -ErrorAction SilentlyContinue | ForEach-Object {
-      if ($skipNames -contains $_.Name) { return }
+      if ($skipNames.Contains($_.Name)) { return }
       if ($_.Attributes -band [System.IO.FileAttributes]::ReparsePoint) { return }
       $queue.Enqueue($_.FullName)
     }
   }
+  
+  $elapsed = [math]::Round(((Get-Date) - $started).TotalSeconds, 1)
+  Show-CodyScan "GGUF scan done: $ggufModels.Count models found, visited $visited folders in ${elapsed}s"
 }
 
 Show-CodyScan "starting first-run local model discovery"
@@ -269,5 +268,6 @@ $report = [ordered]@{
 
 $config | ConvertTo-Json -Depth 20 | Set-Content -Encoding UTF8 -Path $configPath
 $report | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 -Path $reportPath
-Show-CodyScan "done. Ollama models: $($ollamaModels.Count), GGUF models: $($ggufModels.Count)"
+$elapsed = [math]::Round(((Get-Date) - $started).TotalSeconds, 1)
+Show-CodyScan "done in ${elapsed}s. Ollama: $($ollamaModels.Count), GGUF: $($ggufModels.Count) models"
 Show-CodyScan "model config written to: $configPath"
