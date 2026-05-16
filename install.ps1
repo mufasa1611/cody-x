@@ -1,4 +1,4 @@
-$ErrorActionPreference = "Stop"
+﻿$ErrorActionPreference = "Stop"
 
 $repoUrl = "https://github.com/your-org/cody.git"
 $defaultRoot = Join-Path $env:LOCALAPPDATA "CodyPro\cody_pro"
@@ -160,6 +160,35 @@ if (Test-Path $discoverScript) {
   Write-Host ""
 } else {
   Write-Host "[warn] Model discovery script not found. Skipping."
+}
+
+
+Write-Host "Setting default model to cody/big-pickle..."
+$generatedDir = Join-Path $root ".opencode\generated"
+$defaultModelFile = Join-Path $generatedDir "opencode.json"
+if (-not (Test-Path $defaultModelFile)) {
+  $json = @"
+{
+  "$schema": "https://cody.dev/config.json",
+  "model": "cody/big-pickle",
+  "provider": {
+    "cody": {
+      "models": {
+        "big-pickle": {
+          "name": "Big Pickle",
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "cost": { "input": 0, "output": 0 },
+          "limit": { "context": 200000, "output": 128000 }
+        }
+      }
+    }
+  }
+}
+"@
+  Set-Content -Path $defaultModelFile -Value $json -Encoding UTF8
+  Write-Host "[ok] Default model configured: cody/big-pickle"
 }
 
 Write-Host "Installing global cody_pro command..."
