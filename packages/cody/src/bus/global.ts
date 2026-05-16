@@ -18,7 +18,7 @@ class GlobalBusEmitter extends EventEmitter<{
         event.payload.id = event.payload.syncEvent?.id ?? Identifier.create("evt", "ascending")
       }
     }
-    return super.emit(eventName, ...args)
+    return (super.emit as any)(eventName, ...args)
   }
 }
 
