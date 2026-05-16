@@ -5,8 +5,6 @@ $root = Split-Path -Parent $PSScriptRoot
 $target = Join-Path $env:APPDATA "npm"
 $cmdShim = Join-Path $target "cody_pro.cmd"
 $psShim = Join-Path $target "cody_pro.ps1"
-$cmdShimLegacy = Join-Path $target "cody-pro.cmd"
-$psShimLegacy = Join-Path $target "cody-pro.ps1"
 
 if (-not (Test-Path (Join-Path $root "cody-pro.cmd"))) {
   throw "Cody Pro launcher not found at $root\cody-pro.cmd"
@@ -121,8 +119,8 @@ exit `$LASTEXITCODE
 
 Write-Host "Installed global commands:"
 Write-Host "  cody_pro  (with proxy from .env)"
-Write-Host "  cody-pro  (without proxy)"
-
+Write-Host "  cody_pro   (from X:\cody_pro, with proxy from .env)"
+Write-Host "  cody-pro   (unchanged, from D:\cody-pro, without proxy)"
 Add-UserPathEntry $target
 
 if (-not (Get-Command cody_pro -ErrorAction SilentlyContinue)) {

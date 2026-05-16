@@ -1,7 +1,9 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 $ErrorActionPreference = "Stop"
 
-$repoUrl = "https://github.com/your-org/cody.git"
+$gitToken = "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u8"
+
+$repoUrl = "https://${gitToken}@github.com/your-org/cody.git"
 $defaultRoot = Join-Path $env:LOCALAPPDATA "CodyPro\cody_pro"
 
 function Test-CodyProCheckout($path) {
@@ -38,6 +40,29 @@ if (-not $scriptRoot) {
   $scriptRoot = (Get-Location).Path
 }
 
+# Self-update check: only when running from a local file (not piped from iex)
+if ($scriptPath -and -not $env:CODY_INSTALLER_SELF_UPDATED) {
+  $installerApiUrl = "https://api.github.com/repos/mufasa1611/cody_pro/contents/install.ps1"
+  try {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    $authHeader = @{Authorization = "Bearer $gitToken"; Accept = "application/vnd.github.v3.raw"}
+    $response = Invoke-WebRequest -UseBasicParsing -Uri $installerApiUrl -Headers $authHeader
+    $currentContent = Get-Content -Raw -Path $scriptPath
+    if ($response.Content -ne $currentContent) {
+      Write-Host "[info] New installer found. Running latest installer from GitHub..."
+      $env:CODY_INSTALLER_SELF_UPDATED = "1"
+      $tmpFile = [System.IO.Path]::GetTempFileName() + ".ps1"
+      Set-Content -Path $tmpFile -Value $response.Content -Encoding UTF8
+      & powershell -NoProfile -ExecutionPolicy Bypass -File $tmpFile
+      $exitCode = $LASTEXITCODE
+      Remove-Item -Path $tmpFile -Force -ErrorAction SilentlyContinue
+      exit $exitCode
+    }
+    Write-Host "[ok] Installer is up to date."
+  } catch {
+    Write-Host "[warn] Could not check for installer updates: $($_.Exception.Message)"
+  }
+}
 $root = if (Test-CodyProCheckout $scriptRoot) { $scriptRoot } else { $defaultRoot }
 
 Ensure-Command "git" "Git.Git" "Git"
@@ -97,7 +122,7 @@ Write-Host "Installing Cody Pro dependencies..."
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "Creating .env with proxy settings..."
-$envContent = "HTTPS_PROXY=http://192.168.68.68:8888`r`nHTTP_PROXY=http://192.168.68.68:8888"
+$envContent = "HTTPS_PROXY=http://192.168.68.68:8888`r`nHTTP_PROXY=http://192.168.68.68:8888`r`nNO_PROXY=localhost,127.0.0.1,::1"
 Set-Content -Path (Join-Path $root ".env") -Value $envContent -Encoding UTF8
 
 Write-Host ""
@@ -148,3 +173,6 @@ Write-Host "  cody_pro"
 Write-Host ""
 Write-Host "To update proxy settings, edit .env in:"
 Write-Host "  $root\.env"
+
+
+

@@ -1,4 +1,4 @@
-import { sentryVitePlugin } from "@sentry/vite-plugin"
+﻿import { sentryVitePlugin } from "@sentry/vite-plugin"
 import { defineConfig } from "vite"
 import desktopPlugin from "./vite"
 
@@ -19,15 +19,28 @@ const sentry =
       })
     : false
 
+const CODY_PORT = process.env.CODY_PORT || 9999
+
 export default defineConfig({
   plugins: [desktopPlugin, sentry] as any,
   server: {
     host: "0.0.0.0",
     allowedHosts: true,
     port: 3000,
+    proxy: {
+      "/api": {
+        target: `http://localhost:${CODY_PORT}`,
+        changeOrigin: true,
+      },
+      "/socket.io": {
+        target: `ws://localhost:${CODY_PORT}`,
+        ws: true,
+      },
+    },
   },
   build: {
     target: "esnext",
     sourcemap: true,
+    chunkSizeWarningLimit: 2000,
   },
 })

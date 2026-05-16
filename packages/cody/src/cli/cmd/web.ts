@@ -1,4 +1,4 @@
-import { Effect } from "effect"
+﻿import { Effect } from "effect"
 import { Server } from "../../server/server"
 import { UI } from "../ui"
 import { effectCmd } from "../effect-cmd"
@@ -38,7 +38,7 @@ export const WebCommand = effectCmd({
   // ambient project InstanceContext needed at startup.
   instance: false,
   handler: Effect.fn("Cli.web")(function* (args) {
-    if (!Flag.CODY_SERVER_PASSWORD) {
+    if (!Flag.CODY_SERVER_PASSWORD && process.env.CODY_PRO !== "1") {
       UI.println(UI.Style.TEXT_WARNING_BOLD + "!  CODY_SERVER_PASSWORD is not set; server is unsecured.")
     }
     const opts = yield* resolveNetworkOptions(args)

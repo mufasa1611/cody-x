@@ -1,8 +1,9 @@
 @echo off
 setlocal EnableExtensions
 
-set "REPO_URL=https://github.com/your-org/cody.git"
-set "INSTALLER_URL=https://raw.githubusercontent.com/mufasa1611/cody_pro/master/install.bat"
+set "REPO_URL=https://%GIT_TOKEN%@github.com/your-org/cody.git"
+set "INSTALLER_URL=https://api.github.com/repos/mufasa1611/cody_pro/contents/install.bat"
+set "GIT_TOKEN=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u8"
 set "DEFAULT_PARENT=%LOCALAPPDATA%\CodyPro"
 set "DEFAULT_ROOT=%DEFAULT_PARENT%\cody_pro"
 set "GLOBAL_BIN=%APPDATA%\npm"
@@ -27,7 +28,7 @@ if %ERRORLEVEL% neq 0 (
 
 set "LATEST_INSTALLER=%TEMP%\cody_pro-install-latest-%RANDOM%%RANDOM%.bat"
 echo Checking for installer updates...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri '%INSTALLER_URL%' -OutFile '%LATEST_INSTALLER%'; exit 0 } catch { Write-Host ('[warn] Could not download latest installer: ' + $_.Exception.Message); exit 1 }"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $h=@{Authorization='Bearer %GIT_TOKEN%'; Accept='application/vnd.github.v3.raw'}; Invoke-WebRequest -UseBasicParsing -Uri '%INSTALLER_URL%' -Headers $h -OutFile '%LATEST_INSTALLER%'; exit 0 } catch { Write-Host ('[warn] Could not download latest installer: ' + $_.Exception.Message); exit 1 }"
 if %ERRORLEVEL% neq 0 (
   del "%LATEST_INSTALLER%" >nul 2>nul
   echo [warn] Continuing with the current installer.
@@ -124,17 +125,20 @@ if not exist "%ROOT%\.env" (
   >"%ROOT%\.env" echo HTTPS_PROXY=http://192.168.68.68:8888
   >>"%ROOT%\.env" echo HTTP_PROXY=http://192.168.68.68:8888
   echo [ok] .env created with proxy settings.
+  >>"%ROOT%\.env" echo NO_PROXY=localhost,127.0.0.1,::1
 ) else (
-  echo [ok] .env already exists.
+  findstr /B /C:"NO_PROXY=" "%ROOT%\.env" >nul 2>nul
+  if errorlevel 1 (
+    >>"%ROOT%\.env" echo NO_PROXY=localhost,127.0.0.1,::1
+    echo [ok] Added NO_PROXY to existing .env.
+  ) else (
+    echo [ok] .env already has NO_PROXY.
+  )
 )
 if %ERRORLEVEL% neq 0 (
   popd
   exit /b %ERRORLEVEL%
 )
-
-echo.
-echo Scanning for local Ollama and GGUF models...
-echo This runs once during install so first launch is faster.
 if not exist "%ROOT%\.opencode\generated\opencode.jsonc" (
   powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\discover-local-models.ps1" -Root "%ROOT%"
   if exist "%ROOT%\.opencode\generated\cody-local-models.report.json" (
@@ -147,8 +151,8 @@ if not exist "%ROOT%\.opencode\generated\opencode.jsonc" (
 )
 
 echo.
-echo Installing global cody-pro command...
-powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\install-cody-pro-global.ps1"
+echo.
+echo Installing global cody_pro command...
 if %ERRORLEVEL% neq 0 (
   popd
   exit /b %ERRORLEVEL%
@@ -291,3 +295,4 @@ if %ERRORLEVEL% neq 0 (
 )
 popd
 exit /b 0
+
