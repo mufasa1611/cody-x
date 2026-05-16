@@ -117,30 +117,7 @@ if (Test-Path `$envFile) {
 exit `$LASTEXITCODE
 "@ | Set-Content -Encoding ASCII -Path $psShim
 
-# Also create cody-pro shim (no proxy, for compatibility)
-@"
-@echo off
-setlocal
-set "CODY_ROOT=$root"
-if not exist "%CODY_ROOT%\cody-pro.cmd" (
-  echo Cody Pro launcher not found at "%CODY_ROOT%\cody-pro.cmd".
-  exit /b 1
-)
-call "%CODY_ROOT%\cody-pro.cmd" %*
-exit /b %ERRORLEVEL%
-"@ | Set-Content -Encoding ASCII -Path $cmdShimLegacy
-
-@"
-#!/usr/bin/env pwsh
-`$root = "$root"
-`$launcher = Join-Path `$root "cody-pro.cmd"
-if (-not (Test-Path `$launcher)) {
-  Write-Error "Cody Pro launcher not found at `$launcher."
-  exit 1
-}
-& `$launcher @args
-exit `$LASTEXITCODE
-"@ | Set-Content -Encoding ASCII -Path $psShimLegacy
+# Only cody_pro is created from this repo (cody-pro is the original D: installation)
 
 Write-Host "Installed global commands:"
 Write-Host "  cody_pro  (with proxy from .env)"
