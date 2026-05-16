@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 setlocal EnableExtensions
 
 set "REPO_URL=https://github.com/your-org/cody.git"

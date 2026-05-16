@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Stop"
 
 $repoUrl = "https://github.com/your-org/cody.git"
 $defaultRoot = Join-Path $env:LOCALAPPDATA "CodyPro\cody_pro"
