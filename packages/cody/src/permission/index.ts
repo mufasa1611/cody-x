@@ -188,13 +188,13 @@ export const layer = Layer.effect(
       for (const pattern of request.patterns) {
         const rule = evaluate(request.permission, pattern, ruleset, approved)
         log.info("evaluated", { permission: request.permission, pattern, action: rule })
-        if (mode === "full" && request.permission === "edit") continue
-        if (mode === "restricted" && request.permission === "edit") {
+        if (rule.action === "deny") {
           return yield* new DeniedError({
             ruleset: ruleset.filter((rule) => Wildcard.match(request.permission, rule.permission)),
           })
         }
-        if (rule.action === "deny") {
+        if (mode === "full" && request.permission !== "edit") continue
+        if (mode === "restricted" && request.permission === "edit") {
           return yield* new DeniedError({
             ruleset: ruleset.filter((rule) => Wildcard.match(request.permission, rule.permission)),
           })
