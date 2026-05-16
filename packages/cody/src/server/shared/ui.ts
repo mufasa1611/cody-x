@@ -3,12 +3,35 @@ import { AppFileSystem } from "@cody/core/filesystem"
 import { Effect, Stream } from "effect"
 import { HttpBody, HttpClient, HttpClientRequest, HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
 import { createHash } from "node:crypto"
+import { existsSync, readdirSync } from "node:fs"
+import { resolve, join } from "node:path"
 import { ProxyUtil } from "../proxy-util"
+
+function localDevUIFiles(): Record<string, string> | null {
+  const distDir = resolve(import.meta.dirname, "../../../../../packages/app/dist")
+  if (!existsSync(distDir)) return null
+
+  const files: Record<string, string> = {}
+  const scan = (dir: string, prefix: string) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.name.endsWith(".map")) continue
+      const rel = prefix ? `${prefix}/${entry.name}` : entry.name
+      const abs = join(dir, entry.name)
+      if (entry.isDirectory()) {
+        scan(abs, rel)
+      } else {
+        files[rel] = abs
+      }
+    }
+  }
+  scan(distDir, "")
+  return Object.keys(files).length > 0 ? files : null
+}
 
 const embeddedUIPromise = Flag.CODY_DISABLE_EMBEDDED_WEB_UI
   ? Promise.resolve(null)
   : // @ts-expect-error - generated file at build time
-    import("opencode-web-ui.gen.ts").then((module) => module.default as Record<string, string>).catch(() => null)
+    import("opencode-web-ui.gen.ts").then((module) => module.default as Record<string, string>).catch(() => localDevUIFiles())
 
 export const UI_UPSTREAM = new URL("https://app.opencode.ai")
 
@@ -33,8 +56,6 @@ function requestBody(request: HttpServerRequest.HttpServerRequest) {
 
 function proxyResponseHeaders(headers: Record<string, string>) {
   const result = new Headers(headers)
-  // FetchHttpClient exposes decoded response bodies, so forwarding upstream
-  // transfer metadata makes browsers decode already-decoded assets again.
   result.delete("content-encoding")
   result.delete("content-length")
   result.delete("transfer-encoding")
