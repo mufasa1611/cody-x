@@ -18,15 +18,15 @@ try {
             $startPos = $host.UI.RawUI.CursorPosition
             $first = $false
         }
-        Write-Host "`n  ${esc}[1mCody Pro Launcher${esc}[22m`n"
+        Write-Host "`n  Cody Pro Launcher`n"
         for ($i = 0; $i -lt $options.Length; $i++) {
             if ($i -eq $selected) {
-                Write-Host "  ${esc}[7m${arrow} $($options[$i])${esc}[27m"
+                Write-Host "  ${arrow} $($options[$i])"
             } else {
                 Write-Host "    $($options[$i])"
             }
         }
-        Write-Host "`n  (${esc}[1m${up}${esc}[22m/${esc}[1m${down}${esc}[22m to move, ${esc}[1mEnter${esc}[22m to select)"
+        Write-Host "`n  ($up/$down to move, Enter to select)"
         $key = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
         if ($key.VirtualKeyCode -eq 38) { $selected = ($selected - 1 + $options.Length) % $options.Length }
         elseif ($key.VirtualKeyCode -eq 40) { $selected = ($selected + 1) % $options.Length }
