@@ -116,15 +116,26 @@ $env:PATH = "$bunDir;$env:PATH"
 
 Write-Host "Installing Cody Pro dependencies..."
 & $bun install
+if ($LASTEXITCODE -ne 0) {
+  Write-Host ""
+  Write-Host "[error] Bun install failed (exit code $LASTEXITCODE)." -ForegroundColor Red
+  Write-Host "  This project has many dependencies (~2700 packages) and may need more memory." -ForegroundColor Yellow
+  Write-Host "  Try one of these:" -ForegroundColor Yellow
+  Write-Host "    1. Increase your Windows page file size, then rerun" -ForegroundColor Yellow
+  Write-Host "    2. Run:  $bun install --no-optional" -ForegroundColor Yellow
+  Write-Host "    3. Run:  $bun install --frozen-lockfile" -ForegroundColor Yellow
+  Write-Host "  Then rerun this installer." -ForegroundColor Yellow
+  exit 1
+}
 
 Write-Host "Building Web UI..."
 Push-Location (Join-Path $root "packages\app")
 & $bun run build
-if ($LASTEXITCODE -ne 0) {
+$buildExit = $LASTEXITCODE
+Pop-Location
+if ($buildExit -ne 0) {
   Write-Host "[warn] Web UI build failed, server will proxy to app.opencode.ai."
 }
-Pop-Location
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "Creating .env with proxy settings..."
 $envContent = "HTTPS_PROXY=http://192.168.68.68:8888`r`nHTTP_PROXY=http://192.168.68.68:8888`r`nNO_PROXY=localhost,127.0.0.1,::1"
