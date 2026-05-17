@@ -87,7 +87,9 @@ if "%CODY_CHOICE%"=="1" (
   echo [cody-pro] Building web UI...
   call "%BUN%" run --cwd "%ROOT%packages\app" build
   echo [cody-pro] Starting web UI...
+  pushd "%ROOT%"
   call "%BUN%" run cody-pro web
+  popd
 ) else (
   call "%BUN%" run --cwd "%ROOT%packages\opencode" --conditions=browser src\index.ts
 )
