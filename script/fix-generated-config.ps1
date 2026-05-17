@@ -1,4 +1,5 @@
-$root = if ($args -and (Test-Path $args[0])) { $args[0] } else { Join-Path $PSScriptRoot ".." }
+param([string]$Root)
+if (-not $Root -or -not (Test-Path $Root)) { $Root = Join-Path $PSScriptRoot ".." }
 $genDir = Join-Path $root ".opencode\generated"
 $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
