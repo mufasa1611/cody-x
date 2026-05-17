@@ -266,8 +266,9 @@ $report = [ordered]@{
   notes = @($notes)
 }
 
-$config | ConvertTo-Json -Depth 20 | Set-Content -Encoding UTF8 -Path $configPath
-$report | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 -Path $reportPath
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json -Depth 20), $utf8NoBom)
+[System.IO.File]::WriteAllText($reportPath, ($report | ConvertTo-Json -Depth 10), $utf8NoBom)
 $elapsed = [math]::Round(((Get-Date) - $started).TotalSeconds, 1)
 Show-CodyScan "done in ${elapsed}s. Ollama: $($ollamaModels.Count), GGUF: $($ggufModels.Count) models"
 Show-CodyScan "model config written to: $configPath"
