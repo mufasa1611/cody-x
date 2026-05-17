@@ -76,8 +76,9 @@ if not "%*"=="" (
   exit /b %ERRORLEVEL%
 )
 
-rem Arrow-key launcher menu
-for /f "delims=" %%S in ('powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%script\launcher.ps1" -Root "%ROOT%"') do set "CODY_CHOICE=%%S"
+rem Arrow-key launcher menu (exit code = choice, Write-Host goes direct to console)
+powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%script\launcher.ps1" -Root "%ROOT%"
+set "CODY_CHOICE=%ERRORLEVEL%"
 
 rem 255 = Escape pressed, exit silently
 if "%CODY_CHOICE%"=="255" exit /b 0
