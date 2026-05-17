@@ -48,12 +48,8 @@ for %%A in (%*) do (
 
 set "CODY_GENERATED_CONFIG=%ROOT%.opencode\generated\opencode.jsonc"
 
-rem Auto-fix: strip UTF-8 BOM from generated config if present
-if exist "%CODY_GENERATED_CONFIG%" (
-  powershell -NoProfile -Command ^
-    "$f='%CODY_GENERATED_CONFIG%';$b=[System.IO.File]::ReadAllBytes($f);" ^
-    "if($b.Length-ge3 -and $b[0]-eq0xEF -and $b[1]-eq0xBB -and $b[2]-eq0xBF){[System.IO.File]::WriteAllText($f,[Text.Encoding]::UTF8.GetString($b,3,$b.Length-3),[Text.UTF8Encoding]::new($false));echo '[cody-pro] Fixed BOM in generated config'}"
-)
+rem Auto-fix: strip UTF-8 BOM and repair empty keys in generated config
+powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%script\fix-generated-config.ps1"
 
 set "CODY_SHOULD_DISCOVER_MODELS=0"
 if not "%CODY_SKIP_MODEL_DISCOVERY%"=="1" if "%CODY_DISCOVER_MODELS%"=="1" (

@@ -167,7 +167,7 @@ Write-Host "Setting default model to cody/big-pickle..."
 $generatedDir = Join-Path $root ".opencode\generated"
 $defaultModelFile = Join-Path $generatedDir "opencode.json"
 if (-not (Test-Path $defaultModelFile)) {
-  $json = @"
+  $json = @'
 {
   "$schema": "https://cody.dev/config.json",
   "model": "cody/big-pickle",
@@ -186,8 +186,8 @@ if (-not (Test-Path $defaultModelFile)) {
     }
   }
 }
-"@
-  Set-Content -Path $defaultModelFile -Value $json -Encoding UTF8
+'@
+  [System.IO.File]::WriteAllText($defaultModelFile, $json, [System.Text.UTF8Encoding]::new($false))
   Write-Host "[ok] Default model configured: cody/big-pickle"
 }
 
