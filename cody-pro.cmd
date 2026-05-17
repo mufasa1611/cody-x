@@ -29,11 +29,11 @@ if exist "%ROOT%.env" (
   )
 )
 
-rem Auto-update: silently pull latest from mufasa1611/cody_pro on every launch
-rem Check for updates on every launch
+rem Auto-update: pull latest from mufasa1611/cody_pro on every launch
 if exist "%ROOT%\.git" (
   git config --global --add safe.directory "%ROOT%" >nul 2>nul
-  git pull --ff-only 2>nul
+  echo [cody-pro] Checking for updates...
+  git pull --ff-only
 )
 
 set "CODY_DISCOVER_MODELS=1"
