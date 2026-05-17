@@ -21,7 +21,7 @@ echo.
 if "%CODY_INSTALLER_SELF_UPDATED%"=="1" goto AfterSelfUpdate
 
 where powershell >nul 2>nul
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
   echo [warn] PowerShell not found. Skipping installer self-update check.
   goto AfterSelfUpdate
 )
@@ -30,14 +30,14 @@ set "LATEST_INSTALLER=%TEMP%\cody_pro-install-latest-%RANDOM%%RANDOM%.bat"
 if "%CODY_INSTALLER_SELF_UPDATE%"=="0" goto AfterSelfUpdate
 echo Checking for installer updates...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri '%INSTALLER_URL%' -OutFile '%LATEST_INSTALLER%'; exit 0 } catch { Write-Host ('[warn] Could not download latest installer: ' + $_.Exception.Message); exit 1 }"
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
   del "%LATEST_INSTALLER%" >nul 2>nul
   echo [warn] Continuing with the current installer.
   goto AfterSelfUpdate
 )
 
 fc /b "%~f0" "%LATEST_INSTALLER%" >nul 2>nul
-if %ERRORLEVEL%==0 (
+if not errorlevel 1 (
   del "%LATEST_INSTALLER%" >nul 2>nul
   echo [ok] Installer is up to date.
   goto AfterSelfUpdate
@@ -47,14 +47,14 @@ echo [info] New installer found. Running latest installer from GitHub...
 set "CODY_INSTALLER_SELF_UPDATED=1"
 set "CODY_INSTALL_ROOT=%ROOT%"
 call "%LATEST_INSTALLER%" %*
-set "LATEST_INSTALLER_EXIT=%ERRORLEVEL%"
+set "LATEST_INSTALLER_EXIT=!ERRORLEVEL!"
 del "%LATEST_INSTALLER%" >nul 2>nul
 exit /b %LATEST_INSTALLER_EXIT%
 
 :AfterSelfUpdate
 
 where winget >nul 2>nul
-if %ERRORLEVEL%==0 (
+if not errorlevel 1 (
   set "HAS_WINGET=1"
 ) else (
   set "HAS_WINGET=0"
@@ -77,11 +77,11 @@ if "%HAS_CHECKOUT%"=="1" (
   )
   if not exist "%DEFAULT_PARENT%" mkdir "%DEFAULT_PARENT%" >nul 2>nul
   git clone --branch "%CODY_BRANCH%" "%REPO_URL%" "%DEFAULT_ROOT%"
-  if %ERRORLEVEL% neq 0 (
+  if errorlevel 1 (
     echo [warn] Branch "%CODY_BRANCH%" clone failed. Retrying default branch...
     git clone "%REPO_URL%" "%DEFAULT_ROOT%"
   )
-  if %ERRORLEVEL% neq 0 (
+  if errorlevel 1 (
     echo [error] Failed to clone Cody Pro from "%REPO_URL%".
     exit /b 1
   )
@@ -97,7 +97,7 @@ call :EnsureCommand node "OpenJS.NodeJS.LTS" "Node.js LTS"
 if errorlevel 1 exit /b 1
 
 where npm >nul 2>nul
-if %ERRORLEVEL%==0 (
+if not errorlevel 1 (
   echo [ok] npm found.
 ) else (
   echo [warn] npm was not found after Node.js check. Cody Pro does not require npm for startup, but Node.js should normally provide it.
@@ -109,7 +109,7 @@ if errorlevel 1 exit /b 1
 set "PATH=%USERPROFILE%\.bun\bin;%APPDATA%\npm;%ProgramFiles%\nodejs;%PATH%"
 
 where bun >nul 2>nul
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
   echo [error] Bun is still not available on PATH.
   echo Close and reopen the terminal, then rerun install.bat.
   exit /b 1
@@ -119,8 +119,8 @@ echo.
 echo Installing Cody Pro dependencies...
 pushd "%ROOT%"
 call bun install
-if %ERRORLEVEL% neq 0 (
-  set "BUN_INSTALL_EXIT=%ERRORLEVEL%"
+if errorlevel 1 (
+  set "BUN_INSTALL_EXIT=!ERRORLEVEL!"
   echo.
   echo [warn] Bun install failed with exit code !BUN_INSTALL_EXIT!. Retrying with --no-optional...
   call bun install --no-optional
@@ -132,7 +132,8 @@ if %ERRORLEVEL% neq 0 (
     echo   Try increasing the Windows page file size, then rerun install.bat.
     echo   You can also run: bun install --frozen-lockfile
     popd
-    exit /b !BUN_INSTALL_RETRY_EXIT!
+    set "CODY_FATAL_EXIT=!BUN_INSTALL_RETRY_EXIT!"
+    goto FatalExit
   )
   echo [ok] Dependencies installed with --no-optional.
 )
@@ -141,7 +142,7 @@ echo.
 echo Building Web UI...
 pushd "%ROOT%\packages\app"
 call bun run build
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
   popd
   echo [warn] Web UI build failed, server will proxy to app.opencode.ai.
   goto AfterWebBuild
@@ -185,9 +186,10 @@ echo.
 echo.
 echo Installing global cody_pro command...
 powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\install-cody-pro-global.ps1"
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
+  set "CODY_FATAL_EXIT=!ERRORLEVEL!"
   popd
-  exit /b %ERRORLEVEL%
+  goto FatalExit
 )
 
 echo.
@@ -219,7 +221,7 @@ if not defined FOUND_GLOBAL_CMD (
   exit /b 1
 )
 call cody_pro --help >nul 2>nul
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
   popd
   echo [error] cody_pro was found on PATH but failed to start.
   popd
@@ -237,13 +239,16 @@ set "FINAL_PATH=%GLOBAL_BIN%;%USERPROFILE%\.bun\bin;%PATH%"
 endlocal & set "PATH=%FINAL_PATH%"
 exit /b 0
 
+:FatalExit
+exit /b !CODY_FATAL_EXIT!
+
 :EnsureCommand
 set "CMD_NAME=%~1"
 set "WINGET_ID=%~2"
 set "LABEL=%~3"
 
 where "%CMD_NAME%" >nul 2>nul
-if %ERRORLEVEL%==0 (
+if not errorlevel 1 (
   echo [ok] %LABEL% found.
   exit /b 0
 )
@@ -252,13 +257,13 @@ echo [missing] %LABEL% not found.
 if "%HAS_WINGET%"=="1" (
   echo Installing %LABEL% with winget...
   winget install --id "%WINGET_ID%" --exact --source winget --accept-package-agreements --accept-source-agreements
-  if %ERRORLEVEL% neq 0 (
+  if errorlevel 1 (
     echo [error] Failed to install %LABEL% with winget.
     exit /b 1
   )
   set "PATH=%ProgramFiles%\Git\cmd;%ProgramFiles%\nodejs;%PATH%"
   where "%CMD_NAME%" >nul 2>nul
-  if %ERRORLEVEL%==0 (
+  if not errorlevel 1 (
     echo [ok] %LABEL% installed.
     exit /b 0
   )
@@ -270,7 +275,7 @@ exit /b 1
 
 :EnsureBun
 where bun >nul 2>nul
-if %ERRORLEVEL%==0 (
+if not errorlevel 1 (
   echo [ok] Bun found.
   exit /b 0
 )
@@ -290,14 +295,14 @@ if exist "%APPDATA%\npm\bun.cmd" (
 echo [missing] Bun not found.
 echo Installing Bun for the current user...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://bun.sh/install.ps1 | iex"
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
   echo [error] Failed to install Bun.
   exit /b 1
 )
 
 set "PATH=%USERPROFILE%\.bun\bin;%APPDATA%\npm;%PATH%"
 where bun >nul 2>nul
-if %ERRORLEVEL%==0 (
+if not errorlevel 1 (
   echo [ok] Bun installed.
   exit /b 0
 )
@@ -322,7 +327,7 @@ rem Avoid Git dubious ownership error when clone runs under a different user con
 git config --global --add safe.directory "%ROOT%" >nul 2>nul
 echo Updating Cody Pro checkout...
 git pull --ff-only
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
   echo [warn] git pull --ff-only failed. Continuing with the current checkout.
 )
 popd

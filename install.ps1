@@ -249,15 +249,30 @@ if (-not (Test-Path $defaultModelFile)) {
 }
 
 Write-Host "Installing global cody_pro command..."
-powershell -NoProfile -ExecutionPolicy Bypass -File "$(Join-Path $root 'script\install-cody-pro-global.ps1')"
-if ($LASTEXITCODE -ne 0) {
-  Write-Host "[warn] Global command installation failed. You can run it manually:" -ForegroundColor Yellow
-  Write-Host '  powershell -NoProfile -ExecutionPolicy Bypass -File "$root\script\install-cody-pro-global.ps1"' -ForegroundColor Yellow
+$globalInstaller = Join-Path $root "script\install-cody-pro-global.ps1"
+$globalInstall = Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $globalInstaller) -Wait -PassThru -NoNewWindow
+$globalInstallExit = $globalInstall.ExitCode
+if ($globalInstallExit -ne 0) {
+  Write-Host "[error] Global command installation failed. You can run it manually:" -ForegroundColor Red
+  Write-Host "  powershell -NoProfile -ExecutionPolicy Bypass -File `"$globalInstaller`"" -ForegroundColor Yellow
+  exit $globalInstallExit
 }
 
-if (-not (Get-Command cody_pro -ErrorAction SilentlyContinue) -and -not (Get-Command cody-pro -ErrorAction SilentlyContinue)) {
-  $shimDir = Join-Path $env:APPDATA "npm"
+$shimDir = Join-Path $env:APPDATA "npm"
+if (-not (Get-Command cody_pro -ErrorAction SilentlyContinue)) {
   $env:PATH = "$shimDir;$env:PATH"
+}
+
+if (-not (Get-Command cody_pro -ErrorAction SilentlyContinue)) {
+  Write-Host "[error] cody_pro was installed but is not available on PATH." -ForegroundColor Red
+  Write-Host "  Expected PATH entry: $shimDir" -ForegroundColor Yellow
+  exit 1
+}
+
+& cody_pro --help *> $null
+if ($LASTEXITCODE -ne 0) {
+  Write-Host "[error] cody_pro was found on PATH but failed to start." -ForegroundColor Red
+  exit $LASTEXITCODE
 }
 
 Write-Host ""
