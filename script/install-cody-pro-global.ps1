@@ -118,9 +118,7 @@ exit `$LASTEXITCODE
 # Only cody_pro is created from this repo (cody-pro is the original D: installation)
 
 Write-Host "Installed global commands:"
-Write-Host "  cody_pro  (with proxy from .env)"
-Write-Host "  cody_pro   (from X:\cody_pro, with proxy from .env)"
-Write-Host "  cody-pro   (unchanged, from D:\cody-pro, without proxy)"
+  Write-Host "  cody_pro  (from $root, with proxy from .env)"
 Add-UserPathEntry $target
 
 if (-not (Get-Command cody_pro -ErrorAction SilentlyContinue)) {

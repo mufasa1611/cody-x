@@ -118,14 +118,33 @@ Write-Host "Installing Cody Pro dependencies..."
 & $bun install
 if ($LASTEXITCODE -ne 0) {
   Write-Host ""
-  Write-Host "[error] Bun install failed (exit code $LASTEXITCODE)." -ForegroundColor Red
-  Write-Host "  This project has many dependencies (~2700 packages) and may need more memory." -ForegroundColor Yellow
-  Write-Host "  Try one of these:" -ForegroundColor Yellow
-  Write-Host "    1. Increase your Windows page file size, then rerun" -ForegroundColor Yellow
-  Write-Host "    2. Run:  $bun install --no-optional" -ForegroundColor Yellow
-  Write-Host "    3. Run:  $bun install --frozen-lockfile" -ForegroundColor Yellow
-  Write-Host "  Then rerun this installer." -ForegroundColor Yellow
-  exit 1
+  Write-Host "[warn] Bun install failed (exit code $LASTEXITCODE). Retrying with --no-optional..." -ForegroundColor Yellow
+  & $bun install --no-optional
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "[error] Bun install failed again." -ForegroundColor Red
+    Write-Host "  This project has many dependencies (~2700 packages) and may need more memory." -ForegroundColor Yellow
+    Write-Host "  Try one of these:" -ForegroundColor Yellow
+    Write-Host "    1. Increase your Windows page file size, then rerun" -ForegroundColor Yellow
+    Write-Host "    2. Run:  $bun install --frozen-lockfile" -ForegroundColor Yellow
+    Write-Host "  Then rerun this installer." -ForegroundColor Yellow
+    exit 1
+  }
+  Write-Host "[ok] Dependencies installed (with --no-optional)."
+}
+
+# Warn about native module compilation if VS Build Tools are missing
+$vsWhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+$hasVCTools = $false
+if (Test-Path $vsWhere) {
+  $vcCheck = & $vsWhere -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -products * 2>$null
+  if ($vcCheck) { $hasVCTools = $true }
+}
+if (-not $hasVCTools) {
+  Write-Host "[info] Visual Studio C++ Build Tools not detected." -ForegroundColor DarkGray
+  Write-Host "  Native modules (tree-sitter-powershell) may fail to compile. This is optional." -ForegroundColor DarkGray
+  Write-Host "  For full PowerShell syntax highlighting, install VS Build Tools:" -ForegroundColor DarkGray
+  Write-Host "    winget install Microsoft.VisualStudio.2022.BuildTools --override `"--add Microsoft.VisualStudio.Workload.VCTools --passive`"" -ForegroundColor DarkGray
 }
 
 Write-Host "Building Web UI..."
@@ -203,8 +222,11 @@ if (-not (Test-Path $defaultModelFile)) {
 }
 
 Write-Host "Installing global cody_pro command..."
-& (Join-Path $root "script\install-cody-pro-global.ps1")
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+powershell -NoProfile -ExecutionPolicy Bypass -File "$(Join-Path $root 'script\install-cody-pro-global.ps1')"
+if ($LASTEXITCODE -ne 0) {
+  Write-Host "[warn] Global command installation failed. You can run it manually:" -ForegroundColor Yellow
+  Write-Host "  powershell -NoProfile -ExecutionPolicy Bypass -File ``""$root\script\install-cody-pro-global.ps1``"" -ForegroundColor Yellow
+}
 
 if (-not (Get-Command cody_pro -ErrorAction SilentlyContinue) -and -not (Get-Command cody-pro -ErrorAction SilentlyContinue)) {
   $shimDir = Join-Path $env:APPDATA "npm"
