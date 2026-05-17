@@ -1,4 +1,4 @@
-param(
+﻿param(
   [string]$Branch = $(if ($env:CODY_BRANCH) { $env:CODY_BRANCH } else { "main" }),
   [switch]$SelfUpdate,
   [switch]$NoSelfUpdate
@@ -197,37 +197,6 @@ if (-not (Test-Path $proxyFile)) {
   }
 }
 
-Write-Host ""
-Write-Host "Scanning for local Ollama and GGUF models..."
-Write-Host "  (set CODY_DISCOVER_MODELS=1 to enable this during install)"
-Write-Host ""
-
-# Run model discovery with progress output
-$env:CODY_MODEL_DISCOVERY_QUIET = "0"
-$discoverScript = Join-Path $root "script\discover-local-models.ps1"
-if ($env:CODY_DISCOVER_MODELS -eq "1" -and (Test-Path $discoverScript)) {
-  & powershell -NoProfile -ExecutionPolicy Bypass -File $discoverScript -Root $root
-  $reportPath = Join-Path (Join-Path $root ".opencode\generated") "cody-local-models.report.json"
-  if (Test-Path $reportPath) {
-    try {
-      $report = Get-Content $reportPath -Raw | ConvertFrom-Json
-      $ollamaCount = $report.ollamaModelCount
-      $ggufCount = $report.ggufModelCount
-      $total = $ollamaCount + $ggufCount
-      if ($total -gt 0) {
-        Write-Host "[ok] Found $total local models ($ollamaCount Ollama, $ggufCount GGUF)"
-        Write-Host "  Models will be available in Cody Pro provider list."
-      } else {
-        Write-Host "[info] No local models found. Install Ollama or download GGUF files to use local models."
-      }
-    } catch {
-      Write-Host "[warn] Could not read model discovery report."
-    }
-  }
-  Write-Host ""
-} else {
-  Write-Host "[info] Model discovery skipped."
-}
 
 
 Write-Host "Setting default model to cody/big-pickle..."
@@ -288,11 +257,69 @@ if ($LASTEXITCODE -ne 0) {
   exit $LASTEXITCODE
 }
 
-Write-Host ""
-Write-Host "Cody Pro (proxy-enabled) is installed."
-Write-Host "Start it with:"
-Write-Host "  cody_pro"
-Write-Host ""
-Write-Host "To update proxy settings, edit .env.proxy in:"
-Write-Host "  $root\.env.proxy"
 
+# --- Interactive local model scan (final step) ---
+Write-Host ""
+Write-Host "---"
+Write-Host "Do you have Ollama or local GGUF models to scan?"
+Write-Host "  (scans your drives to auto-configure local AI models)"
+$answer = Read-Host "  [Y/n] "
+if ([string]::IsNullOrWhiteSpace($answer) -or $answer -match '^[yY]') {
+  $discoverScript = Join-Path $root "script\discover-local-models.ps1"
+  if (Test-Path $discoverScript) {
+    Write-Host ""
+    Write-Host "Scanning for local models..."
+    
+    # Count drives
+    $drives = Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Root -match '^[A-Za-z]:\\$' -and (Test-Path $_.Root) }
+    $driveCount = $drives.Count
+    $driveLetters = ($drives | ForEach-Object { $_.Root.TrimEnd('\') }) -join ", "
+    Write-Host "  Found $driveCount drive(s): $driveLetters"
+    Write-Host ""
+    
+    # Run with single-line progress
+    $env:CODY_MODEL_DISCOVERY_QUIET = "1"
+    $env:CODY_MODEL_SCAN_MAX_SECONDS = "30"
+    
+    $job = Start-Job -ScriptBlock {
+      param($root)
+      & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root "script\discover-local-models.ps1") -Root $root -MaxSeconds 30
+    } -ArgumentList $root
+    
+    # Show single-line progress
+    $dots = 0
+    while ($job.State -eq 'Running') {
+      $dots = ($dots + 1) % 4
+      $bar = "." * $dots + " " * (3 - $dots)
+      Write-Host "`r  Scanning[$bar] $($job.State)" -NoNewline
+      Start-Sleep -Milliseconds 500
+    }
+    
+    Receive-Job -Job $job -Wait -AutoRemoveJob | Out-Null
+    
+    # Show results
+    $reportPath = Join-Path (Join-Path $root ".opencode\generated") "cody-local-models.report.json"
+    if (Test-Path $reportPath) {
+      try {
+        $report = Get-Content $reportPath -Raw | ConvertFrom-Json
+        $ollamaCount = $report.ollamaModelCount
+        $ggufCount = $report.ggufModelCount
+        $total = $ollamaCount + $ggufCount
+        if ($total -gt 0) {
+          Write-Host "`r[ok] Found $total local models ($ollamaCount Ollama, $ggufCount GGUF)"
+          Write-Host "  Models will be available in Cody Pro provider list."
+        } else {
+          Write-Host "`r[info] No local models found."
+          Write-Host "  Install Ollama or download GGUF files to use local models."
+        }
+      } catch {
+        Write-Host "`r[warn] Could not read model discovery report."
+      }
+    }
+  } else {
+    Write-Host "[warn] Model discovery script not found. Skipping."
+  }
+} else {
+  Write-Host "[info] Local model scan skipped. Run later with:"
+  Write-Host "  powershell -File script\discover-local-models.ps1"
+}

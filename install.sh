@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 set -euo pipefail
 
 REPO_URL="https://github.com/your-org/cody.git"
@@ -33,7 +33,7 @@ if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
   echo "  CODY_INSTALL_ROOT   Install to a custom path instead of $DEFAULT_ROOT"
   echo "  CODY_BRANCH         Install from a branch, default: $BRANCH"
   echo "  CODY_INSTALLER_SELF_UPDATE Set to 0 to skip installer self-update"
-  echo "  CODY_DISCOVER_MODELS Set to 1 to run optional local model discovery"
+  echo "  (interactive model scan offered at end of install)"
   exit 0
 fi
 
@@ -255,29 +255,6 @@ else
   fi
 fi
 
-# ---- Model discovery ----
-if [ "${CODY_DISCOVER_MODELS:-0}" = "1" ]; then
-  echo ""
-  echo "Scanning for local Ollama models..."
-  GENERATED_DIR="$ROOT/.cody/generated"
-  mkdir -p "$GENERATED_DIR"
-  if command -v ollama &>/dev/null; then
-    echo "[cody-pro] Checking Ollama local registry..."
-    OLLAMA_MODELS=$(ollama list 2>/dev/null | tail -n +2 | awk '{print $1}')
-    MODEL_COUNT=0
-    if [ -n "$OLLAMA_MODELS" ]; then
-      while IFS= read -r model; do
-        [ -z "$model" ] && continue
-        echo "[cody-pro]   found Ollama model: $model"
-        MODEL_COUNT=$((MODEL_COUNT + 1))
-      done <<< "$OLLAMA_MODELS"
-    fi
-    echo "[ok] Found $MODEL_COUNT local Ollama models."
-  else
-    echo "[info] No local models found. Install Ollama to use local models."
-  fi
-fi
-
 # ---- Create config directory structure ----
 # Ensure .cody/generated exists so first launch doesn't error
 mkdir -p "$ROOT/.cody/generated"
@@ -372,3 +349,75 @@ echo "    1. Open a new terminal (or source your profile)"
 echo "    2. Run:  cody_pro"
 echo "    3. Use arrow keys to select CLI (TUI) or Web UI"
 echo ""
+
+# --- Interactive local model scan (final step) ---
+echo ""
+echo "---"
+echo "Do you have Ollama or local GGUF models to scan?"
+echo "  (scans your drives to auto-configure local AI models)"
+read -rp "  [Y/n] " ANSWER
+if [ -z "$ANSWER" ] || echo "$ANSWER" | grep -qi '^y'; then
+  echo ""
+  echo "Scanning for local models..."
+  
+  # Count mount points/drives
+  if command -v df &>/dev/null; then
+    DRIVE_COUNT=$(df -h 2>/dev/null | tail -n +2 | wc -l | tr -d ' ')
+    DRIVE_LIST=$(df -h 2>/dev/null | tail -n +2 | awk '{print $1}' | head -5 | tr '\n' ', ' | sed 's/,$//')
+    echo "  Found $DRIVE_COUNT mount point(s): $DRIVE_LIST"
+  fi
+  echo ""
+  
+  # Run discovery with single-line progress
+  export CODY_MODEL_DISCOVERY_QUIET=1
+  export CODY_MODEL_SCAN_MAX_SECONDS=30
+  
+  # Start discovery in background
+  if [ -f "$ROOT/script/discover-local-models.sh" ]; then
+    bash "$ROOT/script/discover-local-models.sh" --root "$ROOT" --max-seconds 30 &
+    DISCOVERY_PID=$!
+  elif command -v ollama &>/dev/null; then
+    # Fallback: simple ollama scan
+    ollama list 2>/dev/null > "$ROOT/.cody/generated/ollama-models.txt" &
+    DISCOVERY_PID=$!
+  else
+    DISCOVERY_PID=0
+  fi
+  
+  # Single-line progress
+  DOTS=0
+  while kill -0 $DISCOVERY_PID 2>/dev/null; do
+    DOTS=$(( (DOTS + 1) % 4 ))
+    BAR=$(printf '%*s' $DOTS '' | tr ' ' '.')
+    BAR="$BAR$(printf '%*s' $((3 - DOTS)) '' | tr ' ' ' ')"
+    printf "\r  Scanning[%s] running" "$BAR"
+    sleep 0.5
+  done
+  wait $DISCOVERY_PID 2>/dev/null
+  
+  # Show results
+  REPORT="$ROOT/.cody/generated/cody-local-models.report.json"
+  OLLAMA_FILE="$ROOT/.cody/generated/ollama-models.txt"
+  if [ -f "$REPORT" ]; then
+    OLLAMA_COUNT=$(grep -o '"ollamaModelCount":[0-9]*' "$REPORT" 2>/dev/null | cut -d: -f2 || echo "0")
+    GGUF_COUNT=$(grep -o '"ggufModelCount":[0-9]*' "$REPORT" 2>/dev/null | cut -d: -f2 || echo "0")
+    TOTAL=$((OLLAMA_COUNT + GGUF_COUNT))
+    if [ "$TOTAL" -gt 0 ]; then
+      printf "\r[ok] Found $TOTAL local models ($OLLAMA_COUNT Ollama, $GGUF_COUNT GGUF)\n"
+      echo "  Models will be available in Cody Pro provider list."
+    else
+      printf "\r[info] No local models found.\n"
+      echo "  Install Ollama or download GGUF files to use local models."
+    fi
+  elif [ -f "$OLLAMA_FILE" ] && [ -s "$OLLAMA_FILE" ]; then
+    OLLAMA_COUNT=$(wc -l < "$OLLAMA_FILE" | tr -d ' ')
+    printf "\r[ok] Found $OLLAMA_COUNT Ollama model(s)\n"
+    echo "  Models will be available in Cody Pro provider list."
+  else
+    printf "\r[info] No local models found.\n"
+    echo "  Install Ollama or download GGUF files to use local models."
+  fi
+else
+  echo "[info] Local model scan skipped. Run later with:"
+  echo "  bash $ROOT/script/discover-local-models.sh"
+fi
