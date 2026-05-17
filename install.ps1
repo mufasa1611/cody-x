@@ -225,7 +225,7 @@ Write-Host "Installing global cody_pro command..."
 powershell -NoProfile -ExecutionPolicy Bypass -File "$(Join-Path $root 'script\install-cody-pro-global.ps1')"
 if ($LASTEXITCODE -ne 0) {
   Write-Host "[warn] Global command installation failed. You can run it manually:" -ForegroundColor Yellow
-  Write-Host "  powershell -NoProfile -ExecutionPolicy Bypass -File ``""$root\script\install-cody-pro-global.ps1``"" -ForegroundColor Yellow
+  Write-Host "  powershell -NoProfile -ExecutionPolicy Bypass -File `"$root\script\install-cody-pro-global.ps1`" -ForegroundColor Yellow
 }
 
 if (-not (Get-Command cody_pro -ErrorAction SilentlyContinue) -and -not (Get-Command cody-pro -ErrorAction SilentlyContinue)) {
