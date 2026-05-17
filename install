@@ -1,101 +1,55 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_URL="https://github.com/mufasa1611/cody-pro.git"
-SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEFAULT_ROOT="${CODY_HOME:-$HOME/.local/share/cody-pro/cody-pro}"
-ROOT="$SCRIPT_ROOT"
-BIN_DIR="${CODY_BIN_DIR:-$HOME/.local/bin}"
-SHIM="$BIN_DIR/cody-pro"
+REPO="mufasa1611/cody_pro"
+BRANCH="master"
+SELF_URL="https://raw.githubusercontent.com/$REPO/$BRANCH/install"
 
-msg() {
-  printf '%s\n' "$*"
-}
-
-need_cmd() {
-  command -v "$1" >/dev/null 2>&1
-}
-
-is_cody_checkout() {
-  [ -f "$1/package.json" ] && grep -q '"name"[[:space:]]*:[[:space:]]*"cody-pro"' "$1/package.json"
-}
-
-if ! is_cody_checkout "$ROOT"; then
-  ROOT="$DEFAULT_ROOT"
-fi
-
-if ! need_cmd git; then
-  msg "git is required to clone or update Cody Pro. Install git with your system package manager and rerun ./install."
-  exit 1
-fi
-
-if ! need_cmd curl; then
-  msg "curl is required to install Bun. Install curl with your system package manager and rerun ./install."
-  exit 1
-fi
-
-if ! is_cody_checkout "$ROOT"; then
-  msg "Cody Pro checkout not found. Cloning from GitHub..."
-  if [ -e "$ROOT" ] && [ -n "$(find "$ROOT" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]; then
-    msg "$ROOT exists but is not a Cody Pro checkout. Move it away or choose a clean install location, then rerun ./install."
-    exit 1
+# ---- Self-update check ----
+SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+if [ -z "${CODY_INSTALLER_SELF_UPDATED:-}" ] && [ -f "$SCRIPT_PATH" ]; then
+  TMP_INSTALLER="$(mktemp)"
+  if curl -fsSL "$SELF_URL" -o "$TMP_INSTALLER" 2>/dev/null; then
+    if ! cmp -s "$SCRIPT_PATH" "$TMP_INSTALLER"; then
+      echo "[info] New installer found. Running latest from GitHub..."
+      export CODY_INSTALLER_SELF_UPDATED=1
+      exec bash "$TMP_INSTALLER" "$@"
+    fi
+    echo "[ok] Installer is up to date."
   fi
-  mkdir -p "$(dirname "$ROOT")"
-  git clone "$REPO_URL" "$ROOT"
+  rm -f "$TMP_INSTALLER"
 fi
 
-if ! need_cmd bun; then
-  msg "Bun not found. Installing Bun for the current user..."
-  curl -fsSL https://bun.sh/install | bash
-  export PATH="$HOME/.bun/bin:$PATH"
-fi
+# ---- OS detection ----
+OS="$(uname -s 2>/dev/null || echo unknown)"
+ARCH="$(uname -m 2>/dev/null || echo unknown)"
 
-if ! need_cmd bun; then
-  msg "Bun installation did not produce a usable bun command. Install Bun from https://bun.sh and rerun ./install."
-  exit 1
-fi
-
-cd "$ROOT"
-if [ -d "$ROOT/.git" ]; then
-  if [ -n "$(git status --porcelain)" ]; then
-    msg "Local changes detected. Skipping git pull to avoid overwriting work."
-  else
-    msg "Updating Cody Pro checkout..."
-    git pull --ff-only || msg "git pull --ff-only failed. Continuing with the current checkout."
-  fi
-else
-  msg "No .git directory found. Skipping repository update."
-fi
-
-msg "Installing Cody Pro dependencies..."
-bun install
-
-mkdir -p "$BIN_DIR"
-cat > "$SHIM" <<EOF
-#!/usr/bin/env bash
-set -euo pipefail
-ROOT="$ROOT"
-export CODY_PRO=1
-export PATH="\$HOME/.bun/bin:\$PATH"
-if [ ! -d "\$ROOT" ]; then
-  echo "Cody Pro checkout not found at \$ROOT" >&2
-  exit 1
-fi
-cd "\$ROOT"
-exec bun run --cwd "\$ROOT/packages/cody" --conditions=browser src/index.ts "\$@"
-EOF
-chmod +x "$SHIM"
-
-case ":$PATH:" in
-  *":$BIN_DIR:"*) ;;
+case "$OS" in
+  Linux*|Darwin*)
+    echo "Cody Pro installer for $OS ($ARCH)"
+    echo "[info] Downloading platform installer..."
+    exec bash <(curl -fsSL "https://raw.githubusercontent.com/$REPO/$BRANCH/install.sh")
+    ;;
+  MINGW*|MSYS*|CYGWIN*)
+    echo "Cody Pro installer for Windows (Git Bash/MSYS)"
+    echo "[info] Switching to PowerShell installer..."
+    exec powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \
+      "iwr https://raw.githubusercontent.com/$REPO/$BRANCH/install.ps1 -UseBasicParsing | iex"
+    ;;
   *)
-    msg ""
-    msg "Add this directory to PATH if it is not already there:"
-    msg "  $BIN_DIR"
+    echo ""
+    echo "=========================================="
+    echo "  Cody Pro Installer"
+    echo "=========================================="
+    echo ""
+    echo "  This script requires bash. Detected: $OS ($ARCH)"
+    echo ""
+    echo "  For Windows PowerShell, run:"
+    echo "    iwr https://raw.githubusercontent.com/$REPO/$BRANCH/install.ps1 | iex"
+    echo ""
+    echo "  For Linux/macOS, run:"
+    echo "    curl -fsSL https://raw.githubusercontent.com/$REPO/$BRANCH/install.sh | bash"
+    echo ""
+    exit 1
     ;;
 esac
-
-msg ""
-msg "Cody Pro is installed."
-msg "Start it with:"
-msg "  cody-pro"
