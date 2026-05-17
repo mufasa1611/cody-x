@@ -26,7 +26,6 @@ import { AttachCommand } from "./cli/cmd/tui/attach"
 import { TuiThreadCommand } from "./cli/cmd/tui/thread"
 import { AcpCommand } from "./cli/cmd/acp"
 import { EOL } from "os"
-import * as readline from "node:readline"
 import { WebCommand } from "./cli/cmd/web"
 import { PrCommand } from "./cli/cmd/pr"
 import { SessionCommand } from "./cli/cmd/session"
@@ -205,58 +204,6 @@ const cli = yargs(args)
   })
   .strict()
 
-async function launcherPrompt(): Promise<string> {
-  const options = [
-    { label: "CLI (Terminal UI)", value: "run" },
-    { label: "Web UI (Browser)", value: "web" },
-  ]
-  let selected = 0
-  const totalLines = 6
-
-  return new Promise((resolve) => {
-    const stdin = process.stdin
-    const stdout = process.stdout
-
-    readline.emitKeypressEvents(stdin)
-    let rawMode = false
-    try { stdin.setRawMode(true); rawMode = true } catch {}
-    function render(first: boolean) {
-      stdout.write("\x1B[?25l")
-      if (!first) {
-        stdout.write(`\x1B[${totalLines}A\x1B[J`)
-      }
-      stdout.write(`\n  \x1B[1mCody Pro Launcher\x1B[22m\n\n`)
-      for (let i = 0; i < options.length; i++) {
-        const hl = i === selected ? "\x1B[7m" : ""
-        const rst = i === selected ? "\x1B[27m" : ""
-        stdout.write(`  ${hl}${i === selected ? "\u276f" : " "} ${options[i].label}\x1B[K${rst}\n`)
-      }
-      stdout.write(`\n  (\x1B[1m\u2191\x1B[22m/\x1B[1m\u2193\x1B[22m to move, \x1B[1mEnter\x1B[22m to select)\n`)
-      stdout.write("\x1B[?25h")
-    }
-
-    render(true)
-
-    function cleanup() {
-      try { if (rawMode) stdin.setRawMode(false) } catch {}
-      stdin.removeAllListeners("keypress")
-      stdin.pause()
-      stdin.read(0)
-      stdout.write("\x1B[?25h")
-      stdout.write(`\x1B[${totalLines}B`)
-    }
-
-    const handler = (_str: string, key: { name?: string; ctrl?: boolean }) => {
-      if (key.ctrl && key.name === "c") { cleanup(); process.exit(0) }
-      if (key.name === "up") { selected = (selected - 1 + options.length) % options.length; render(false); return }
-      if (key.name === "down") { selected = (selected + 1) % options.length; render(false); return }
-      if (key.name === "return" || key.name === "enter") { cleanup(); resolve(options[selected].value); return }
-    }
-
-    stdin.on("keypress", handler)
-  })
-}
-
 try {
   if (args.includes("-h") || args.includes("--help")) {
     await cli.parse(args, (err: Error | undefined, _argv: unknown, out: string) => {
@@ -268,13 +215,6 @@ try {
     process.stderr.write(UI.logo() + EOL + EOL)
     process.stderr.write(InstallationVersion + EOL)
     process.exit(0)
-  } else if (args.length === 0) {
-    const mode = await launcherPrompt()
-    if (mode === "web") {
-      await cli.parse(["web"])
-    } else {
-      await cli.parse()
-    }
   } else {
     await cli.parse()
   }
