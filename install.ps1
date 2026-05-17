@@ -99,10 +99,10 @@ if (Test-Path (Join-Path $root ".git")) {
     if ($LASTEXITCODE -eq 0) {
       git -C $root switch $Branch
       if ($LASTEXITCODE -ne 0) {
-        Write-Host "[warn] Could not switch to $Branch. Continuing with $currentBranch." -ForegroundColor Yellow
+        throw "Could not switch to $Branch. Back up or commit local changes in $root, then rerun the installer."
       }
     } else {
-      Write-Host "[warn] Could not fetch branch $Branch. Continuing with $currentBranch." -ForegroundColor Yellow
+      throw "Could not fetch branch $Branch from origin."
     }
   }
   Write-Host "Updating Cody Pro checkout..."

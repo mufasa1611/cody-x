@@ -330,11 +330,16 @@ if defined CURRENT_BRANCH if /I not "!CURRENT_BRANCH!"=="%CODY_BRANCH%" (
   echo Switching Cody Pro checkout from !CURRENT_BRANCH! to %CODY_BRANCH%...
   git fetch origin "%CODY_BRANCH%"
   if errorlevel 1 (
-    echo [warn] Could not fetch branch "%CODY_BRANCH%". Continuing with !CURRENT_BRANCH!.
+    echo [error] Could not fetch branch "%CODY_BRANCH%" from origin.
+    popd
+    exit /b 1
   ) else (
     git switch "%CODY_BRANCH%"
     if errorlevel 1 (
-      echo [warn] Could not switch to "%CODY_BRANCH%". Continuing with !CURRENT_BRANCH!.
+      echo [error] Could not switch to "%CODY_BRANCH%".
+      echo Back up or commit local changes in "%ROOT%", then rerun install.bat.
+      popd
+      exit /b 1
     )
   )
 )

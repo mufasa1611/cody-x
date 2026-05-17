@@ -158,9 +158,14 @@ if [ -d "$ROOT/.git" ]; then
   if [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "$BRANCH" ]; then
     echo "Switching Cody Pro checkout from $CURRENT_BRANCH to $BRANCH..."
     if git -C "$ROOT" fetch origin "$BRANCH"; then
-      git -C "$ROOT" switch "$BRANCH" || echo "[warn] Could not switch to $BRANCH; continuing with $CURRENT_BRANCH."
+      git -C "$ROOT" switch "$BRANCH" || {
+        echo "[error] Could not switch to $BRANCH."
+        echo "  Back up or commit local changes in $ROOT, then rerun the installer."
+        exit 1
+      }
     else
-      echo "[warn] Could not fetch branch $BRANCH; continuing with $CURRENT_BRANCH."
+      echo "[error] Could not fetch branch $BRANCH."
+      exit 1
     fi
   fi
   echo "Updating Cody Pro checkout..."
