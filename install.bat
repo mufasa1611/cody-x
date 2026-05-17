@@ -2,7 +2,8 @@
 setlocal EnableExtensions
 
 set "REPO_URL=https://github.com/your-org/cody.git"
-set "INSTALLER_URL=https://raw.githubusercontent.com/mufasa1611/cody_pro/master/install.bat"
+if not defined CODY_BRANCH set "CODY_BRANCH=main"
+set "INSTALLER_URL=https://raw.githubusercontent.com/mufasa1611/cody_pro/%CODY_BRANCH%/install.bat"
 set "DEFAULT_PARENT=%LOCALAPPDATA%\CodyPro"
 set "DEFAULT_ROOT=%DEFAULT_PARENT%\cody_pro"
 set "GLOBAL_BIN=%APPDATA%\npm"
@@ -26,6 +27,7 @@ if %ERRORLEVEL% neq 0 (
 )
 
 set "LATEST_INSTALLER=%TEMP%\cody_pro-install-latest-%RANDOM%%RANDOM%.bat"
+if not "%CODY_INSTALLER_SELF_UPDATE%"=="1" goto AfterSelfUpdate
 echo Checking for installer updates...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri '%INSTALLER_URL%' -OutFile '%LATEST_INSTALLER%'; exit 0 } catch { Write-Host ('[warn] Could not download latest installer: ' + $_.Exception.Message); exit 1 }"
 if %ERRORLEVEL% neq 0 (
@@ -74,7 +76,11 @@ if "%HAS_CHECKOUT%"=="1" (
     exit /b 1
   )
   if not exist "%DEFAULT_PARENT%" mkdir "%DEFAULT_PARENT%" >nul 2>nul
-  git clone "%REPO_URL%" "%DEFAULT_ROOT%"
+  git clone --branch "%CODY_BRANCH%" "%REPO_URL%" "%DEFAULT_ROOT%"
+  if %ERRORLEVEL% neq 0 (
+    echo [warn] Branch "%CODY_BRANCH%" clone failed. Retrying default branch...
+    git clone "%REPO_URL%" "%DEFAULT_ROOT%"
+  )
   if %ERRORLEVEL% neq 0 (
     echo [error] Failed to clone Cody Pro from "%REPO_URL%".
     exit /b 1
@@ -131,25 +137,27 @@ if %ERRORLEVEL% neq 0 (
 )
 
 echo.
-echo Creating .env with proxy settings...
-if not exist "%ROOT%\.env" (
-  >"%ROOT%\.env" echo HTTPS_PROXY=http://192.168.68.68:8888
-  >>"%ROOT%\.env" echo HTTP_PROXY=http://192.168.68.68:8888
-  echo [ok] .env created with proxy settings.
-  >>"%ROOT%\.env" echo NO_PROXY=localhost,127.0.0.1,::1
+echo Creating .env.proxy with proxy settings...
+if not exist "%ROOT%\.env.proxy" (
+  >"%ROOT%\.env.proxy" echo CODY_PROXY_ENABLED=1
+  >>"%ROOT%\.env.proxy" echo HTTPS_PROXY=http://192.168.68.68:8888
+  >>"%ROOT%\.env.proxy" echo HTTP_PROXY=http://192.168.68.68:8888
+  >>"%ROOT%\.env.proxy" echo NO_PROXY=localhost,127.0.0.1,::1
+  echo [ok] .env.proxy created with proxy settings.
 ) else (
-  findstr /B /C:"NO_PROXY=" "%ROOT%\.env" >nul 2>nul
+  findstr /B /C:"NO_PROXY=" "%ROOT%\.env.proxy" >nul 2>nul
   if errorlevel 1 (
-    >>"%ROOT%\.env" echo NO_PROXY=localhost,127.0.0.1,::1
-    echo [ok] Added NO_PROXY to existing .env.
+    >>"%ROOT%\.env.proxy" echo NO_PROXY=localhost,127.0.0.1,::1
+    echo [ok] Added NO_PROXY to existing .env.proxy.
   ) else (
-    echo [ok] .env already has NO_PROXY.
+    echo [ok] .env.proxy already has NO_PROXY.
   )
 )
 if %ERRORLEVEL% neq 0 (
   popd
   exit /b %ERRORLEVEL%
 )
+if not "%CODY_DISCOVER_MODELS%"=="1" goto SkipModelDiscovery
 if not exist "%ROOT%\.opencode\generated\opencode.jsonc" (
   powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\discover-local-models.ps1" -Root "%ROOT%"
   if exist "%ROOT%\.opencode\generated\cody-local-models.report.json" (
@@ -160,10 +168,14 @@ if not exist "%ROOT%\.opencode\generated\opencode.jsonc" (
 ) else (
   echo [ok] Model config already exists, skipping.
 )
+:SkipModelDiscovery
+if not exist "%ROOT%\.opencode\generated" mkdir "%ROOT%\.opencode\generated" >nul 2>nul
+powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\ensure-default-config.ps1" -Root "%ROOT%"
 
 echo.
 echo.
 echo Installing global cody_pro command...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\install-cody-pro-global.ps1"
 if %ERRORLEVEL% neq 0 (
   popd
   exit /b %ERRORLEVEL%
@@ -182,7 +194,7 @@ if not exist "%GLOBAL_CMD%" (
 set "PATH=%GLOBAL_BIN%;%USERPROFILE%\.bun\bin;%PATH%"
 set "FOUND_GLOBAL_CMD="
 pushd "%TEMP%"
-for /f "delims=" %%A in ('where cody-pro 2^>nul') do (
+for /f "delims=" %%A in ('where cody_pro 2^>nul') do (
   if /I "%%~fA"=="%GLOBAL_CMD%" set "FOUND_GLOBAL_CMD=1"
 )
 if not defined FOUND_GLOBAL_CMD (

@@ -3,7 +3,8 @@ set -euo pipefail
 
 REPO_URL="https://github.com/your-org/cody.git"
 DEFAULT_ROOT="${HOME:-~}/.local/share/cody_pro"
-INSTALLER_URL="https://raw.githubusercontent.com/mufasa1611/cody_pro/master/install.sh"
+BRANCH="${CODY_BRANCH:-main}"
+INSTALLER_URL="https://raw.githubusercontent.com/mufasa1611/cody_pro/$BRANCH/install.sh"
 
 # ---- Self-update check ----
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
@@ -26,11 +27,12 @@ fi
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
   echo "Cody Pro Installer for Linux/macOS"
   echo ""
-  echo "Usage: curl -fsSL https://raw.githubusercontent.com/mufasa1611/cody_pro/master/install.sh | bash"
+  echo "Usage: curl -fsSL https://raw.githubusercontent.com/mufasa1611/cody_pro/$BRANCH/install.sh | bash"
   echo ""
   echo "Environment variables:"
   echo "  CODY_INSTALL_ROOT   Install to a custom path instead of $DEFAULT_ROOT"
-  echo "  CODY_SKIP_MODEL_DISCOVERY  Set to 1 to skip model discovery"
+  echo "  CODY_BRANCH         Install from a branch, default: $BRANCH"
+  echo "  CODY_DISCOVER_MODELS Set to 1 to run optional local model discovery"
   exit 0
 fi
 
@@ -54,7 +56,10 @@ INSTALL_CMD=""
 UPDATE_CMD=""
 case "$OS" in
   Linux)
-    if command -v apt-get &>/dev/null; then
+    if command -v pkg &>/dev/null; then
+      INSTALL_CMD="pkg install -y"
+      UPDATE_CMD="pkg update -y"
+    elif command -v apt-get &>/dev/null; then
       INSTALL_CMD="apt-get install -y"
       UPDATE_CMD="apt-get update -y"
     elif command -v dnf &>/dev/null; then
@@ -141,7 +146,7 @@ if ! check_is_repo "$ROOT"; then
     echo "  Move it away or set CODY_INSTALL_ROOT, then rerun."
     exit 1
   fi
-  git clone "$REPO_URL" "$ROOT"
+  git clone --branch "$BRANCH" "$REPO_URL" "$ROOT" || git clone "$REPO_URL" "$ROOT"
   echo "[ok] Cloned to $ROOT"
 fi
 
@@ -209,25 +214,26 @@ if [ $BUILD_EXIT -ne 0 ]; then
   echo "[warn] Web UI build failed; server will proxy to app.opencode.ai."
 fi
 
-# ---- Create .env ----
-if [ ! -f "$ROOT/.env" ]; then
-  echo "Creating .env with proxy settings..."
-  cat > "$ROOT/.env" << 'ENVEOF'
+# ---- Create proxy config ----
+if [ ! -f "$ROOT/.env.proxy" ]; then
+  echo "Creating .env.proxy with proxy settings..."
+  cat > "$ROOT/.env.proxy" << 'ENVEOF'
+CODY_PROXY_ENABLED=1
 HTTPS_PROXY=http://192.168.68.68:8888
 HTTP_PROXY=http://192.168.68.68:8888
 NO_PROXY=localhost,127.0.0.1,::1
 ENVEOF
-  echo "[ok] .env created."
+  echo "[ok] .env.proxy created."
 else
-  if ! grep -q "^NO_PROXY=" "$ROOT/.env" 2>/dev/null; then
-    echo "" >> "$ROOT/.env"
-    echo "NO_PROXY=localhost,127.0.0.1,::1" >> "$ROOT/.env"
-    echo "[ok] Added NO_PROXY to existing .env."
+  if ! grep -q "^NO_PROXY=" "$ROOT/.env.proxy" 2>/dev/null; then
+    echo "" >> "$ROOT/.env.proxy"
+    echo "NO_PROXY=localhost,127.0.0.1,::1" >> "$ROOT/.env.proxy"
+    echo "[ok] Added NO_PROXY to existing .env.proxy."
   fi
 fi
 
 # ---- Model discovery ----
-if [ "${CODY_SKIP_MODEL_DISCOVERY:-0}" != "1" ]; then
+if [ "${CODY_DISCOVER_MODELS:-0}" = "1" ]; then
   echo ""
   echo "Scanning for local Ollama models..."
   GENERATED_DIR="$ROOT/.cody/generated"
@@ -252,6 +258,30 @@ fi
 # ---- Create config directory structure ----
 # Ensure .cody/generated exists so first launch doesn't error
 mkdir -p "$ROOT/.cody/generated"
+DEFAULT_CONFIG="$ROOT/.cody/generated/opencode.json"
+if [ ! -f "$DEFAULT_CONFIG" ]; then
+  cat > "$DEFAULT_CONFIG" << 'JSONEOF'
+{
+  "$schema": "https://cody.dev/config.json",
+  "model": "cody/big-pickle",
+  "provider": {
+    "cody": {
+      "models": {
+        "big-pickle": {
+          "name": "Big Pickle",
+          "reasoning": true,
+          "tool_call": true,
+          "temperature": true,
+          "cost": { "input": 0, "output": 0 },
+          "limit": { "context": 200000, "output": 128000 }
+        }
+      }
+    }
+  }
+}
+JSONEOF
+  echo "[ok] Default model configured: cody/big-pickle"
+fi
 
 # ---- Install global cody_pro command ----
 GLOBAL_BIN_DIR="${XDG_DATA_HOME:-$HOME/.local}/bin"
@@ -262,7 +292,13 @@ if [ ! -f "$CODY_SHIM" ]; then
   cat > "$CODY_SHIM" << SHIMEOF
 #!/usr/bin/env bash
 export CODY_ROOT="$ROOT"
-if [ -f "\$CODY_ROOT/.env" ]; then
+if [ -f "\$CODY_ROOT/.env.proxy" ]; then
+  while IFS= read -r line || [ -n "\$line" ]; do
+    case "\$line" in
+      [^#]*=*) export "\$line" ;;
+    esac
+  done < "\$CODY_ROOT/.env.proxy"
+elif [ -f "\$CODY_ROOT/.env" ]; then
   while IFS= read -r line || [ -n "\$line" ]; do
     case "\$line" in
       [^#]*=*) export "\$line" ;;
@@ -306,7 +342,7 @@ echo "  Start it with:"
 echo "    cody_pro"
 echo ""
 echo "  To update proxy settings, edit:"
-echo "    $ROOT/.env"
+echo "    $ROOT/.env.proxy"
 echo ""
 echo "  First time setup:"
 echo "    1. Open a new terminal (or source your profile)"

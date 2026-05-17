@@ -16,8 +16,15 @@ if not defined BUN (
   exit /b 1
 )
 
-rem Load proxy settings from .env if present
-if exist "%ROOT%.env" (
+rem Load proxy settings from .env.proxy. Fall back to .env for older installs.
+if exist "%ROOT%.env.proxy" (
+  for /f "usebackq tokens=*" %%a in ("%ROOT%.env.proxy") do (
+    for /f "tokens=1,* delims==" %%b in ("%%a") do (
+      if not "%%b"=="" set "%%b=%%c"
+    )
+  )
+)
+if not defined CODY_PROXY_ENABLED if exist "%ROOT%.env" (
   for /f "usebackq tokens=*" %%a in ("%ROOT%.env") do (
     for /f "tokens=1,* delims==" %%b in ("%%a") do (
       if not "%%b"=="" set "%%b=%%c"

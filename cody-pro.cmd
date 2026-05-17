@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal EnableExtensions EnableDelayedExpansion
 
 set "ROOT=%~dp0"
 set "BUN="
@@ -20,8 +20,15 @@ if exist "%USERPROFILE%\.bun\bin" set "PATH=%USERPROFILE%\.bun\bin;%PATH%"
 if exist "%USERPROFILE%\AppData\Roaming\npm" set "PATH=%USERPROFILE%\AppData\Roaming\npm;%PATH%"
 set "CODY_PRO=1"
 
-rem Load proxy settings from .env if present
-if exist "%ROOT%.env" (
+rem Load proxy settings from .env.proxy. Fall back to .env for older installs.
+if exist "%ROOT%.env.proxy" (
+  for /f "usebackq tokens=*" %%a in ("%ROOT%.env.proxy") do (
+    for /f "tokens=1,* delims==" %%b in ("%%a") do (
+      if not "%%b"=="" set "%%b=%%c"
+    )
+  )
+)
+if not defined CODY_PROXY_ENABLED if exist "%ROOT%.env" (
   for /f "usebackq tokens=*" %%a in ("%ROOT%.env") do (
     for /f "tokens=1,* delims==" %%b in ("%%a") do (
       if not "%%b"=="" set "%%b=%%c"
@@ -29,12 +36,25 @@ if exist "%ROOT%.env" (
   )
 )
 
-rem Auto-update: pull latest from mufasa1611/cody_pro on every launch
-if exist "%ROOT%\.git" (
+rem Update check with confirmation. Set CODY_SKIP_UPDATE_CHECK=1 to disable.
+if exist "%ROOT%\.git" if not "%CODY_SKIP_UPDATE_CHECK%"=="1" (
   git config --global --add safe.directory "%ROOT%" >nul 2>nul
   echo [cody-pro] Checking for updates...
   pushd "%ROOT%"
-  git pull --ff-only
+  for /f "delims=" %%B in ('git rev-parse --abbrev-ref HEAD 2^>nul') do set "CODY_CURRENT_BRANCH=%%B"
+  if not defined CODY_CURRENT_BRANCH set "CODY_CURRENT_BRANCH=master"
+  git fetch origin !CODY_CURRENT_BRANCH! --quiet >nul 2>nul
+  for /f "delims=" %%C in ('git rev-list --count HEAD..origin/!CODY_CURRENT_BRANCH! 2^>nul') do set "CODY_BEHIND=%%C"
+  if not defined CODY_BEHIND set "CODY_BEHIND=0"
+  if not "!CODY_BEHIND!"=="0" (
+    if /I "!CODY_AUTO_UPDATE!"=="yes" (
+      set "CODY_UPDATE_ANSWER=Y"
+    ) else (
+      set /p "CODY_UPDATE_ANSWER=[cody-pro] !CODY_BEHIND! update(s) available on origin/!CODY_CURRENT_BRANCH!. Pull now? [y/N] "
+    )
+    if /I "!CODY_UPDATE_ANSWER!"=="Y" git pull --ff-only
+    if /I not "!CODY_UPDATE_ANSWER!"=="Y" echo [cody-pro] Update skipped.
+  )
   popd
 )
 

@@ -1,3 +1,8 @@
+param(
+  [string]$Branch = $(if ($env:CODY_BRANCH) { $env:CODY_BRANCH } else { "main" }),
+  [switch]$SelfUpdate
+)
+
 $ErrorActionPreference = "Stop"
 
 $repoUrl = "https://github.com/your-org/cody.git"
@@ -37,9 +42,9 @@ if (-not $scriptRoot) {
   $scriptRoot = (Get-Location).Path
 }
 
-# Self-update check: only when running from a local file (not piped from iex)
-if ($scriptPath -and -not $env:CODY_INSTALLER_SELF_UPDATED) {
-  $installerUrl = "https://raw.githubusercontent.com/mufasa1611/cody_pro/master/install.ps1"
+# Self-update check: opt-in only so test branches remain deterministic.
+if ($SelfUpdate -and $scriptPath -and -not $env:CODY_INSTALLER_SELF_UPDATED) {
+  $installerUrl = "https://raw.githubusercontent.com/mufasa1611/cody_pro/$Branch/install.ps1"
   try {
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     $response = Invoke-WebRequest -UseBasicParsing -Uri $installerUrl
@@ -49,7 +54,7 @@ if ($scriptPath -and -not $env:CODY_INSTALLER_SELF_UPDATED) {
       $env:CODY_INSTALLER_SELF_UPDATED = "1"
       $tmpFile = [System.IO.Path]::GetTempFileName() + ".ps1"
       Set-Content -Path $tmpFile -Value $response.Content -Encoding UTF8
-      & powershell -NoProfile -ExecutionPolicy Bypass -File $tmpFile
+      & powershell -NoProfile -ExecutionPolicy Bypass -File $tmpFile -Branch $Branch
       $exitCode = $LASTEXITCODE
       Remove-Item -Path $tmpFile -Force -ErrorAction SilentlyContinue
       exit $exitCode
@@ -70,9 +75,13 @@ if (-not (Test-CodyProCheckout $root)) {
     throw "$root exists but is not a Cody Pro checkout. Move it away or choose a clean install location, then rerun this installer."
   }
   New-Item -ItemType Directory -Force -Path (Split-Path -Parent $root) | Out-Null
-  git clone $repoUrl $root
+  git clone --branch $Branch $repoUrl $root
   if ($LASTEXITCODE -ne 0) {
-    throw "Failed to clone Cody Pro from $repoUrl."
+    Write-Host "[warn] Branch $Branch clone failed. Retrying default branch..."
+    git clone $repoUrl $root
+    if ($LASTEXITCODE -ne 0) {
+      throw "Failed to clone Cody Pro from $repoUrl."
+    }
   }
 }
 git config --global --add safe.directory "$root" 2>$null
@@ -156,19 +165,31 @@ if ($buildExit -ne 0) {
   Write-Host "[warn] Web UI build failed, server will proxy to app.opencode.ai."
 }
 
-Write-Host "Creating .env with proxy settings..."
-$envContent = "HTTPS_PROXY=http://192.168.68.68:8888`r`nHTTP_PROXY=http://192.168.68.68:8888`r`nNO_PROXY=localhost,127.0.0.1,::1"
-Set-Content -Path (Join-Path $root ".env") -Value $envContent -Encoding UTF8
+Write-Host "Creating .env.proxy with proxy settings..."
+$envContent = "CODY_PROXY_ENABLED=1`r`nHTTPS_PROXY=http://192.168.68.68:8888`r`nHTTP_PROXY=http://192.168.68.68:8888`r`nNO_PROXY=localhost,127.0.0.1,::1"
+$proxyFile = Join-Path $root ".env.proxy"
+if (-not (Test-Path $proxyFile)) {
+  [System.IO.File]::WriteAllText($proxyFile, $envContent, [System.Text.UTF8Encoding]::new($false))
+  Write-Host "[ok] .env.proxy created."
+} else {
+  $proxyText = Get-Content -Raw -Path $proxyFile
+  if ($proxyText -notmatch "(?m)^NO_PROXY=") {
+    Add-Content -Path $proxyFile -Value "NO_PROXY=localhost,127.0.0.1,::1"
+    Write-Host "[ok] Added NO_PROXY to existing .env.proxy."
+  } else {
+    Write-Host "[ok] .env.proxy already exists."
+  }
+}
 
 Write-Host ""
 Write-Host "Scanning for local Ollama and GGUF models..."
-Write-Host "  (this runs once during install so first launch is fast)"
+Write-Host "  (set CODY_DISCOVER_MODELS=1 to enable this during install)"
 Write-Host ""
 
 # Run model discovery with progress output
 $env:CODY_MODEL_DISCOVERY_QUIET = "0"
 $discoverScript = Join-Path $root "script\discover-local-models.ps1"
-if (Test-Path $discoverScript) {
+if ($env:CODY_DISCOVER_MODELS -eq "1" -and (Test-Path $discoverScript)) {
   & powershell -NoProfile -ExecutionPolicy Bypass -File $discoverScript -Root $root
   $reportPath = Join-Path (Join-Path $root ".opencode\generated") "cody-local-models.report.json"
   if (Test-Path $reportPath) {
@@ -189,7 +210,7 @@ if (Test-Path $discoverScript) {
   }
   Write-Host ""
 } else {
-  Write-Host "[warn] Model discovery script not found. Skipping."
+  Write-Host "[info] Model discovery skipped."
 }
 
 
@@ -242,5 +263,5 @@ Write-Host "Start it with:"
 Write-Host "  cody_pro"
 Write-Host ""
 Write-Host "To update proxy settings, edit .env in:"
-Write-Host "  $root\.env"
+Write-Host "  $root\.env.proxy"
 

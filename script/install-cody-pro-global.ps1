@@ -84,8 +84,13 @@ if not exist "%CODY_ROOT%\cody-pro.cmd" (
   echo Cody Pro launcher not found at "%CODY_ROOT%\cody-pro.cmd".
   exit /b 1
 )
-:: Load proxy settings from .env
-if exist "%CODY_ROOT%\.env" (
+:: Load proxy settings from .env.proxy, with .env fallback for older installs.
+if exist "%CODY_ROOT%\.env.proxy" (
+  for /f "usebackq tokens=*" %%a in ("%CODY_ROOT%\.env.proxy") do (
+    for /f "tokens=1,* delims==" %%b in ("%%a") do set "%%b=%%c"
+  )
+)
+if not defined CODY_PROXY_ENABLED if exist "%CODY_ROOT%\.env" (
   for /f "usebackq tokens=*" %%a in ("%CODY_ROOT%\.env") do (
     for /f "tokens=1,* delims==" %%b in ("%%a") do set "%%b=%%c"
   )
@@ -102,8 +107,9 @@ if (-not (Test-Path `$launcher)) {
   Write-Error "Cody Pro launcher not found at `$launcher."
   exit 1
 }
-# Load proxy settings from .env
-`$envFile = Join-Path `$root ".env"
+# Load proxy settings from .env.proxy, with .env fallback for older installs.
+`$envFile = Join-Path `$root ".env.proxy"
+if (-not (Test-Path `$envFile)) { `$envFile = Join-Path `$root ".env" }
 if (Test-Path `$envFile) {
   Get-Content `$envFile | ForEach-Object {
     if (`$_ -match "^(\w+)=(.*)") {
@@ -118,7 +124,7 @@ exit `$LASTEXITCODE
 # Only cody_pro is created from this repo (cody-pro is the original D: installation)
 
 Write-Host "Installed global commands:"
-  Write-Host "  cody_pro  (from $root, with proxy from .env)"
+  Write-Host "  cody_pro  (from $root, with proxy from .env.proxy)"
 Add-UserPathEntry $target
 
 if (-not (Get-Command cody_pro -ErrorAction SilentlyContinue)) {

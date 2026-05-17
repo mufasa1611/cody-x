@@ -16,8 +16,14 @@ if [ -z "$BUN" ]; then
   exit 1
 fi
 
-# Load proxy from .env
-if [ -f "$ROOT/.env" ]; then
+# Load proxy from .env.proxy. Fall back to .env for older installs.
+if [ -f "$ROOT/.env.proxy" ]; then
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      [^#]*=*) export "$line" ;;
+    esac
+  done < "$ROOT/.env.proxy"
+elif [ -f "$ROOT/.env" ]; then
   while IFS= read -r line || [ -n "$line" ]; do
     case "$line" in
       [^#]*=*) export "$line" ;;
@@ -25,11 +31,29 @@ if [ -f "$ROOT/.env" ]; then
   done < "$ROOT/.env"
 fi
 
-# Auto-update
-if [ -d "$ROOT/.git" ]; then
+# Update check with confirmation. Set CODY_SKIP_UPDATE_CHECK=1 to disable.
+if [ -d "$ROOT/.git" ] && [ "${CODY_SKIP_UPDATE_CHECK:-0}" != "1" ]; then
   git config --global --add safe.directory "$ROOT" 2>/dev/null || true
   echo "[cody-pro] Checking for updates..."
-  git -C "$ROOT" pull --ff-only 2>/dev/null || true
+  branch="$(git -C "$ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo master)"
+  git -C "$ROOT" fetch origin "$branch" --quiet 2>/dev/null || true
+  behind="$(git -C "$ROOT" rev-list --count "HEAD..origin/$branch" 2>/dev/null || echo 0)"
+  if [ "$behind" != "0" ]; then
+    if [ -t 0 ]; then
+      printf "[cody-pro] %s update(s) available on origin/%s. Pull now? [y/N] " "$behind" "$branch"
+      read -r answer
+    else
+      answer="${CODY_AUTO_UPDATE:-no}"
+    fi
+    case "$answer" in
+      y|Y|yes|YES)
+        git -C "$ROOT" pull --ff-only
+        ;;
+      *)
+        echo "[cody-pro] Update skipped."
+        ;;
+    esac
+  fi
 fi
 
 # Auto-fix: strip BOM and repair empty keys in generated config

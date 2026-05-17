@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO="mufasa1611/cody_pro"
-BRANCH="master"
+BRANCH="${CODY_BRANCH:-main}"
 SELF_URL="https://raw.githubusercontent.com/$REPO/$BRANCH/install"
 
 # ---- Self-update check ----
@@ -27,8 +27,11 @@ ARCH="$(uname -m 2>/dev/null || echo unknown)"
 case "$OS" in
   Linux*|Darwin*)
     echo "Cody Pro installer for $OS ($ARCH)"
+    if [ -n "${ANDROID_ROOT:-}" ] || [ -n "${TERMUX_VERSION:-}" ]; then
+      echo "[info] Android/Termux-like environment detected."
+    fi
     echo "[info] Downloading platform installer..."
-    exec bash <(curl -fsSL "https://raw.githubusercontent.com/$REPO/$BRANCH/install.sh")
+    exec bash <(curl -fsSL "https://raw.githubusercontent.com/$REPO/$BRANCH/install.sh") "$@"
     ;;
   MINGW*|MSYS*|CYGWIN*)
     echo "Cody Pro installer for Windows (Git Bash/MSYS)"
