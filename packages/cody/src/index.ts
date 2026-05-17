@@ -204,13 +204,14 @@ const cli = yargs(args)
     process.exit(1)
   })
   .strict()
+
 async function launcherPrompt(): Promise<string> {
   const options = [
     { label: "CLI (Terminal UI)", value: "run" },
     { label: "Web UI (Browser)", value: "web" },
   ]
   let selected = 0
-  const totalLines = 6 // header + blank + 2 options + blank + footer
+  const totalLines = 6
 
   return new Promise((resolve) => {
     const stdin = process.stdin
@@ -240,6 +241,7 @@ async function launcherPrompt(): Promise<string> {
       try { if (rawMode) stdin.setRawMode(false) } catch {}
       stdin.removeAllListeners("keypress")
       stdin.pause()
+      stdin.read(0)
       stdout.write("\x1B[?25h")
       stdout.write(`\x1B[${totalLines}B`)
     }
@@ -254,6 +256,7 @@ async function launcherPrompt(): Promise<string> {
     stdin.on("keypress", handler)
   })
 }
+
 try {
   if (args.includes("-h") || args.includes("--help")) {
     await cli.parse(args, (err: Error | undefined, _argv: unknown, out: string) => {
@@ -266,9 +269,12 @@ try {
     process.stderr.write(InstallationVersion + EOL)
     process.exit(0)
   } else if (args.length === 0) {
-    // No command given — show launcher prompt with arrow keys
     const mode = await launcherPrompt()
-    await cli.parse(mode === "run" ? ["run", "--interactive"] : [mode])
+    if (mode === "web") {
+      await cli.parse(["web"])
+    } else {
+      await cli.parse()
+    }
   } else {
     await cli.parse()
   }
