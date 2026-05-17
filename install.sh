@@ -154,6 +154,15 @@ fi
 git config --global --add safe.directory "$ROOT" 2>/dev/null || true
 
 if [ -d "$ROOT/.git" ]; then
+  CURRENT_BRANCH="$(git -C "$ROOT" branch --show-current 2>/dev/null || true)"
+  if [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "$BRANCH" ]; then
+    echo "Switching Cody Pro checkout from $CURRENT_BRANCH to $BRANCH..."
+    if git -C "$ROOT" fetch origin "$BRANCH"; then
+      git -C "$ROOT" switch "$BRANCH" || echo "[warn] Could not switch to $BRANCH; continuing with $CURRENT_BRANCH."
+    else
+      echo "[warn] Could not fetch branch $BRANCH; continuing with $CURRENT_BRANCH."
+    fi
+  fi
   echo "Updating Cody Pro checkout..."
   git -C "$ROOT" pull --ff-only 2>/dev/null || echo "[warn] git pull failed; continuing with current checkout."
 fi

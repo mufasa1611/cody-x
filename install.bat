@@ -325,6 +325,19 @@ pushd "%ROOT%"
 
 rem Avoid Git dubious ownership error when clone runs under a different user context
 git config --global --add safe.directory "%ROOT%" >nul 2>nul
+for /f "delims=" %%A in ('git branch --show-current 2^>nul') do set "CURRENT_BRANCH=%%A"
+if defined CURRENT_BRANCH if /I not "!CURRENT_BRANCH!"=="%CODY_BRANCH%" (
+  echo Switching Cody Pro checkout from !CURRENT_BRANCH! to %CODY_BRANCH%...
+  git fetch origin "%CODY_BRANCH%"
+  if errorlevel 1 (
+    echo [warn] Could not fetch branch "%CODY_BRANCH%". Continuing with !CURRENT_BRANCH!.
+  ) else (
+    git switch "%CODY_BRANCH%"
+    if errorlevel 1 (
+      echo [warn] Could not switch to "%CODY_BRANCH%". Continuing with !CURRENT_BRANCH!.
+    )
+  )
+)
 echo Updating Cody Pro checkout...
 git pull --ff-only
 if errorlevel 1 (

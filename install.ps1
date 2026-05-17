@@ -92,8 +92,21 @@ git config --global --add safe.directory "$root" 2>$null
 Set-Location $root
 
 if (Test-Path (Join-Path $root ".git")) {
+  $currentBranch = (git -C $root branch --show-current 2>$null).Trim()
+  if ($currentBranch -and $currentBranch -ne $Branch) {
+    Write-Host "Switching Cody Pro checkout from $currentBranch to $Branch..."
+    git -C $root fetch origin $Branch
+    if ($LASTEXITCODE -eq 0) {
+      git -C $root switch $Branch
+      if ($LASTEXITCODE -ne 0) {
+        Write-Host "[warn] Could not switch to $Branch. Continuing with $currentBranch." -ForegroundColor Yellow
+      }
+    } else {
+      Write-Host "[warn] Could not fetch branch $Branch. Continuing with $currentBranch." -ForegroundColor Yellow
+    }
+  }
   Write-Host "Updating Cody Pro checkout..."
-  git pull --ff-only
+  git -C $root pull --ff-only
   if ($LASTEXITCODE -ne 0) {
     Write-Host "git pull --ff-only failed. Continuing with the current checkout."
   }
