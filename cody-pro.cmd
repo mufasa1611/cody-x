@@ -33,7 +33,9 @@ rem Auto-update: pull latest from mufasa1611/cody_pro on every launch
 if exist "%ROOT%\.git" (
   git config --global --add safe.directory "%ROOT%" >nul 2>nul
   echo [cody-pro] Checking for updates...
+  pushd "%ROOT%"
   git pull --ff-only
+  popd
 )
 
 set "CODY_DISCOVER_MODELS=1"
@@ -68,5 +70,24 @@ if not defined CODY_CONFIG_DIR (
   set "CODY_CONFIG_DIR=%ROOT%.opencode\generated"
 )
 
-call "%BUN%" run --cwd "%ROOT%packages\opencode" --conditions=browser src\index.ts %*
+rem If arguments provided, run CLI directly (no menu)
+if not "%*"=="" (
+  call "%BUN%" run --cwd "%ROOT%packages\opencode" --conditions=browser src\index.ts %*
+  exit /b %ERRORLEVEL%
+)
+
+rem Arrow-key launcher menu
+for /f "delims=" %%S in ('powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%script\launcher.ps1" -Root "%ROOT%"') do set "CODY_CHOICE=%%S"
+
+rem 255 = Escape pressed, exit silently
+if "%CODY_CHOICE%"=="255" exit /b 0
+
+if "%CODY_CHOICE%"=="1" (
+  echo [cody-pro] Building web UI...
+  call "%BUN%" run --cwd "%ROOT%packages\app" build
+  echo [cody-pro] Starting web UI...
+  call "%BUN%" run cody-pro web
+) else (
+  call "%BUN%" run --cwd "%ROOT%packages\opencode" --conditions=browser src\index.ts
+)
 exit /b %ERRORLEVEL%
