@@ -1,6 +1,7 @@
 param(
   [string]$Branch = $(if ($env:CODY_BRANCH) { $env:CODY_BRANCH } else { "main" }),
-  [switch]$SelfUpdate
+  [switch]$SelfUpdate,
+  [switch]$NoSelfUpdate
 )
 
 $ErrorActionPreference = "Stop"
@@ -42,8 +43,10 @@ if (-not $scriptRoot) {
   $scriptRoot = (Get-Location).Path
 }
 
-# Self-update check: opt-in only so test branches remain deterministic.
-if ($SelfUpdate -and $scriptPath -and -not $env:CODY_INSTALLER_SELF_UPDATED) {
+# Self-update by default so install fixes reach users; set CODY_INSTALLER_SELF_UPDATE=0
+# or pass -NoSelfUpdate for local deterministic testing.
+$selfUpdateDisabled = $NoSelfUpdate -or $env:CODY_INSTALLER_SELF_UPDATE -eq "0"
+if (-not $selfUpdateDisabled -and $scriptPath -and -not $env:CODY_INSTALLER_SELF_UPDATED) {
   $installerUrl = "https://raw.githubusercontent.com/mufasa1611/cody_pro/$Branch/install.ps1"
   try {
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -262,6 +265,6 @@ Write-Host "Cody Pro (proxy-enabled) is installed."
 Write-Host "Start it with:"
 Write-Host "  cody_pro"
 Write-Host ""
-Write-Host "To update proxy settings, edit .env in:"
+Write-Host "To update proxy settings, edit .env.proxy in:"
 Write-Host "  $root\.env.proxy"
 

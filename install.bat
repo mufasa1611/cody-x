@@ -1,5 +1,5 @@
 @echo off
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 
 set "REPO_URL=https://github.com/your-org/cody.git"
 if not defined CODY_BRANCH set "CODY_BRANCH=main"
@@ -27,7 +27,7 @@ if %ERRORLEVEL% neq 0 (
 )
 
 set "LATEST_INSTALLER=%TEMP%\cody_pro-install-latest-%RANDOM%%RANDOM%.bat"
-if not "%CODY_INSTALLER_SELF_UPDATE%"=="1" goto AfterSelfUpdate
+if "%CODY_INSTALLER_SELF_UPDATE%"=="0" goto AfterSelfUpdate
 echo Checking for installer updates...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri '%INSTALLER_URL%' -OutFile '%LATEST_INSTALLER%'; exit 0 } catch { Write-Host ('[warn] Could not download latest installer: ' + $_.Exception.Message); exit 1 }"
 if %ERRORLEVEL% neq 0 (
@@ -119,6 +119,23 @@ echo.
 echo Installing Cody Pro dependencies...
 pushd "%ROOT%"
 call bun install
+if %ERRORLEVEL% neq 0 (
+  set "BUN_INSTALL_EXIT=%ERRORLEVEL%"
+  echo.
+  echo [warn] Bun install failed with exit code !BUN_INSTALL_EXIT!. Retrying with --no-optional...
+  call bun install --no-optional
+  if !ERRORLEVEL! neq 0 (
+    set "BUN_INSTALL_RETRY_EXIT=!ERRORLEVEL!"
+    echo.
+    echo [error] Bun install failed again with exit code !BUN_INSTALL_RETRY_EXIT!.
+    echo   This project has many dependencies and may need more memory.
+    echo   Try increasing the Windows page file size, then rerun install.bat.
+    echo   You can also run: bun install --frozen-lockfile
+    popd
+    exit /b !BUN_INSTALL_RETRY_EXIT!
+  )
+  echo [ok] Dependencies installed with --no-optional.
+)
 
 echo.
 echo Building Web UI...
@@ -131,10 +148,6 @@ if %ERRORLEVEL% neq 0 (
 )
 popd
 :AfterWebBuild
-if %ERRORLEVEL% neq 0 (
-  popd
-  exit /b %ERRORLEVEL%
-)
 
 echo.
 echo Creating .env.proxy with proxy settings...
@@ -152,10 +165,6 @@ if not exist "%ROOT%\.env.proxy" (
   ) else (
     echo [ok] .env.proxy already has NO_PROXY.
   )
-)
-if %ERRORLEVEL% neq 0 (
-  popd
-  exit /b %ERRORLEVEL%
 )
 if not "%CODY_DISCOVER_MODELS%"=="1" goto SkipModelDiscovery
 if not exist "%ROOT%\.opencode\generated\opencode.jsonc" (

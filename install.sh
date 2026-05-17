@@ -8,7 +8,7 @@ INSTALLER_URL="https://raw.githubusercontent.com/mufasa1611/cody_pro/$BRANCH/ins
 
 # ---- Self-update check ----
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
-if [ -z "${CODY_INSTALLER_SELF_UPDATED:-}" ] && [ -f "$SCRIPT_PATH" ]; then
+if [ "${CODY_INSTALLER_SELF_UPDATE:-1}" != "0" ] && [ -z "${CODY_INSTALLER_SELF_UPDATED:-}" ] && [ -f "$SCRIPT_PATH" ]; then
   TMP_INSTALLER="$(mktemp)"
   if curl -fsSL "$INSTALLER_URL" -o "$TMP_INSTALLER" 2>/dev/null; then
     if ! cmp -s "$SCRIPT_PATH" "$TMP_INSTALLER"; then
@@ -32,6 +32,7 @@ if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
   echo "Environment variables:"
   echo "  CODY_INSTALL_ROOT   Install to a custom path instead of $DEFAULT_ROOT"
   echo "  CODY_BRANCH         Install from a branch, default: $BRANCH"
+  echo "  CODY_INSTALLER_SELF_UPDATE Set to 0 to skip installer self-update"
   echo "  CODY_DISCOVER_MODELS Set to 1 to run optional local model discovery"
   exit 0
 fi
@@ -194,14 +195,22 @@ BUN_EXIT=$?
 set -e
 if [ $BUN_EXIT -ne 0 ]; then
   echo ""
-  echo "[error] Bun install failed (exit code $BUN_EXIT)."
-  echo "  This project has many dependencies (~2700 packages) and may need more memory."
-  echo "  Try one of these:"
-  echo "    1. Increase your swap space, then rerun"
-  echo "    2. Run:  $BUN install --no-optional"
-  echo "    3. Run:  $BUN install --frozen-lockfile"
-  echo "  Then rerun this installer."
-  exit 1
+  echo "[warn] Bun install failed (exit code $BUN_EXIT). Retrying with --no-optional..."
+  set +e
+  "$BUN" install --no-optional
+  BUN_RETRY_EXIT=$?
+  set -e
+  if [ $BUN_RETRY_EXIT -ne 0 ]; then
+    echo ""
+    echo "[error] Bun install failed again (exit code $BUN_RETRY_EXIT)."
+    echo "  This project has many dependencies (~2700 packages) and may need more memory."
+    echo "  Try one of these:"
+    echo "    1. Increase your swap space, then rerun"
+    echo "    2. Run:  $BUN install --frozen-lockfile"
+    echo "  Then rerun this installer."
+    exit 1
+  fi
+  echo "[ok] Dependencies installed with --no-optional."
 fi
 
 # ---- Build Web UI ----
