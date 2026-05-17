@@ -195,6 +195,9 @@ if (Test-Path $discoverScript) {
 
 Write-Host "Setting default model to cody/big-pickle..."
 $generatedDir = Join-Path $root ".opencode\generated"
+if (-not (Test-Path $generatedDir)) {
+  New-Item -ItemType Directory -Force -Path $generatedDir | Out-Null
+}
 $defaultModelFile = Join-Path $generatedDir "opencode.json"
 if (-not (Test-Path $defaultModelFile)) {
   $json = @'
