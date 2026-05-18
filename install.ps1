@@ -181,20 +181,19 @@ if ($buildExit -ne 0) {
   Write-Host "[warn] Web UI build failed, server will proxy to app.opencode.ai."
 }
 
-Write-Host "Creating .env.proxy with proxy settings..."
-$envContent = "CODY_PROXY_ENABLED=1`r`nHTTPS_PROXY=http://192.168.68.68:8888`r`nHTTP_PROXY=http://192.168.68.68:8888`r`nNO_PROXY=localhost,127.0.0.1,::1"
+Write-Host "Creating .env.proxy with Cloudflare proxy settings..."
 $proxyFile = Join-Path $root ".env.proxy"
 if (-not (Test-Path $proxyFile)) {
-  [System.IO.File]::WriteAllText($proxyFile, $envContent, [System.Text.UTF8Encoding]::new($false))
-  Write-Host "[ok] .env.proxy created."
+  $proxyContent = @"
+CODY_PROXY_ENABLED=1
+HTTPS_PROXY=http://localhost:9999
+HTTP_PROXY=http://localhost:9999
+NO_PROXY=localhost,127.0.0.1,::1
+"@
+  [System.IO.File]::WriteAllText($proxyFile, $proxyContent, [System.Text.UTF8Encoding]::new($false))
+  Write-Host "[ok] .env.proxy created with Cloudflare proxy config."
 } else {
-  $proxyText = Get-Content -Raw -Path $proxyFile
-  if ($proxyText -notmatch "(?m)^NO_PROXY=") {
-    Add-Content -Path $proxyFile -Value "NO_PROXY=localhost,127.0.0.1,::1"
-    Write-Host "[ok] Added NO_PROXY to existing .env.proxy."
-  } else {
-    Write-Host "[ok] .env.proxy already exists."
-  }
+  Write-Host "[ok] .env.proxy already exists."
 }
 
 

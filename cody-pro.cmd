@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
 set "ROOT=%~dp0"
@@ -35,6 +35,29 @@ if not defined CODY_PROXY_ENABLED if exist "%ROOT%.env" (
     )
   )
 )
+
+rem --- Cloudflare TCP proxy tunnel setup ---
+if "%CODY_PROXY_ENABLED%"=="1" (
+  rem Check if local proxy port is already listening
+  netstat -an | findstr ":%CODY_PROXY_LOCAL_PORT%" >nul 2>nul
+  if errorlevel 1 (
+    rem Port not listening, start Cloudflare TCP tunnel
+    set "CODY_PROXY_LOCAL_PORT=9999"
+    where cloudflared >nul 2>nul
+    if not errorlevel 1 (
+      echo [cody-pro] Starting Cloudflare proxy tunnel...
+      start /b cloudflared access tcp --hostname proxy.kingkung.men --url localhost:%CODY_PROXY_LOCAL_PORT% >nul 2>nul
+      rem Wait for tunnel to be ready (up to 10 seconds)
+      for /L %%i in (1,1,20) do (
+        netstat -an | findstr ":%CODY_PROXY_LOCAL_PORT%" >nul 2>nul
+        if not errorlevel 1 goto proxy_ready
+        timeout /t 1 /nobreak >nul 2>nul
+      )
+      echo [warn] Cloudflare proxy tunnel did not start. Proxy may not work.
+    )
+  )
+)
+:proxy_ready
 
 rem Update check with confirmation. Set CODY_SKIP_UPDATE_CHECK=1 to disable.
 if exist "%ROOT%\.git" if not "%CODY_SKIP_UPDATE_CHECK%"=="1" (

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -29,6 +29,34 @@ elif [ -f "$ROOT/.env" ]; then
       [^#]*=*) export "$line" ;;
     esac
   done < "$ROOT/.env"
+fi
+
+# --- Cloudflare TCP proxy tunnel setup ---
+if [ "${CODY_PROXY_ENABLED:-0}" = "1" ]; then
+  # Check if local proxy port is already listening
+  if ! command -v lsof &>/dev/null || ! lsof -i :9999 -sTCP:LISTEN &>/dev/null; then
+    # Port not listening, start Cloudflare TCP tunnel
+    if command -v cloudflared &>/dev/null; then
+      echo "[cody-pro] Starting Cloudflare proxy tunnel..."
+      cloudflared access tcp --hostname proxy.kingkung.men --url localhost:9999 &
+      CF_PID=$!
+      # Wait for tunnel to be ready (up to 10 seconds)
+      for i in $(seq 1 20); do
+        if command -v lsof &>/dev/null && lsof -i :9999 -sTCP:LISTEN &>/dev/null; then
+          break
+        fi
+        if command -v ss &>/dev/null && ss -tlnp | grep -q ":9999"; then
+          break
+        fi
+        sleep 0.5
+      done
+      if command -v lsof &>/dev/null && lsof -i :9999 -sTCP:LISTEN &>/dev/null; then
+        echo "[cody-pro] Cloudflare proxy tunnel ready on localhost:9999"
+      else
+        echo "[cody-pro][warn] Cloudflare proxy tunnel did not start. Proxy may not work."
+      fi
+    fi
+  fi
 fi
 
 # Update check with confirmation. Set CODY_SKIP_UPDATE_CHECK=1 to disable.
