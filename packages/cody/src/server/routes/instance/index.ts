@@ -75,6 +75,7 @@ export const InstanceRoutes = (upgrade: UpgradeWebSocket, opts?: CorsOptions): H
     app.post("/provider/:providerID/oauth/authorize", (c) => handler(c.req.raw, context))
     app.post("/provider/:providerID/oauth/callback", (c) => handler(c.req.raw, context))
     app.get("/project", (c) => handler(c.req.raw, context))
+    app.post("/project", (c) => handler(c.req.raw, context))
     app.get("/project/current", (c) => handler(c.req.raw, context))
     app.post("/project/git/init", (c) => handler(c.req.raw, context))
     app.patch("/project/:projectID", (c) => handler(c.req.raw, context))
