@@ -2,8 +2,9 @@ import { AppRuntime } from "@/effect/app-runtime"
 import * as InstanceState from "@/effect/instance-state"
 import { Project } from "@/project/project"
 import { ProjectID } from "@/project/schema"
-import { Effect } from "effect"
-import { HttpApiBuilder } from "effect/unstable/httpapi"
+import { Effect, Schema } from "effect"
+import { HttpServerRequest } from "effect/unstable/http"
+import { HttpApiBuilder, HttpApiError } from "effect/unstable/httpapi"
 import { InstanceHttpApi } from "../api"
 import { markInstanceForReload } from "../lifecycle"
 
@@ -39,13 +40,21 @@ export const projectHandlers = HttpApiBuilder.group(InstanceHttpApi, "project", 
       return yield* svc.update({ ...ctx.payload, projectID: ctx.params.projectID })
     })
 
-    const create = Effect.fn("ProjectHttpApi.create")(function* (ctx: {
-      payload: { directory: string }
+    const createRaw = Effect.fn("ProjectHttpApi.createRaw")(function* (ctx: {
+      request: HttpServerRequest.HttpServerRequest
     }) {
-      const { project } = yield* svc.create(ctx.payload.directory)
+      const body = yield* Effect.orDie(ctx.request.text)
+      const json = yield* Effect.try({
+        try: () => JSON.parse(body) as { directory: string },
+        catch: () => new HttpApiError.BadRequest({}),
+      })
+      const payload = yield* Schema.decodeUnknownEffect(Schema.Struct({ directory: Schema.String }))(json).pipe(
+        Effect.mapError(() => new HttpApiError.BadRequest({})),
+      )
+      const { project } = yield* svc.create(payload.directory)
       return project
     })
 
-    return handlers.handle("list", list).handle("current", current).handle("initGit", initGit).handle("update", update).handle("create", create)
+    return handlers.handle("list", list).handle("current", current).handle("initGit", initGit).handle("update", update).handleRaw("create", createRaw)
   }),
 )
