@@ -87,6 +87,7 @@ import type {
   PermissionRespondResponses,
   PermissionRuleset,
   ProjectCurrentResponses,
+  ProjectCreateResponses,
   ProjectInitGitResponses,
   ProjectListResponses,
   ProjectUpdateErrors,
@@ -2273,6 +2274,29 @@ export class Project extends HeyApiClient {
       },
     })
   }
+
+  /**
+   * Create a project
+   *
+   * Create a new project directory on the server filesystem and return the project info.
+   */
+  public create<ThrowOnError extends boolean = false>(
+    parameters: {
+      directory: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    return (options?.client ?? this.client).post<ProjectCreateResponses, unknown, ThrowOnError>({
+      url: "/project",
+      ...options,
+      body: JSON.stringify({ directory: parameters.directory }),
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+      },
+    })
+  }
+
 }
 
 export class Pty extends HeyApiClient {

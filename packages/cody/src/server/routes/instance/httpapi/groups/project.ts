@@ -45,6 +45,19 @@ export const ProjectApi = HttpApi.make("project")
             description: "Create a git repository for the current project and return the refreshed project info.",
           }),
         ),
+        HttpApiEndpoint.post("create", root, {
+          payload: Schema.Struct({
+            directory: Schema.String,
+          }),
+          success: described(Project.Info, "Created project"),
+          error: [HttpApiError.BadRequest],
+        }).annotateMerge(
+          OpenApi.annotations({
+            identifier: "project.create",
+            summary: "Create a project",
+            description: "Create a new project directory on the server filesystem and return the project info.",
+          }),
+        ),
         HttpApiEndpoint.patch("update", `${root}/:projectID`, {
           params: { projectID: ProjectID },
           payload: UpdatePayload,

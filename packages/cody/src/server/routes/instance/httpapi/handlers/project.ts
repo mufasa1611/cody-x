@@ -39,6 +39,13 @@ export const projectHandlers = HttpApiBuilder.group(InstanceHttpApi, "project", 
       return yield* svc.update({ ...ctx.payload, projectID: ctx.params.projectID })
     })
 
-    return handlers.handle("list", list).handle("current", current).handle("initGit", initGit).handle("update", update)
+    const create = Effect.fn("ProjectHttpApi.create")(function* (ctx: {
+      payload: { directory: string }
+    }) {
+      const { project } = yield* svc.create(ctx.payload.directory)
+      return project
+    })
+
+    return handlers.handle("list", list).handle("current", current).handle("initGit", initGit).handle("update", update).handle("create", create)
   }),
 )

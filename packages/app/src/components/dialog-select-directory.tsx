@@ -1,6 +1,7 @@
 import { useDialog } from "@cody/ui/context/dialog"
 import { Dialog } from "@cody/ui/dialog"
 import { FileIcon } from "@cody/ui/file-icon"
+import { Icon } from "@cody/ui/icon"
 import { List } from "@cody/ui/list"
 import type { ListRef } from "@cody/ui/list"
 import { getDirectory, getFilename } from "@cody/core/util/path"
@@ -20,7 +21,7 @@ interface DialogSelectDirectoryProps {
 type Row = {
   absolute: string
   search: string
-  group: "recent" | "folders"
+  group: "recent" | "folders" | "create"
 }
 
 function cleanInput(value: string) {
@@ -253,6 +254,7 @@ export function DialogSelectDirectory(props: DialogSelectDirectoryProps) {
   const language = useLanguage()
 
   const [filter, setFilter] = createSignal("")
+  const [creating, setCreating] = createSignal(false)
   let list: ListRef | undefined
 
   const missingBase = createMemo(() => !(sync.data.path.home || sync.data.path.directory))
@@ -313,7 +315,45 @@ export function DialogSelectDirectory(props: DialogSelectDirectoryProps) {
   const items = async (value: string) => {
     const results = await directories(value)
     const directoryRows = results.map((absolute) => toRow(absolute, home(), "folders"))
-    return uniqueRows([...recentProjects(), ...directoryRows])
+    const rows = uniqueRows([...recentProjects(), ...directoryRows])
+
+    // If the user typed a non-existent path, offer to create it
+    const cleaned = cleanInput(value)
+    const mode = modeOf(cleaned)
+    if (cleaned && (mode === "absolute" || mode === "tilde")) {
+      const normalized = trimTrailing(normalizeDriveRoot(cleaned))
+      // Only offer creation if it's more than just a root
+      const canCreate = (() => {
+        if (normalized === "/" || normalized === "//") return false
+        if (/^[A-Za-z]:\/?$/.test(normalized)) return false
+        if (normalized === "~") return false
+        return true
+      })()
+      if (canCreate) {
+        const exists = rows.some((r) => r.absolute === normalized || normalized.startsWith(r.absolute + "/"))
+        if (!exists) {
+          rows.push({
+            absolute: normalized,
+            search: `create ${normalized}`,
+            group: "create",
+          })
+        }
+      }
+    }
+
+    return rows
+  }
+
+  async function resolveCreate(directory: string) {
+    setCreating(true)
+    try {
+      await sdk.client.project.create({ directory })
+    } catch {
+      // If it fails (e.g. already exists), still try to open it
+    }
+    setCreating(false)
+    props.onSelect(props.multiple ? [directory] : directory)
+    dialog.close()
   }
 
   function resolve(absolute: string) {
@@ -333,11 +373,17 @@ export function DialogSelectDirectory(props: DialogSelectDirectoryProps) {
         groupBy={(item) => item.group}
         sortGroupsBy={(a, b) => {
           if (a.category === b.category) return 0
-          return a.category === "recent" ? -1 : 1
+          if (a.category === "recent") return -1
+          if (a.category === "create") return 1
+          if (b.category === "recent") return 1
+          if (b.category === "create") return -1
+          return 0
         }}
-        groupHeader={(group) =>
-          group.category === "recent" ? language.t("home.recentProjects") : language.t("command.project.open")
-        }
+        groupHeader={(group) => {
+          if (group.category === "recent") return language.t("home.recentProjects")
+          if (group.category === "create") return language.t("command.project.create") ?? "Create project"
+          return language.t("command.project.open")
+        }}
         ref={(r) => (list = r)}
         onFilter={(value) => setFilter(cleanInput(value))}
         onKeyEvent={(e, item) => {
@@ -353,10 +399,30 @@ export function DialogSelectDirectory(props: DialogSelectDirectoryProps) {
         }}
         onSelect={(path) => {
           if (!path) return
-          resolve(path.absolute)
+          if (path.group === "create") {
+            void resolveCreate(path.absolute)
+          } else {
+            resolve(path.absolute)
+          }
         }}
       >
         {(item) => {
+          if (item.group === "create") {
+            const path = displayPath(item.absolute, filter(), home())
+            return (
+              <div class="w-full flex items-center justify-between rounded-md">
+                <div class="flex items-center gap-x-3 grow min-w-0">
+                  <Icon name="folder-add-left" class="shrink-0 size-4" />
+                  <div class="flex items-center text-14-regular min-w-0">
+                    <span class="text-text-accent whitespace-nowrap overflow-hidden overflow-ellipsis truncate min-w-0">
+                      {creating() ? "Creating..." : language.t("dialog.directory.createAt") ?? "Create at"}
+                    </span>
+                    <span class="text-text-strong whitespace-nowrap ml-1">{path}/</span>
+                  </div>
+                </div>
+              </div>
+            )
+          }
           const path = displayPath(item.absolute, filter(), home())
           if (path === "~") {
             return (

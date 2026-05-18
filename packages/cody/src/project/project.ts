@@ -118,6 +118,7 @@ export interface Interface {
    */
   readonly init: () => Effect.Effect<void>
   readonly fromDirectory: (directory: string) => Effect.Effect<{ project: Info; sandbox: string }>
+  readonly create: (directory: string) => Effect.Effect<{ project: Info; sandbox: string }>
   readonly discover: (input: Info) => Effect.Effect<void>
   readonly list: () => Effect.Effect<Info[]>
   readonly get: (id: ProjectID) => Effect.Effect<Info | undefined>
@@ -357,6 +358,11 @@ export const layer: Layer.Layer<
       return { project: result, sandbox: data.sandbox }
     })
 
+    const create = Effect.fn("Project.create")(function* (directory: string) {
+      yield* fs.makeDirectory(directory, { recursive: true }).pipe(Effect.orDie)
+      return yield* fromDirectory(directory)
+    })
+
     const discover = Effect.fn("Project.discover")(function* (input: Info) {
       if (input.vcs !== "git") return
       if (input.icon?.override) return
@@ -493,6 +499,7 @@ export const layer: Layer.Layer<
     return Service.of({
       init,
       fromDirectory,
+      create,
       discover,
       list,
       get,
