@@ -1,4 +1,4 @@
-import { generateSpecs } from "hono-openapi"
+﻿import { generateSpecs } from "hono-openapi"
 import { Hono } from "hono"
 import { adapter } from "#hono"
 import { lazy } from "@/util/lazy"
@@ -10,6 +10,7 @@ import { HttpRouter, HttpServer } from "effect/unstable/http"
 import { OpenApi } from "effect/unstable/httpapi"
 import * as HttpApiServer from "#httpapi-server"
 import { MDNS } from "./mdns"
+import { ensureWebUIBuilt } from "./shared/ensure-ui"
 import { AuthMiddleware, CompressionMiddleware, CorsMiddleware, ErrorMiddleware, LoggerMiddleware } from "./middleware"
 import { FenceMiddleware } from "./fence"
 import { initProjectors } from "./projectors"
@@ -187,6 +188,7 @@ export async function openapiHono() {
 export let url: URL
 
 export async function listen(opts: ListenOptions): Promise<Listener> {
+  ensureWebUIBuilt()
   const selected = select()
   const inner: Listener =
     selected.backend === "effect-httpapi" ? await listenHttpApi(opts, selected) : await listenLegacy(opts)
@@ -337,3 +339,5 @@ async function listenHttpApi(opts: ListenOptions, selection: ServerBackend.Selec
 }
 
 export * as Server from "./server"
+
+

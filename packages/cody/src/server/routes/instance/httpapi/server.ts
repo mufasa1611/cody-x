@@ -1,4 +1,4 @@
-import { Context, Effect, Layer } from "effect"
+﻿import { Context, Effect, Layer } from "effect"
 import { HttpApiBuilder } from "effect/unstable/httpapi"
 import { FetchHttpClient, HttpClient, HttpMiddleware, HttpRouter, HttpServer } from "effect/unstable/http"
 import * as Socket from "effect/unstable/socket/Socket"
@@ -61,6 +61,7 @@ import { globalHandlers } from "./handlers/global"
 import { instanceHandlers } from "./handlers/instance"
 import { mcpHandlers } from "./handlers/mcp"
 import { permissionHandlers } from "./handlers/permission"
+import { agentHandlers } from "./handlers/agent"
 import { projectHandlers } from "./handlers/project"
 import { providerHandlers } from "./handlers/provider"
 import { ptyConnectRoute, ptyHandlers } from "./handlers/pty"
@@ -128,6 +129,7 @@ const instanceApiRoutes = HttpApiBuilder.layer(InstanceHttpApi).pipe(
     ptyHandlers,
     questionHandlers,
     permissionHandlers,
+    agentHandlers,
     providerHandlers,
     sessionHandlers,
     syncHandlers,
@@ -229,3 +231,5 @@ export function webHandler(corsOptions?: CorsOptions) {
 }
 
 export * as ExperimentalHttpApiServer from "./server"
+
+

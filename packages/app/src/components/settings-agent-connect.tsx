@@ -1,8 +1,9 @@
-import { Component, Show, createSignal, onCleanup, onMount } from "solid-js"
+﻿import { Component, Show, createSignal, onCleanup, onMount } from "solid-js"
 import { Button } from "@cody/ui/button"
 import { Icon } from "@cody/ui/icon"
 import { showToast } from "@cody/ui/toast"
 import { useLanguage } from "@/context/language"
+import FileTreeRemote from "./file-tree-remote"
 
 export const SettingsAgentConnect: Component = () => {
   const language = useLanguage()
@@ -137,12 +138,22 @@ export const SettingsAgentConnect: Component = () => {
             <Button variant="secondary" onClick={disconnect}>
               {language.t("settings.agentConnect.disconnect")}
             </Button>
-            <p class="text-13-regular text-text-secondary">
-              {language.t("settings.agentConnect.connectedHint")}
-            </p>
           </div>
         </Show>
       </div>
+
+      {/* Remote file tree — only visible when connected */}
+      <Show when={connected()}>
+        <div class="bg-surface-base rounded-lg overflow-hidden">
+          <div class="text-14-semibold text-text-primary px-4 pt-3 pb-2 border-b border-border-secondary flex items-center gap-2">
+            <Icon name="file-tree" size="small" />
+            Remote PC Files
+          </div>
+          <div class="py-2 max-h-96 overflow-y-auto">
+            <FileTreeRemote />
+          </div>
+        </div>
+      </Show>
     </div>
   )
 }

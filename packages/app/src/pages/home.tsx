@@ -1,4 +1,4 @@
-import { createMemo, For, Match, Switch } from "solid-js"
+﻿import { createMemo, For, Match, Switch } from "solid-js"
 import { Button } from "@cody/ui/button"
 import { Logo } from "@cody/ui/logo"
 import { useLayout } from "@/context/layout"
@@ -68,23 +68,40 @@ export default function Home() {
     }
   }
 
+  function openSettings() {
+    void import("@/components/dialog-settings").then((x) => {
+      dialog.show(() => <x.DialogSettings />)
+    })
+  }
+
   return (
     <div class="mx-auto mt-55 w-full md:w-auto px-4">
       <Logo class="md:w-xl opacity-12" />
-      <Button
-        size="large"
-        variant="ghost"
-        class="mt-4 mx-auto text-14-regular text-text-weak"
-        onClick={() => dialog.show(() => <DialogSelectServer />)}
-      >
-        <div
-          classList={{
-            "size-2 rounded-full": true,
-            [serverDotClass()]: true,
-          }}
-        />
-        {server.name}
-      </Button>
+      <div class="mt-4 mx-auto flex items-center justify-center gap-2">
+        <Button
+          size="large"
+          variant="ghost"
+          class="text-14-regular text-text-weak"
+          onClick={() => dialog.show(() => <DialogSelectServer />)}
+        >
+          <div
+            classList={{
+              "size-2 rounded-full": true,
+              [serverDotClass()]: true,
+            }}
+          />
+          {server.name}
+        </Button>
+        <Button
+          size="small"
+          variant="ghost"
+          class="text-icon-weak hover:text-icon-strong"
+          onClick={openSettings}
+          aria-label={language.t("command.settings.open")}
+        >
+          <Icon name="settings-gear" size="small" />
+        </Button>
+      </div>
       <Switch>
         <Match when={sync.data.project.length > 0}>
           <div class="mt-20 w-full flex flex-col gap-4">
@@ -137,3 +154,4 @@ export default function Home() {
     </div>
   )
 }
+
