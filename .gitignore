@@ -51,3 +51,6 @@ CODY_LEGACY_AUDIT.md
 *.bak
 # Personal planning
 personalize-todo-list.md
+
+# README files
+**/README*
