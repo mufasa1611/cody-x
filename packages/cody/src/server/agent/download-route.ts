@@ -160,8 +160,10 @@ pause
 
 export const agentDownloadRoute = HttpRouter.use((router) =>
   Effect.gen(function* () {
-    yield* router.add("GET", "/agent/download/script", () => handleScriptDownload)
+    yield* router.add("GET", "/agent/download/script", () => handleScriptDownload())
     yield* router.add("GET", "/agent/download/launcher", (request) => handleLauncherDownload(request))
     yield* router.add("GET", "/agent/download/launcher.ps1", (request) => handlePs1Download(request))
   }),
 )
+
+
