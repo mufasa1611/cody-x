@@ -141,5 +141,105 @@ export const AgentRoutes = lazy(() =>
           const result = yield* hub.readFile(path)
           return result as AgentReadFileResponse
         }),
+    )
+    // Write a file on the remote PC
+    .post(
+      "/fs/write",
+      describeRoute({
+        summary: "Write remote file",
+        description: "Write content to a file on the connected remote PC.",
+        operationId: "agent.fs.write",
+        responses: {
+          200: {
+            description: "Write result",
+            content: {
+              "application/json": {
+                schema: resolver(z.object({ success: z.boolean() })),
+              },
+            },
+          },
+          ...errors(400, 503),
+        },
+      }),
+      validator(
+        "json",
+        z.object({
+          path: z.string(),
+          content: z.string(),
+          encoding: z.string().optional(),
+        }),
+      ),
+      async (c) =>
+        jsonRequest("AgentRoutes.fs.write", c, function* () {
+          const hub = yield* AgentHub.Service
+          const body = c.req.valid("json")
+          const content = body.encoding === "base64"
+            ? Buffer.from(body.content, "base64").toString("utf-8")
+            : body.content
+          const result = yield* hub.writeFile(body.path, content)
+          return { success: true } as AgentWriteFileResponse
+        }),
+    )
+    // Execute a command on the remote PC
+    .post(
+      "/exec",
+      describeRoute({
+        summary: "Execute remote command",
+        description: "Execute a shell command on the connected remote PC.",
+        operationId: "agent.exec",
+        responses: {
+          200: {
+            description: "Command result",
+            content: {
+              "application/json": {
+                schema: resolver(z.object({ stdout: z.string(), stderr: z.string(), exitCode: z.number() })),
+              },
+            },
+          },
+          ...errors(400, 503),
+        },
+      }),
+      validator(
+        "json",
+        z.object({
+          command: z.string(),
+        }),
+      ),
+      async (c) =>
+        jsonRequest("AgentRoutes.exec", c, function* () {
+          const hub = yield* AgentHub.Service
+          const body = c.req.valid("json")
+          const result = yield* hub.exec(body.command)
+          return result as AgentExecResponse
+        }),
+    )
+    // Disconnect the remote PC agent
+    .post(
+      "/disconnect",
+      describeRoute({
+        summary: "Disconnect agent",
+        description: "Disconnect the currently connected remote PC agent.",
+        operationId: "agent.disconnect",
+        responses: {
+          200: {
+            description: "Disconnect result",
+            content: {
+              "application/json": {
+                schema: resolver(z.object({ disconnected: z.boolean() })),
+              },
+            },
+          },
+          ...errors(503),
+        },
+      }),
+      async (c) =>
+        jsonRequest("AgentRoutes.disconnect", c, function* () {
+          const hub = yield* AgentHub.Service
+          const status = yield* hub.getStatus
+          if (status.connected && status.code) {
+            yield* hub.disconnectAgent(status.code)
+          }
+          return { disconnected: true }
+        }),
     ),
 )

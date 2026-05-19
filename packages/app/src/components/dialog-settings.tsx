@@ -8,6 +8,7 @@ import { SettingsGeneral } from "./settings-general"
 import { SettingsKeybinds } from "./settings-keybinds"
 import { SettingsProviders } from "./settings-providers"
 import { SettingsModels } from "./settings-models"
+import { SettingsAgentConnect } from "./settings-agent-connect"
 
 export const DialogSettings: Component = () => {
   const language = useLanguage()
@@ -30,6 +31,16 @@ export const DialogSettings: Component = () => {
                     <Tabs.Trigger value="shortcuts">
                       <Icon name="keyboard" />
                       {language.t("settings.tab.shortcuts")}
+                    </Tabs.Trigger>
+                  </div>
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                  <Tabs.SectionTitle>{language.t("settings.section.connect")}</Tabs.SectionTitle>
+                  <div class="flex flex-col gap-1.5 w-full">
+                    <Tabs.Trigger value="agent-connect">
+                      <Icon name="square-arrow-top-right" />
+                      {language.t("settings.tab.agentConnect")}
                     </Tabs.Trigger>
                   </div>
                 </div>
@@ -60,6 +71,9 @@ export const DialogSettings: Component = () => {
         </Tabs.Content>
         <Tabs.Content value="shortcuts" class="no-scrollbar">
           <SettingsKeybinds />
+        </Tabs.Content>
+        <Tabs.Content value="agent-connect" class="no-scrollbar">
+          <SettingsAgentConnect />
         </Tabs.Content>
         <Tabs.Content value="providers" class="no-scrollbar">
           <SettingsProviders />
