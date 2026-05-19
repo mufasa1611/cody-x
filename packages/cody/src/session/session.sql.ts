@@ -128,4 +128,5 @@ export const PermissionTable = sqliteTable("permission", {
     .references(() => ProjectTable.id, { onDelete: "cascade" }),
   ...Timestamps,
   data: text({ mode: "json" }).notNull().$type<Permission.Ruleset>(),
+  mode: text().$type<"restricted" | "standard" | "full">().notNull().default("standard"),
 })

@@ -43,15 +43,21 @@ export const projectHandlers = HttpApiBuilder.group(InstanceHttpApi, "project", 
     const createRaw = Effect.fn("ProjectHttpApi.createRaw")(function* (ctx: {
       request: HttpServerRequest.HttpServerRequest
     }) {
+      yield* Effect.logInfo("createRaw: reading body")
       const body = yield* Effect.orDie(ctx.request.text)
+      console.log("BODY TYPE:", typeof body, "LENGTH:", body.length, "FIRST:", body.slice(0, 10))
+      yield* Effect.logInfo("createRaw: body length", { length: body.length })
       const json = yield* Effect.try({
         try: () => JSON.parse(body) as { directory: string },
         catch: () => new HttpApiError.BadRequest({}),
       })
+      yield* Effect.logInfo("createRaw: parsed json", { directory: json.directory })
       const payload = yield* Schema.decodeUnknownEffect(Schema.Struct({ directory: Schema.String }))(json).pipe(
         Effect.mapError(() => new HttpApiError.BadRequest({})),
       )
+      yield* Effect.logInfo("createRaw: decoded payload", { directory: payload.directory })
       const { project } = yield* svc.create(payload.directory)
+      yield* Effect.logInfo("createRaw: created project", { projectId: project.id })
       return project
     })
 

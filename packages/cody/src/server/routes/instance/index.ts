@@ -25,6 +25,7 @@ import { ConfigRoutes } from "./config"
 import { ExperimentalRoutes } from "./experimental"
 import { ProviderRoutes } from "./provider"
 import { EventRoutes } from "./event"
+import { AgentRoutes } from "@/server/agent/rest"
 import { SyncRoutes } from "./sync"
 import { InstanceMiddleware } from "./middleware"
 import { jsonRequest, runRequest } from "./trace"
@@ -75,7 +76,7 @@ export const InstanceRoutes = (upgrade: UpgradeWebSocket, opts?: CorsOptions): H
     app.post("/provider/:providerID/oauth/authorize", (c) => handler(c.req.raw, context))
     app.post("/provider/:providerID/oauth/callback", (c) => handler(c.req.raw, context))
     app.get("/project", (c) => handler(c.req.raw, context))
-    app.post("/project", (c) => handler(c.req.raw.clone(), context))
+    app.post("/project", (c) => { console.log("BRIDGE: POST /project reached"); return handler(c.req.raw.clone(), context) })
     app.get("/project/current", (c) => handler(c.req.raw, context))
     app.post("/project/git/init", (c) => handler(c.req.raw, context))
     app.patch("/project/:projectID", (c) => handler(c.req.raw, context))
@@ -177,6 +178,7 @@ export const InstanceRoutes = (upgrade: UpgradeWebSocket, opts?: CorsOptions): H
     .route("/", EventRoutes())
     .route("/mcp", McpRoutes())
     .route("/tui", TuiRoutes())
+    .route("/agent", AgentRoutes())
     .post(
       "/instance/dispose",
       describeRoute({

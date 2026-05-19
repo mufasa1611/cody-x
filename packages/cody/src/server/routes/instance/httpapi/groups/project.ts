@@ -46,9 +46,6 @@ export const ProjectApi = HttpApi.make("project")
           }),
         ),
         HttpApiEndpoint.post("create", root, {
-          payload: Schema.Struct({
-            directory: Schema.String,
-          }),
           success: described(Project.Info, "Created project"),
           error: [HttpApiError.BadRequest],
         }).annotateMerge(

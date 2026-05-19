@@ -50,7 +50,8 @@ import { PtyTicket } from "@/pty/ticket"
 import { Installation } from "@/installation"
 import { ShareNext } from "@/share/share-next"
 import { SessionShare } from "@/share/session"
-import { SyncEvent } from "@/sync"
+import { SyncEvent } from '@/sync'
+import { layer as AgentHubLayer } from '@/server/agent/hub'
 import { Npm } from "@cody/core/npm"
 import { memoMap } from "@cody/core/effect/memo-map"
 
@@ -104,6 +105,7 @@ export const AppLayer = Layer.mergeAll(
   ShareNext.defaultLayer,
   SessionShare.defaultLayer,
   SyncEvent.defaultLayer,
+  AgentHubLayer,
 ).pipe(Layer.provideMerge(InstanceLayer.layer), Layer.provideMerge(Observability.layer))
 
 const rt = ManagedRuntime.make(AppLayer, { memoMap })

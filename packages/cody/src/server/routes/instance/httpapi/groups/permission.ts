@@ -38,6 +38,25 @@ export const PermissionApi = HttpApi.make("permission")
             description: "Approve or deny a permission request from the AI assistant.",
           }),
         ),
+        HttpApiEndpoint.post("setMode", `${root}/mode`, {
+          payload: Schema.Struct({ mode: Schema.Literals(["restricted", "standard", "full"]) }),
+          success: described(Schema.Boolean, "Mode set"),
+        }).annotateMerge(
+          OpenApi.annotations({
+            identifier: "permission.setMode",
+            summary: "Set permission mode",
+            description: "Override permission level. In 'full' mode all non-system file permissions are auto-approved.",
+          }),
+        ),
+        HttpApiEndpoint.get("getMode", `${root}/mode`, {
+          success: described(Schema.Literals(["restricted", "standard", "full"]), "Current permission mode"),
+        }).annotateMerge(
+          OpenApi.annotations({
+            identifier: "permission.getMode",
+            summary: "Get current permission mode",
+            description: "Retrieve the current permission mode setting.",
+          }),
+        ),
       )
       .annotateMerge(
         OpenApi.annotations({

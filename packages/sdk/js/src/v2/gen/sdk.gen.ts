@@ -85,6 +85,8 @@ import type {
   PermissionReplyResponses,
   PermissionRespondErrors,
   PermissionRespondResponses,
+  PermissionSetModeResponses,
+  PermissionGetModeResponses,
   PermissionRuleset,
   ProjectCurrentResponses,
   ProjectCreateResponses,
@@ -2752,6 +2754,32 @@ export class Permission extends HeyApiClient {
         ...options?.headers,
         ...params.headers,
       },
+    })
+  }
+
+  public setMode<ThrowOnError extends boolean = false>(
+    parameters: {
+      mode: "restricted" | "standard" | "full"
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    return (options?.client ?? this.client).post<PermissionSetModeResponses, unknown, ThrowOnError>({
+      url: "/permission/mode",
+      ...options,
+      body: JSON.stringify({ mode: parameters.mode }),
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+      },
+    })
+  }
+
+  public getMode<ThrowOnError extends boolean = false>(
+    options?: Options<never, ThrowOnError>,
+  ) {
+    return (options?.client ?? this.client).get<PermissionGetModeResponses, unknown, ThrowOnError>({
+      url: "/permission/mode",
+      ...options,
     })
   }
 

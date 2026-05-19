@@ -4960,6 +4960,29 @@ export type PermissionReplyResponses = {
 
 export type PermissionReplyResponse = PermissionReplyResponses[keyof PermissionReplyResponses]
 
+export type PermissionSetModeData = {
+  body?: {
+    mode: "restricted" | "standard" | "full"
+  }
+  url: "/permission/mode"
+}
+
+export type PermissionSetModeResponses = {
+  200: boolean
+}
+
+export type PermissionSetModeResponse = PermissionSetModeResponses[keyof PermissionSetModeResponses]
+
+export type PermissionGetModeData = {
+  url: "/permission/mode"
+}
+
+export type PermissionGetModeResponses = {
+  200: "restricted" | "standard" | "full"
+}
+
+export type PermissionGetModeResponse = PermissionGetModeResponses[keyof PermissionGetModeResponses]
+
 export type ProviderListData = {
   body?: never
   path?: never

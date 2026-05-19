@@ -132,6 +132,7 @@ export interface Interface {
   readonly reply: (input: ReplyInput) => Effect.Effect<void>
   readonly list: () => Effect.Effect<ReadonlyArray<Request>>
   readonly setMode: (mode: "restricted" | "standard" | "full") => Effect.Effect<void>
+  readonly getMode: () => Effect.Effect<"restricted" | "standard" | "full">
 }
 
 interface PendingEntry {
@@ -163,7 +164,7 @@ export const layer = Layer.effect(
         const state = {
           pending: new Map<PermissionID, PendingEntry>(),
           approved: row?.data ?? [],
-          mode: "standard" as const,
+          mode: row?.mode ?? "standard",
         }
 
         yield* Effect.addFinalizer(() =>
@@ -186,14 +187,21 @@ export const layer = Layer.effect(
       let needsAsk = false
 
       for (const pattern of request.patterns) {
+        if ((request.permission === "edit" || request.permission === "write") && isSystemPath(pattern)) {
+          return yield* new DeniedError({
+            ruleset: [{ permission: request.permission, pattern, action: "deny" }],
+          })
+        }
+
         const rule = evaluate(request.permission, pattern, ruleset, approved)
         log.info("evaluated", { permission: request.permission, pattern, action: rule })
+
+        if (mode === "full") continue
         if (rule.action === "deny") {
           return yield* new DeniedError({
             ruleset: ruleset.filter((rule) => Wildcard.match(request.permission, rule.permission)),
           })
         }
-        if (mode === "full") continue
         if (mode === "restricted" && request.permission === "edit") {
           return yield* new DeniedError({
             ruleset: ruleset.filter((rule) => Wildcard.match(request.permission, rule.permission)),
@@ -287,11 +295,25 @@ export const layer = Layer.effect(
     })
 
     const setMode = Effect.fn("Permission.setMode")(function* (mode: "restricted" | "standard" | "full") {
+      const ctx = yield* InstanceState.context
       const s = yield* InstanceState.get(state)
       s.mode = mode
+      Database.use((db) =>
+        db.insert(PermissionTable)
+          .values({ project_id: ctx.project.id, mode, data: s.approved })
+          .onConflictDoUpdate({
+            target: PermissionTable.project_id,
+            set: { mode, data: s.approved },
+          })
+          .run(),
+      )
     })
 
-    return Service.of({ ask, reply, list, setMode })
+    const getMode = Effect.fn("Permission.getMode")(function* () {
+      return (yield* InstanceState.get(state)).mode
+    })
+
+    return Service.of({ ask, reply, list, setMode, getMode })
   }),
 )
 
@@ -301,6 +323,18 @@ function expand(pattern: string): string {
   if (pattern.startsWith("$HOME/")) return os.homedir() + pattern.slice(5)
   if (pattern.startsWith("$HOME")) return os.homedir() + pattern.slice(5)
   return pattern
+}
+
+const SYSTEM_PATHS: Record<string, string[]> = {
+  linux: ["/etc/*", "/sys/*", "/proc/*", "/dev/*", "/boot/*", "/usr/lib/*", "/usr/share/*", "/var/lib/*", "/opt/*/bin/*"],
+  win32: ["C:/Windows/*", "C:/Program Files/*", "C:/Program Files (x86)/*", "C:/System Volume Information/*"],
+  darwin: ["/System/*", "/Library/*", "/private/*"],
+}
+
+function isSystemPath(pattern: string): boolean {
+  const paths = SYSTEM_PATHS[process.platform]
+  if (!paths) return false
+  return paths.some((sys) => Wildcard.match(pattern, sys))
 }
 
 export function fromConfig(permission: ConfigPermission.Info) {
