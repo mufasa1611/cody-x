@@ -91,7 +91,10 @@ git config --global --add safe.directory "$root" 2>$null
 
 Set-Location $root
 
+# Capture HEAD for dep change detection
+$beforeHead = ""
 if (Test-Path (Join-Path $root ".git")) {
+  $beforeHead = git -C $root rev-parse HEAD 2>$null
   $currentBranch = (git -C $root branch --show-current 2>$null).Trim()
   if ($currentBranch -and $currentBranch -ne $Branch) {
     Write-Host "Switching Cody Pro checkout from $currentBranch to $Branch..."
@@ -139,23 +142,41 @@ if (-not $bun) {
 $bunDir = Split-Path -Parent $bun
 $env:PATH = "$bunDir;$env:PATH"
 
-Write-Host "Installing Cody Pro dependencies..."
-& $bun install
-if ($LASTEXITCODE -ne 0) {
-  Write-Host ""
-  Write-Host "[warn] Bun install failed (exit code $LASTEXITCODE). Retrying with --no-optional..." -ForegroundColor Yellow
-  & $bun install --no-optional
+# ---- Check if dependencies need updating ----
+$needInstall = $false
+if (-not (Test-Path "node_modules")) {
+  $needInstall = $true
+} elseif ($beforeHead) {
+  $afterHead = git rev-parse HEAD 2>$null
+  if ($afterHead -and $beforeHead -ne $afterHead) {
+    $changedFiles = git diff "$beforeHead..$afterHead" --name-only
+    if ($changedFiles -match "package\.json|bun\.lock") {
+      $needInstall = $true
+    }
+  }
+}
+
+if ($needInstall) {
+  Write-Host "Installing Cody Pro dependencies..."
+  & $bun install
   if ($LASTEXITCODE -ne 0) {
     Write-Host ""
-    Write-Host "[error] Bun install failed again." -ForegroundColor Red
-    Write-Host "  This project has many dependencies (~2700 packages) and may need more memory." -ForegroundColor Yellow
-    Write-Host "  Try one of these:" -ForegroundColor Yellow
-    Write-Host "    1. Increase your Windows page file size, then rerun" -ForegroundColor Yellow
-    Write-Host "    2. Run:  $bun install --frozen-lockfile" -ForegroundColor Yellow
-    Write-Host "  Then rerun this installer." -ForegroundColor Yellow
-    exit 1
+    Write-Host "[warn] Bun install failed (exit code $LASTEXITCODE). Retrying with --no-optional..." -ForegroundColor Yellow
+    & $bun install --no-optional
+    if ($LASTEXITCODE -ne 0) {
+      Write-Host ""
+      Write-Host "[error] Bun install failed again." -ForegroundColor Red
+      Write-Host "  This project has many dependencies (~2700 packages) and may need more memory." -ForegroundColor Yellow
+      Write-Host "  Try one of these:" -ForegroundColor Yellow
+      Write-Host "    1. Increase your Windows page file size, then rerun" -ForegroundColor Yellow
+      Write-Host "    2. Run:  $bun install --frozen-lockfile" -ForegroundColor Yellow
+      Write-Host "  Then rerun this installer." -ForegroundColor Yellow
+      exit 1
+    }
+    Write-Host "[ok] Dependencies installed (with --no-optional)."
   }
-  Write-Host "[ok] Dependencies installed (with --no-optional)."
+} else {
+  Write-Host "[ok] Dependencies are up to date. Skipping bun install."
 }
 
 # Warn about native module compilation if VS Build Tools are missing

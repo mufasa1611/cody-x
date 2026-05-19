@@ -58,19 +58,30 @@ process.on("uncaughtException", (e) => {
 const args = hideBin(process.argv)
 const cliName = process.env.CODY_PRO === "0" ? "cody" : "cody-pro"
 
+// Auto-update at startup (skip for help/version/upgrade subcommands)
+if (process.env.CODY_PRO !== "0" && !args.some(a => ["--help", "-h", "--version", "-v"].includes(a)) && args[0] !== "upgrade") {
+  tryAutoUpdate()
+}
 function tryAutoUpdate() {
   try {
     const repoRoot = execSync("git rev-parse --show-toplevel", { encoding: "utf8", timeout: 5000 }).trim()
     if (!repoRoot) return
-    execSync("git fetch origin master --quiet", { cwd: repoRoot, encoding: "utf8", timeout: 15000 })
-    const behind = execSync("git rev-list --count HEAD..origin/master", { cwd: repoRoot, encoding: "utf8", timeout: 5000 }).trim()
+    const branch = process.env.CODY_BRANCH || "main"
+    execSync(`git fetch origin ${branch} --quiet`, { cwd: repoRoot, encoding: "utf8", timeout: 15000 })
+    const behind = execSync(`git rev-list --count HEAD..origin/${branch}`, { cwd: repoRoot, encoding: "utf8", timeout: 5000 }).trim()
     if (behind === "0" || behind === "") return
     process.stderr.write("\n  \x1B[1mUpdating Cody Pro...\x1B[22m\n")
     execSync("git pull --ff-only", { cwd: repoRoot, encoding: "utf8", timeout: 30000 })
-    execSync("bun install", { cwd: repoRoot, encoding: "utf8", timeout: 120000 })
-    execSync("bun run build", { cwd: path.join(repoRoot, "packages", "app"), encoding: "utf8", timeout: 120000 })
-    process.stderr.write("  \x1B[32mUpdate complete. Restart Cody Pro to use the latest version.\x1B[0m\n")
-    process.exit(0)
+    try {
+      const changed = execSync("git diff HEAD@{1} --name-only", { cwd: repoRoot, encoding: "utf8", timeout: 5000 })
+      if (changed.split("\n").some(f => /^(package\.json|bun\.lock)$/.test(f.trim()))) {
+        execSync("bun install", { cwd: repoRoot, encoding: "utf8", timeout: 120000 })
+      }
+    } catch {
+      execSync("bun install", { cwd: repoRoot, encoding: "utf8", timeout: 120000 })
+    }
+    execSync("bun run --cwd packages/app build", { cwd: repoRoot, encoding: "utf8", timeout: 120000 })
+    process.stderr.write("  \x1B[32mUpdate complete.\x1B[0m\n")
   } catch {
     // Auto-update is best-effort; silently continue if anything fails
   }

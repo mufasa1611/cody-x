@@ -1,4 +1,4 @@
-import { Config } from "@/config/config"
+﻿import { Config } from "@/config/config"
 import { GlobalBus, type GlobalEvent as GlobalBusEvent } from "@/bus/global"
 import { EffectBridge } from "@/effect/bridge"
 import { Bus } from "@/bus"
@@ -13,6 +13,8 @@ import { HttpApiBuilder } from "effect/unstable/httpapi"
 import * as Sse from "effect/unstable/encoding/Sse"
 import { RootHttpApi } from "../api"
 import { GlobalUpgradeInput } from "../groups/global"
+import { execSync } from "child_process"
+import path from "path"
 
 const log = Log.create({ service: "server" })
 
@@ -96,6 +98,42 @@ export const globalHandlers = HttpApiBuilder.group(RootHttpApi, "global", (handl
     })
 
     const upgrade = Effect.fn("GlobalHttpApi.upgrade")(function* (ctx: { payload: typeof GlobalUpgradeInput.Type }) {
+      // For Cody Pro, use git-based update
+      if (process.env.CODY_PRO) {
+        const target = ctx.payload.target || "latest"
+        const run = () => {
+          try {
+            const repoRoot = execSync("git rev-parse --show-toplevel", { encoding: "utf8", timeout: 5000 }).trim()
+            if (!repoRoot) return { success: false as const, error: "Not a git repository" }
+            const branch = process.env.CODY_BRANCH || "main"
+            execSync("git fetch origin " + branch + " --quiet", { cwd: repoRoot, encoding: "utf8", timeout: 15000 })
+            execSync("git pull --ff-only", { cwd: repoRoot, encoding: "utf8", timeout: 30000 })
+            try {
+              const changed = execSync("git diff HEAD@{1} --name-only", { cwd: repoRoot, encoding: "utf8", timeout: 5000 })
+              if (changed.split("\n").some((f: string) => /^(package\.json|bun\.lock)$/.test(f.trim()))) {
+                execSync("bun install", { cwd: repoRoot, encoding: "utf8", timeout: 120000 })
+              }
+            } catch {
+              execSync("bun install", { cwd: repoRoot, encoding: "utf8", timeout: 120000 })
+            }
+            execSync("bun run --cwd packages/app build", { cwd: repoRoot, encoding: "utf8", timeout: 120000 })
+            return { success: true as const, version: target }
+          } catch (err) {
+            return { success: false as const, error: err instanceof Error ? err.message : String(err) }
+          }
+        }
+        const result = yield* Effect.sync(run)
+        if (!result.success) return { status: 500, body: result }
+        GlobalBus.emit("event", {
+          directory: "global",
+          payload: {
+            type: Installation.Event.Updated.type,
+            properties: { version: target },
+          },
+        })
+        return { status: 200, body: result }
+      }
+
       const method = yield* installation.method()
       if (method === "unknown") {
         return {
