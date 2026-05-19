@@ -13,6 +13,7 @@ export const SettingsAgentConnect: Component = () => {
   const [connected, setConnected] = createSignal(false)
   const [pairedAt, setPairedAt] = createSignal<number | null>(null)
   const [generating, setGenerating] = createSignal(false)
+  const [copied, setCopied] = createSignal(false)
 
   let intervalId: ReturnType<typeof setInterval> | undefined
 
@@ -46,6 +47,7 @@ export const SettingsAgentConnect: Component = () => {
         const data = await res.json()
         setPairingCode(data.code)
         setCodeExpiresAt(data.expiresAt)
+        setCopied(false)
       } else {
         showToast({ title: "Failed to generate pairing code", variant: "error" })
       }
@@ -69,11 +71,22 @@ export const SettingsAgentConnect: Component = () => {
     }
   }
 
+  const copyCommand = async () => {
+    const code = pairingCode()
+    if (code) {
+      const cmd = "npx @cody/connect " + code
+      await navigator.clipboard.writeText(cmd)
+      setCopied(true)
+      showToast({ title: "Command copied! Paste it in your PC terminal.", variant: "success" })
+      setTimeout(() => setCopied(false), 3000)
+    }
+  }
+
   const copyCode = async () => {
     const code = pairingCode()
     if (code) {
       await navigator.clipboard.writeText(code)
-      showToast({ title: "Pairing code copied!", variant: "success" })
+      showToast({ title: "Code copied!", variant: "success" })
     }
   }
 
@@ -117,17 +130,63 @@ export const SettingsAgentConnect: Component = () => {
             </Button>
 
             <Show when={pairingCode() !== null}>
+              {/* Step 1: Show code */}
               <div class="flex items-center gap-2 bg-background-secondary rounded-lg py-2 px-3">
+                <span class="text-12-regular text-text-weak mr-1">Code:</span>
                 <code class="text-16-mono font-bold tracking-widest text-text-primary flex-1 select-all">
                   {pairingCode()}
                 </code>
-                <Button variant="ghost" size="small" onClick={copyCode} aria-label={language.t("settings.agentConnect.copy")}>
+                <Button variant="ghost" size="small" onClick={copyCode} aria-label="Copy code">
                   <Icon name="checklist" />
                 </Button>
               </div>
+
+              {/* Step 2: Show the ready-to-paste npx command */}
+              <div class="bg-blue-900/20 border border-blue-700/30 rounded-lg p-3">
+                <p class="text-13-semibold text-blue-300 mb-2 flex items-center gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  Step 2: Run this on your PC
+                </p>
+                <div class="flex items-center gap-2 bg-gray-900 rounded-lg py-2.5 px-3 border border-gray-700">
+                  <span class="text-green-400 text-13-mono">$</span>
+                  <code class="text-14-mono text-white flex-1 select-all whitespace-nowrap overflow-x-auto">
+                    npx @cody/connect {pairingCode()}
+                  </code>
+                  <Button
+                    variant="ghost"
+                    size="small"
+                    onClick={copyCommand}
+                    aria-label="Copy command"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </Button>
+                </div>
+                <p class="text-12-regular text-text-weak mt-2">
+                  {copied() ? "Copied! Paste in your PC terminal." : "Click the copy button, then paste in your PC's terminal."}
+                </p>
+              </div>
+
+              {/* Expiry info */}
               <span class="text-12-regular text-text-weak">
-                {language.t("settings.agentConnect.expiresIn") + " " + expiresIn()}
+                {"Expires in " + expiresIn()}
               </span>
+
+              {/* Download launchers for users without Node.js */}
+              <details class="text-12-regular text-text-weak mt-1">
+                <summary class="cursor-pointer hover:text-text-secondary">Don't have Node.js? Download a launcher</summary>
+                <div class="flex gap-2 mt-2">
+                  <a
+                    href={"/agent/download/launcher?code=" + pairingCode()}
+                    class="inline-flex items-center gap-1 px-2 py-1 rounded bg-blue-600 text-white text-12-semibold hover:bg-blue-700 transition-colors"
+                    download={"connect-pc-" + pairingCode() + ".bat"}
+                  >Download .bat (Windows)</a>
+                  <a
+                    href={"/agent/download/launcher.ps1?code=" + pairingCode()}
+                    class="inline-flex items-center gap-1 px-2 py-1 rounded bg-purple-600 text-white text-12-semibold hover:bg-purple-700 transition-colors"
+                    download={"connect-pc-" + pairingCode() + ".ps1"}
+                  >Download .ps1 (PowerShell)</a>
+                </div>
+              </details>
             </Show>
           </div>
         </Show>

@@ -48,6 +48,7 @@ import { Workspace } from "@/control-plane/workspace"
 import { CorsConfig, isAllowedCorsOrigin, type CorsOptions } from "@/server/cors"
 import { serveUIEffect } from "@/server/shared/ui"
 import * as AgentWebSocket from "@/server/agent/ws-route"
+import * as AgentDownload from "@/server/agent/download-route"
 import * as AgentHub from "@/server/agent/hub"
 import { ServerAuth } from "@/server/auth"
 import { InstanceHttpApi, RootHttpApi } from "./api"
@@ -139,7 +140,7 @@ const instanceApiRoutes = HttpApiBuilder.layer(InstanceHttpApi).pipe(
   ]),
 )
 
-const rawInstanceRoutes = Layer.mergeAll(ptyConnectRoute, AgentWebSocket.agentWebSocketRoute).pipe(Layer.provide(instanceRouterLayer))
+const rawInstanceRoutes = Layer.mergeAll(ptyConnectRoute, AgentWebSocket.agentWebSocketRoute, AgentDownload.agentDownloadRoute).pipe(Layer.provide(instanceRouterLayer))
 const instanceRoutes = Layer.mergeAll(rawInstanceRoutes, instanceApiRoutes).pipe(
   Layer.provide([
     httpApiAuthLayer,
@@ -231,5 +232,6 @@ export function webHandler(corsOptions?: CorsOptions) {
 }
 
 export * as ExperimentalHttpApiServer from "./server"
+
 
 
