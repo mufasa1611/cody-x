@@ -153,7 +153,9 @@ fi
 
 git config --global --add safe.directory "$ROOT" 2>/dev/null || true
 
+BEFORE_HEAD=""
 if [ -d "$ROOT/.git" ]; then
+  BEFORE_HEAD=$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true)
   CURRENT_BRANCH="$(git -C "$ROOT" branch --show-current 2>/dev/null || true)"
   if [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "$BRANCH" ]; then
     echo "Switching Cody Pro checkout from $CURRENT_BRANCH to $BRANCH..."
@@ -173,6 +175,17 @@ if [ -d "$ROOT/.git" ]; then
 fi
 
 cd "$ROOT"
+
+# ---- Check if dependencies need updating ----
+NEED_INSTALL=false
+if [ ! -d "node_modules" ]; then
+  NEED_INSTALL=true
+elif [ -n "$BEFORE_HEAD" ]; then
+  AFTER_HEAD=$(git rev-parse HEAD 2>/dev/null || true)
+  if [ -n "$AFTER_HEAD" ] && [ "$BEFORE_HEAD" != "$AFTER_HEAD" ] && git diff "$BEFORE_HEAD".."$AFTER_HEAD" --name-only | grep -qE "^(package\.json|bun\.lock)$"; then
+    NEED_INSTALL=true
+  fi
+fi
 
 # ---- Install Bun ----
 install_bun() {
@@ -201,30 +214,34 @@ fi
 
 echo "[ok] Bun: $("$BUN" --version 2>/dev/null || echo "$BUN")"
 
-# ---- bun install ----
-echo "Installing Cody Pro dependencies..."
-set +e
-"$BUN" install
-BUN_EXIT=$?
-set -e
-if [ $BUN_EXIT -ne 0 ]; then
-  echo ""
-  echo "[warn] Bun install failed (exit code $BUN_EXIT). Retrying with --no-optional..."
+# ---- bun install (skip if deps unchanged) ----
+if [ "$NEED_INSTALL" = true ]; then
+  echo "Installing Cody Pro dependencies..."
   set +e
-  "$BUN" install --no-optional
-  BUN_RETRY_EXIT=$?
+  "$BUN" install
+  BUN_EXIT=$?
   set -e
-  if [ $BUN_RETRY_EXIT -ne 0 ]; then
+  if [ $BUN_EXIT -ne 0 ]; then
     echo ""
-    echo "[error] Bun install failed again (exit code $BUN_RETRY_EXIT)."
-    echo "  This project has many dependencies (~2700 packages) and may need more memory."
-    echo "  Try one of these:"
-    echo "    1. Increase your swap space, then rerun"
-    echo "    2. Run:  $BUN install --frozen-lockfile"
-    echo "  Then rerun this installer."
-    exit 1
+    echo "[warn] Bun install failed (exit code $BUN_EXIT). Retrying with --no-optional..."
+    set +e
+    "$BUN" install --no-optional
+    BUN_RETRY_EXIT=$?
+    set -e
+    if [ $BUN_RETRY_EXIT -ne 0 ]; then
+      echo ""
+      echo "[error] Bun install failed again (exit code $BUN_RETRY_EXIT)."
+      echo "  This project has many dependencies (~2700 packages) and may need more memory."
+      echo "  Try one of these:"
+      echo "    1. Increase your swap space, then rerun"
+      echo "    2. Run:  $BUN install --frozen-lockfile"
+      echo "  Then rerun this installer."
+      exit 1
+    fi
+    echo "[ok] Dependencies installed with --no-optional."
   fi
-  echo "[ok] Dependencies installed with --no-optional."
+else
+  echo "[ok] Dependencies are up to date. Skipping bun install."
 fi
 
 # ---- Build Web UI ----
