@@ -440,7 +440,7 @@ export function SessionSidePanel(props: {
                             size="small"
                             onClick={() => {
                               void import("@/components/dialog-settings").then((x) => {
-                                dialog.show(() => <x.DialogSettings />)
+                                dialog.show(() => <x.DialogSettings defaultTab="agent-connect" />)
                               })
                             }}
                           >

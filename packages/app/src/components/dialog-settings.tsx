@@ -1,4 +1,4 @@
-import { Component } from "solid-js"
+﻿import { Component } from "solid-js"
 import { Dialog } from "@cody/ui/dialog"
 import { Tabs } from "@cody/ui/tabs"
 import { Icon } from "@cody/ui/icon"
@@ -10,13 +10,13 @@ import { SettingsProviders } from "./settings-providers"
 import { SettingsModels } from "./settings-models"
 import { SettingsAgentConnect } from "./settings-agent-connect"
 
-export const DialogSettings: Component = () => {
+export const DialogSettings: Component<{ defaultTab?: string }> = (props) => {
   const language = useLanguage()
   const platform = usePlatform()
 
   return (
     <Dialog size="x-large" transition>
-      <Tabs orientation="vertical" variant="settings" defaultValue="general" class="h-full settings-dialog">
+      <Tabs orientation="vertical" variant="settings" defaultValue={props.defaultTab ?? "general"} class="h-full settings-dialog">
         <Tabs.List>
           <div class="flex flex-col justify-between h-full w-full">
             <div class="flex flex-col gap-3 w-full pt-3">

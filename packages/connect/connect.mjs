@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 // Cody Pro Remote Agent
 // Usage: node connect.mjs <PAIRING_CODE>
@@ -109,10 +109,34 @@ async function handleMessage(msg) {
   }
 }
 
+async function listDrives() {
+  // List all available drives on Windows
+  const drives = []
+  for (let i = 65; i <= 90; i++) {
+    const letter = String.fromCharCode(i)
+    try {
+      fs.accessSync(letter + ':\\', fs.constants.F_OK)
+      drives.push({
+        name: letter + ':\\',
+        path: letter + ':\\',
+        type: "directory",
+      })
+    } catch { /* drive not available */ }
+  }
+  return drives
+}
+
 async function executeCommand(command, args) {
   switch (command) {
     case "list-dir": {
       const dirPath = args.path || "/"
+      
+      // On Windows root path, list all available drives
+      if (process.platform === 'win32' && (dirPath === '/' || dirPath === '\\')) {
+        const drives = await listDrives()
+        return { files: drives }
+      }
+      
       const entries = []
       
       try {
