@@ -1,7 +1,8 @@
-import { For, Match, Show, Switch, createEffect, createMemo, onCleanup, type JSX } from "solid-js"
+﻿import { type JSX, For, Match, Show, Switch, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js"
 import { createStore } from "solid-js/store"
 import { createMediaQuery } from "@solid-primitives/media"
 import { Tabs } from "@cody/ui/tabs"
+import { Button } from "@cody/ui/button"
 import { IconButton } from "@cody/ui/icon-button"
 import { TooltipKeybind } from "@cody/ui/tooltip"
 import { ResizeHandle } from "@cody/ui/resize-handle"
@@ -13,6 +14,8 @@ import { ConstrainDragYAxis, getDraggableId } from "@/utils/solid-dnd"
 import { useDialog } from "@cody/ui/context/dialog"
 
 import FileTree from "@/components/file-tree"
+import FileTreeRemote from "@/components/file-tree-remote"
+import { useNavigate } from "@solidjs/router"
 import { SessionContextUsage } from "@/components/session-context-usage"
 import { SessionContextTab, SortableTab, FileVisual } from "@/components/session"
 import { useCommand } from "@/context/command"
@@ -48,6 +51,30 @@ export function SessionSidePanel(props: {
   const file = useFile()
   const language = useLanguage()
   const command = useCommand()
+  const navigate = useNavigate()
+
+  const [connected, setConnected] = createSignal(false)
+  let intervalId: ReturnType<typeof setInterval> | undefined
+
+  onMount(() => {
+    checkAgentStatus()
+    intervalId = setInterval(checkAgentStatus, 3000)
+  })
+
+  onCleanup(() => {
+    if (intervalId) clearInterval(intervalId)
+  })
+
+  const checkAgentStatus = async () => {
+    try {
+      const res = await fetch("/agent/status")
+      if (res.ok) {
+        const data = await res.json()
+        setConnected(data.connected)
+      }
+    } catch { /* ignore */ }
+  }
+
   const dialog = useDialog()
   const { sessionKey, tabs, view } = useSessionLayout()
 
@@ -95,21 +122,6 @@ export function SessionSidePanel(props: {
       }
     }
     return out
-  })
-
-  const empty = (msg: string) => (
-    <div class="h-full flex flex-col">
-      <div class="h-6 shrink-0" aria-hidden />
-      <div class="flex-1 pb-64 flex items-center justify-center text-center">
-        <div class="text-12-regular text-text-weak">{msg}</div>
-      </div>
-    </div>
-  )
-
-  const nofiles = createMemo(() => {
-    const state = file.tree.state("")
-    if (!state?.loaded) return false
-    return file.tree.children("").length === 0
   })
 
   const normalizeTab = (tab: string) => {
@@ -415,15 +427,26 @@ export function SessionSidePanel(props: {
                   </Tabs.Content>
                   <Tabs.Content value="all" class="bg-background-stronger px-3 py-0">
                     <Switch>
-                      <Match when={nofiles()}>{empty(language.t("session.files.empty"))}</Match>
-                      <Match when={true}>
-                        <FileTree
-                          path=""
-                          class="pt-3"
-                          modified={diffFiles()}
-                          kinds={kinds()}
-                          onFileClick={(node) => openTab(file.tab(node.path))}
-                        />
+                      <Match when={connected()}>
+                        <FileTreeRemote />
+                      </Match>
+                      <Match when={!connected()}>
+                        <div class="flex flex-col items-center justify-center h-full gap-3 py-12 px-4">
+                          <p class="text-13-regular text-text-weak text-center">
+                            Connect to a remote PC to browse files
+                          </p>
+                          <Button
+                            variant="primary"
+                            size="small"
+                            onClick={() => {
+                              void import("@/components/dialog-settings").then((x) => {
+                                dialog.show(() => <x.DialogSettings />)
+                              })
+                            }}
+                          >
+                            Connect PC
+                          </Button>
+                        </div>
                       </Match>
                     </Switch>
                   </Tabs.Content>
