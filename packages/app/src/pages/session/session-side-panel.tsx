@@ -2,10 +2,12 @@
 import { createStore } from "solid-js/store"
 import { createMediaQuery } from "@solid-primitives/media"
 import { Tabs } from "@cody/ui/tabs"
+import { DropdownMenu } from "@cody/ui/dropdown-menu"
 import { Button } from "@cody/ui/button"
 import { IconButton } from "@cody/ui/icon-button"
 import { TooltipKeybind } from "@cody/ui/tooltip"
 import { ResizeHandle } from "@cody/ui/resize-handle"
+import { showToast } from "@cody/ui/toast"
 import { Mark } from "@cody/ui/logo"
 import { DragDropProvider, DragDropSensors, DragOverlay, SortableProvider, closestCenter } from "@thisbeyond/solid-dnd"
 import type { DragEvent } from "@thisbeyond/solid-dnd"
@@ -75,8 +77,20 @@ export function SessionSidePanel(props: {
     } catch { /* ignore */ }
   }
 
+  const disconnect = async () => {
+    try {
+      const res = await fetch("/agent/disconnect", { method: "POST" })
+      if (res.ok) {
+        setConnected(false)
+        showToast({ title: "Remote PC disconnected", variant: "success" })
+      }
+    } catch {
+      showToast({ title: "Failed to disconnect", variant: "error" })
+    }
+  }
+
   const dialog = useDialog()
-  const { sessionKey, tabs, view } = useSessionLayout()
+  const { params, sessionKey, tabs, view } = useSessionLayout()
 
   const isDesktop = createMediaQuery("(min-width: 768px)")
   const shown = createMemo(
@@ -294,24 +308,38 @@ export function SessionSidePanel(props: {
                         <For each={openedTabs()}>{(tab) => <SortableTab tab={tab} onTabClose={tabs().close} />}</For>
                       </SortableProvider>
                       <div class="bg-background-stronger h-full shrink-0 sticky right-0 z-10 flex items-center justify-center pr-3">
-                        <TooltipKeybind
-                          title={language.t("command.file.open")}
-                          keybind={command.keybind("file.open")}
-                          class="flex items-center"
-                        >
-                          <IconButton
-                            icon="plus-small"
-                            variant="ghost"
-                            iconSize="large"
-                            class="!rounded-md"
-                            onClick={() => {
-                              void import("@/components/dialog-select-file").then((x) => {
-                                dialog.show(() => <x.DialogSelectFile mode="files" onOpenFile={showAllFiles} />)
-                              })
-                            }}
-                            aria-label={language.t("command.file.open")}
-                          />
-                        </TooltipKeybind>
+                        <DropdownMenu placement="bottom-end" gutter={4}>
+                          <TooltipKeybind
+                            title={language.t("command.file.open")}
+                            keybind={command.keybind("file.open")}
+                            class="flex items-center"
+                          >
+                            <DropdownMenu.Trigger
+                              as={IconButton}
+                              icon="plus-small"
+                              variant="ghost"
+                              iconSize="large"
+                              class="!rounded-md"
+                              aria-label={language.t("command.file.open")}
+                            />
+                          </TooltipKeybind>
+                          <DropdownMenu.Portal>
+                            <DropdownMenu.Content>
+                              <DropdownMenu.Item onSelect={() => {
+                                void import("@/components/dialog-select-file").then((x) => {
+                                  dialog.show(() => <x.DialogSelectFile mode="files" onOpenFile={showAllFiles} />)
+                                })
+                              }}>
+                                <DropdownMenu.ItemLabel>{language.t("command.file.open")}</DropdownMenu.ItemLabel>
+                              </DropdownMenu.Item>
+                              <DropdownMenu.Item onSelect={() => {
+                                navigate(`/${params.dir}/session`)
+                              }}>
+                                <DropdownMenu.ItemLabel>{language.t("command.session.new")}</DropdownMenu.ItemLabel>
+                              </DropdownMenu.Item>
+                            </DropdownMenu.Content>
+                          </DropdownMenu.Portal>
+                        </DropdownMenu>
                       </div>
                     </Tabs.List>
                   </div>
@@ -428,7 +456,16 @@ export function SessionSidePanel(props: {
                   <Tabs.Content value="all" class="bg-background-stronger px-3 py-0">
                     <Switch>
                       <Match when={connected()}>
-                        <FileTreeRemote />
+                        <div class="flex flex-col h-full">
+                          <div class="flex-1 overflow-y-auto">
+                            <FileTreeRemote />
+                          </div>
+                          <div class="shrink-0 border-t border-border-secondary px-3 py-2">
+                            <Button variant="secondary" size="small" class="w-full" onClick={disconnect}>
+                              Disconnect from PC
+                            </Button>
+                          </div>
+                        </div>
                       </Match>
                       <Match when={!connected()}>
                         <div class="flex flex-col items-center justify-center h-full gap-3 py-12 px-4">
