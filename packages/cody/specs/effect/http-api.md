@@ -19,7 +19,7 @@ Plan for replacing instance Hono route implementations with Effect `HttpApi` whi
 - `httpapi/public.ts` carries the Hono-compat normalization for the Effect-generated OpenAPI surface (auth scheme strip, request-body required flag, optional `null` arms, `BadRequestError` / `NotFoundError` remap, `$ref` self-cycle fix, `auth_token` query injection). Today's Effect-generated SDK is not byte-identical to the Hono-generated SDK — see Phase 4.
 - Auth is centrally configured for the Effect backend via Effect `Config` (`refactor: use Effect config for HttpApi authorization`, `Fix HttpApi raw route authorization`) rather than re-attached in each route module.
 - Auth supports Basic auth and the legacy `auth_token` query parameter through `HttpApiSecurity.apiKey`.
-- Instance context is provided by `httpapi/server.ts` using `directory`, `workspace`, and `x-opencode-directory`.
+- Instance context is provided by `httpapi/server.ts` using `directory`, `workspace`, and `x-cody-directory`.
 - `Observability.layer` is provided in the Effect route layer and deduplicated through the shared `memoMap`.
 - CORS middleware is wired into both backends (`feat(httpapi): add CORS middleware to instance routes`).
 
@@ -43,7 +43,7 @@ Use this checklist for each small HttpApi migration PR:
 5. Reuse existing services directly. If a service returns plain objects, use `Schema.Struct`; use `Schema.Class` only when handlers return actual class instances.
 6. Keep legacy Hono routes and `.zod` compatibility in place for SDK/OpenAPI generation.
 7. Add tests that hit the Hono-mounted bridge via `InstanceRoutes`, not only the raw `HttpApi` web handler, when the route depends on auth or instance context.
-8. Run `bun typecheck` from `packages/opencode`, relevant `bun run test:ci ...` tests from `packages/opencode`, and `./packages/sdk/js/script/build.ts` from the repo root.
+8. Run `bun typecheck` from `packages/cody`, relevant `bun run test:ci ...` tests from `packages/cody`, and `./packages/sdk/js/script/build.ts` from the repo root.
 
 ## Hono Deletion Checklist
 
@@ -87,7 +87,7 @@ Before porting more routes, cover the bridge behavior that every route depends o
 
 - Add tests that hit the Hono-mounted `HttpApi` bridge, not just `HttpApiBuilder.layer` directly.
 - Cover auth disabled, Basic auth success, `auth_token` success, missing credentials, and bad credentials.
-- Cover `directory` and `x-opencode-directory` instance selection.
+- Cover `directory` and `x-cody-directory` instance selection.
 - Verify generated SDK output remains unchanged for non-SDK work.
 - Fix or remove any implemented-but-unmounted `HttpApi` groups.
 

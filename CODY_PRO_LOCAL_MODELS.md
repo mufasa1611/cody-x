@@ -13,7 +13,7 @@ ollama pull qwen2.5-coder:7b
 ollama serve
 ```
 
-Add this to `.cody/opencode.jsonc` under the top-level config:
+Add this to `.cody/cody.jsonc` under the top-level config:
 
 ```jsonc
 {
@@ -91,7 +91,7 @@ Launch Cody Pro with:
 Cody Pro runs local model discovery on first normal startup and writes generated provider config to:
 
 ```text
-<repo>\.opencode\generated\opencode.jsonc
+<repo>\.cody\generated\cody.jsonc
 ```
 
 It discovers:

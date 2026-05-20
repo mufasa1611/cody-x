@@ -39,7 +39,7 @@ import { errorMessage } from "./util/error"
 import { PluginCommand } from "./cli/cmd/plug"
 import { Heap } from "./cli/heap"
 import { drizzle } from "drizzle-orm/bun-sqlite"
-import { ensureProcessMetadata } from "@cody/core/util/opencode-process"
+import { ensureProcessMetadata } from "@cody/core/util/cody-process"
 
 const processMetadata = ensureProcessMetadata("main")
 
@@ -129,7 +129,7 @@ const cli = yargs(args)
     Heap.start()
 
     process.env.AGENT = "1"
-    process.env.OPENCODE = "1"
+    process.env.CODY = "1"
     process.env.CODY_PID = String(process.pid)
 
     Log.Default.info("cody", {
@@ -139,7 +139,7 @@ const cli = yargs(args)
       run_id: processMetadata.runID,
     })
 
-    const marker = path.join(Global.Path.data, "opencode.db")
+    const marker = path.join(Global.Path.data, "cody.db")
     if (!(await Filesystem.exists(marker))) {
       const tty = process.stderr.isTTY
       process.stderr.write("Performing one time database migration, may take a few minutes..." + EOL)

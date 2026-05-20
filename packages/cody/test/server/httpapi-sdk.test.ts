@@ -3,7 +3,7 @@ import { ConfigProvider, Effect, Layer } from "effect"
 import type * as Scope from "effect/Scope"
 import { HttpRouter } from "effect/unstable/http"
 import { Flag } from "@cody/core/flag/flag"
-import { createOpencodeClient } from "@cody/sdk/v2"
+import { createCodyClient } from "@cody/sdk/v2"
 import { validateSession } from "../../src/cli/cmd/tui/validate-session"
 import { Instance } from "../../src/project/instance"
 import { WithInstance } from "../../src/project/with-instance"
@@ -28,7 +28,7 @@ const original = {
 }
 
 type Backend = "legacy" | "httpapi"
-type Sdk = ReturnType<typeof createOpencodeClient>
+type Sdk = ReturnType<typeof createCodyClient>
 type SdkResult = { response: Response; data?: unknown; error?: unknown }
 type Captured = { status: number; data?: unknown; error?: unknown }
 type ProjectFixture = { sdk: Sdk; directory: string }
@@ -66,7 +66,7 @@ function client(
   directory?: string,
   input?: { password?: string; username?: string; headers?: Record<string, string> },
 ) {
-  return createOpencodeClient({
+  return createCodyClient({
     baseUrl: "http://localhost",
     directory,
     headers: input?.headers,

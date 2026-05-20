@@ -24,11 +24,11 @@ jobs:
         id: setup-git-committer
         uses: ./.github/actions/setup-git-committer
         with:
-          opencode-app-id: ${{ vars.CODY_APP_ID }}
-          opencode-app-secret: ${{ secrets.CODY_APP_SECRET }}
+          cody-app-id: ${{ vars.CODY_APP_ID }}
+          cody-app-secret: ${{ secrets.CODY_APP_SECRET }}
 
-      - name: Install OpenCode
-        run: bun i -g opencode-ai
+      - name: Install Cody
+        run: bun i -g cody-ai
 
       - name: Sync beta branch
         env:

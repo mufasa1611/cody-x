@@ -17,10 +17,10 @@ export function select(): Selection {
 
 export function attributes(selection: Selection): Record<string, string> {
   return {
-    "opencode.server.backend": selection.backend,
-    "opencode.server.backend.reason": selection.reason,
-    "opencode.installation.channel": InstallationChannel,
-    "opencode.installation.version": InstallationVersion,
+    "cody.server.backend": selection.backend,
+    "cody.server.backend.reason": selection.reason,
+    "cody.installation.channel": InstallationChannel,
+    "cody.installation.version": InstallationVersion,
   }
 }
 

@@ -123,7 +123,7 @@ describe("HttpApi UI fallback", () => {
 
     const response = await uiApp({
       client: httpClient(
-        new Response("<html>opencode</html>", { headers: { "content-type": "text/html" } }),
+        new Response("<html>cody</html>", { headers: { "content-type": "text/html" } }),
         (request) => {
           proxiedUrl = request.url
         },
@@ -132,8 +132,8 @@ describe("HttpApi UI fallback", () => {
 
     expect(response.status).toBe(200)
     expect(response.headers.get("content-type")).toContain("text/html")
-    expect(await response.text()).toBe("<html>opencode</html>")
-    expect(proxiedUrl).toBe("https://app.opencode.ai/")
+    expect(await response.text()).toBe("<html>cody</html>")
+    expect(proxiedUrl).toBe("https://app.cody.ai/")
   })
 
   test("strips upstream transfer encoding headers from proxied assets", async () => {
@@ -178,7 +178,7 @@ describe("HttpApi UI fallback", () => {
     )
 
     expect(response.status).toBe(200)
-    expect(proxiedUrl).toBe("https://app.opencode.ai/assets/app.js")
+    expect(proxiedUrl).toBe("https://app.cody.ai/assets/app.js")
     expect(response.headers.get("content-encoding")).toBeNull()
     expect(response.headers.get("content-length")).not.toBe("999")
     expect(response.headers.get("content-type")).toContain("text/javascript")
@@ -210,7 +210,7 @@ describe("HttpApi UI fallback", () => {
                 Effect.succeed(
                   HttpClientResponse.fromWeb(
                     request,
-                    new Response("<html>opencode</html>", {
+                    new Response("<html>cody</html>", {
                       headers: {
                         "transfer-encoding": "chunked",
                         "content-type": "text/html",
@@ -228,7 +228,7 @@ describe("HttpApi UI fallback", () => {
 
     expect(response.status).toBe(200)
     expect(response.headers.get("transfer-encoding")).toBeNull()
-    expect(await response.text()).toBe("<html>opencode</html>")
+    expect(await response.text()).toBe("<html>cody</html>")
   })
 
   test("serves embedded UI assets when Bun can read them but access reports missing", async () => {
@@ -318,11 +318,11 @@ describe("HttpApi UI fallback", () => {
     const response = await uiApp({
       password: "secret",
       username: "cody",
-      client: httpClient(new Response("<html>opencode</html>", { headers: { "content-type": "text/html" } })),
-    }).request(`/?auth_token=${btoa("opencode:secret")}`)
+      client: httpClient(new Response("<html>cody</html>", { headers: { "content-type": "text/html" } })),
+    }).request(`/?auth_token=${btoa("cody:secret")}`)
 
     expect(response.status).toBe(200)
-    expect(await response.text()).toBe("<html>opencode</html>")
+    expect(await response.text()).toBe("<html>cody</html>")
   })
 
   test("accepts basic auth for the web UI", async () => {
@@ -330,7 +330,7 @@ describe("HttpApi UI fallback", () => {
     Flag.CODY_DISABLE_EMBEDDED_WEB_UI = true
 
     const response = await uiApp({ password: "secret", username: "cody" }).request("/", {
-      headers: { authorization: `Basic ${btoa("opencode:secret")}` },
+      headers: { authorization: `Basic ${btoa("cody:secret")}` },
     })
 
     expect(response.status).toBe(200)

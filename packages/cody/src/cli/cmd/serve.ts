@@ -7,8 +7,8 @@ import { Flag } from "@cody/core/flag/flag"
 export const ServeCommand = effectCmd({
   command: "serve",
   builder: (yargs) => withNetworkOptions(yargs),
-  describe: process.env.CODY_PRO === "0" ? "starts a headless opencode server" : "starts a headless Cody Pro server",
-  // Server loads instances per-request via x-opencode-directory header — no
+  describe: process.env.CODY_PRO === "0" ? "starts a headless cody server" : "starts a headless Cody Pro server",
+  // Server loads instances per-request via x-cody-directory header — no
   // need for an ambient project InstanceContext at startup.
   instance: false,
   handler: Effect.fn("Cli.serve")(function* (args) {

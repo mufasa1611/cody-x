@@ -3,9 +3,9 @@ title: Keybinds
 description: Customize your keyboard shortcuts.
 ---
 
-OpenCode customizes TUI keyboard shortcuts with `keymap` in `tui.json`.
+Cody customizes TUI keyboard shortcuts with `keymap` in `tui.json`.
 
-The older `keybinds` field is still accepted as a migration fallback, but it is deprecated and will be removed in OpenCode v2.0. If `keymap` is present, OpenCode ignores `keybinds` for shortcut resolution.
+The older `keybinds` field is still accepted as a migration fallback, but it is deprecated and will be removed in Cody v2.0. If `keymap` is present, Cody ignores `keybinds` for shortcut resolution.
 
 `keymap` is merged with built-in defaults, so you only need to configure the shortcuts you want to change.
 
@@ -13,7 +13,7 @@ The older `keybinds` field is still accepted as a migration fallback, but it is 
 
 ## Leader key
 
-OpenCode uses a `leader` key for many shortcuts. This avoids conflicts in your terminal.
+Cody uses a `leader` key for many shortcuts. This avoids conflicts in your terminal.
 
 By default, `ctrl+x` is the leader key and leader shortcuts require you to first press the leader key and then the shortcut. For example, to start a new session you first press `ctrl+x` and then press `n`.
 
@@ -25,7 +25,7 @@ You do not need to use a leader key, but we recommend doing so.
 
 ```json title="tui.json"
 {
-  "$schema": "https://opencode.ai/tui.json",
+  "$schema": "https://cody.ai/tui.json",
   "keymap": {
     "leader": "ctrl+x",
     "leader_timeout": 2000,
@@ -58,7 +58,7 @@ You do not need to use a leader key, but we recommend doing so.
 | Field            | Description                                                                                         |
 | ---------------- | --------------------------------------------------------------------------------------------------- |
 | `leader`         | The key used by `<leader>` sequences. Defaults to `ctrl+x`.                                         |
-| `leader_timeout` | How long OpenCode waits for the next key after the leader key, in milliseconds. Defaults to `2000`. |
+| `leader_timeout` | How long Cody waits for the next key after the leader key, in milliseconds. Defaults to `2000`. |
 | `sections`       | A map of TUI areas to command bindings.                                                             |
 
 ---
@@ -69,7 +69,7 @@ A string can contain one shortcut or multiple comma-separated shortcuts. You can
 
 ```json title="tui.json"
 {
-  "$schema": "https://opencode.ai/tui.json",
+  "$schema": "https://cody.ai/tui.json",
   "keymap": {
     "sections": {
       "session": {
@@ -86,7 +86,7 @@ For advanced cases, use an object with `key`, `event`, `preventDefault`, or `fal
 
 ```json title="tui.json"
 {
-  "$schema": "https://opencode.ai/tui.json",
+  "$schema": "https://cody.ai/tui.json",
   "keymap": {
     "sections": {
       "prompt": {
@@ -108,7 +108,7 @@ This example lists the built-in sections, command names, and default fallback bi
 
 ```json title="tui.json"
 {
-  "$schema": "https://opencode.ai/tui.json",
+  "$schema": "https://cody.ai/tui.json",
   "keymap": {
     "leader": "ctrl+x",
     "leader_timeout": 2000,
@@ -130,7 +130,7 @@ This example lists the built-in sections, command names, and default fallback bi
         "variant.list": "none",
         "provider.connect": "none",
         "console.org.switch": "none",
-        "opencode.status": "<leader>s",
+        "cody.status": "<leader>s",
         "theme.switch": "<leader>t",
         "theme.switch_mode": "none",
         "theme.mode.lock": "none",
@@ -296,7 +296,7 @@ Only use `keybinds` when `keymap` is not present. If both fields are set, `keyma
 
 ```json title="tui.json"
 {
-  "$schema": "https://opencode.ai/tui.json",
+  "$schema": "https://cody.ai/tui.json",
   "keybinds": {
     "command_list": "ctrl+p",
     "session_new": "<leader>n",
@@ -316,7 +316,7 @@ On native Windows, the defaults for undo and terminal suspend are different for 
 
 ## Desktop prompt shortcuts
 
-The OpenCode desktop app prompt input supports common Readline/Emacs-style shortcuts for editing text. These are built-in and currently not configurable via `opencode.json`.
+The Cody desktop app prompt input supports common Readline/Emacs-style shortcuts for editing text. These are built-in and currently not configurable via `cody.json`.
 
 | Shortcut | Action                                   |
 | -------- | ---------------------------------------- |

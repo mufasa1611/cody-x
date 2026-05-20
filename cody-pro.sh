@@ -87,7 +87,7 @@ fi
 # Auto-fix: strip BOM and repair empty keys in generated config
 GENERATED_DIR="$ROOT/.cody/generated"
 if [ -d "$GENERATED_DIR" ]; then
-  for f in opencode.json opencode.jsonc; do
+  for f in cody.json cody.jsonc; do
     cfg="$GENERATED_DIR/$f"
     if [ -f "$cfg" ]; then
       bom=$(xxd -p -l 3 "$cfg" 2>/dev/null || od -A n -t x1 -N 3 "$cfg" 2>/dev/null | tr -d ' \n')
@@ -97,9 +97,9 @@ if [ -d "$GENERATED_DIR" ]; then
       fi
     fi
   done
-  legacy="$GENERATED_DIR/opencode.json"
+  legacy="$GENERATED_DIR/cody.json"
   if [ -f "$legacy" ] && grep -q '""' "$legacy" 2>/dev/null; then
-    echo '[cody-pro] Fixed empty key in opencode.json'
+    echo '[cody-pro] Fixed empty key in cody.json'
     printf '{\n  "$schema": "https://cody.dev/config.json",\n  "model": "cody/big-pickle"\n}\n' > "$legacy"
   fi
 fi
@@ -112,7 +112,7 @@ for arg in "$@"; do
   esac
 done
 
-if [ ! -f "$ROOT/.cody/generated/opencode.jsonc" ] || [ "${CODY_REFRESH_MODELS:-0}" = "1" ]; then
+if [ ! -f "$ROOT/.cody/generated/cody.jsonc" ] || [ "${CODY_REFRESH_MODELS:-0}" = "1" ]; then
   if [ "$CODY_DISCOVER_MODELS" = "1" ]; then
     echo "[cody-pro] Scanning for local Ollama models..."
     if command -v ollama &>/dev/null; then

@@ -85,7 +85,7 @@ export function WorkspaceRouterMiddleware(upgrade: UpgradeWebSocket): Middleware
     }
 
     const headers = new Headers(c.req.raw.headers)
-    headers.delete("x-opencode-workspace")
+    headers.delete("x-cody-workspace")
 
     const req = new Request(c.req.raw, { headers })
     return ServerProxy.http(proxyURL, target.headers, req, workspace.id)

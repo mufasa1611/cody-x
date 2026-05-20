@@ -45,7 +45,7 @@ const httpApiServerLayer = servedRoutes.pipe(
 
 const it = testEffect(Layer.mergeAll(testStateLayer, httpApiServerLayer))
 
-const directoryHeader = (dir: string) => HttpClientRequest.setHeader("x-opencode-directory", dir)
+const directoryHeader = (dir: string) => HttpClientRequest.setHeader("x-cody-directory", dir)
 
 describe("instance HttpApi", () => {
   it.live("serves path and VCS read endpoints", () =>

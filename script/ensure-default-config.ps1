@@ -5,8 +5,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$generatedDir = Join-Path $Root ".opencode\generated"
-$defaultModelFile = Join-Path $generatedDir "opencode.json"
+$generatedDir = Join-Path $Root ".cody\generated"
+$defaultModelFile = Join-Path $generatedDir "cody.json"
 
 if (-not (Test-Path $generatedDir)) {
   New-Item -ItemType Directory -Force -Path $generatedDir | Out-Null

@@ -228,7 +228,7 @@ const live: Layer.Layer<
       const sortedTools = Object.fromEntries(Object.entries(tools).toSorted(([a], [b]) => a.localeCompare(b)))
 
       // Wire up toolExecutor for DWS workflow models so that tool calls
-      // from the workflow service are executed via opencode's tool system
+      // from the workflow service are executed via cody's tool system
       // and results sent back over the WebSocket.
       if (language instanceof GitLabWorkflowLanguageModel) {
         const workflowModel = language as GitLabWorkflowLanguageModel & {
@@ -330,7 +330,7 @@ const live: Layer.Layer<
           })
         : undefined
 
-      const opencodeProjectID = input.model.providerID.startsWith("cody")
+      const codyProjectID = input.model.providerID.startsWith("cody")
         ? (yield* InstanceState.context).project.id
         : undefined
 
@@ -373,16 +373,16 @@ const live: Layer.Layer<
         headers: {
           ...(input.model.providerID.startsWith("cody")
             ? {
-                "x-opencode-project": opencodeProjectID,
-                "x-opencode-session": input.sessionID,
-                "x-opencode-request": input.user.id,
-                "x-opencode-client": Flag.CODY_CLIENT,
-                "User-Agent": `opencode/${InstallationVersion}`,
+                "x-cody-project": codyProjectID,
+                "x-cody-session": input.sessionID,
+                "x-cody-request": input.user.id,
+                "x-cody-client": Flag.CODY_CLIENT,
+                "User-Agent": `cody/${InstallationVersion}`,
               }
             : {
                 "x-session-affinity": input.sessionID,
                 ...(input.parentSessionID ? { "x-parent-session-id": input.parentSessionID } : {}),
-                "User-Agent": `opencode/${InstallationVersion}`,
+                "User-Agent": `cody/${InstallationVersion}`,
               }),
           ...input.model.headers,
           ...headers,

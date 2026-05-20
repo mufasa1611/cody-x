@@ -15,7 +15,7 @@ The v2 TUI uses `@opentui/keymap` as the key/cmd engine. The remaining legacy co
 
 - `packages/cody/src/config/keybinds.ts`: old `keybinds` schema, defaults, and legacy key names.
 - `packages/cody/src/cli/cmd/tui/config/legacy-keymap-transform.ts`: transforms parsed legacy `keybinds` into OpenTUI `keymap` sections.
-- `packages/cody/src/cli/cmd/tui/config/tui-migrate.ts`: migrates legacy TUI keys from `opencode.json` into `tui.json`, including `theme`, `keybinds`, and nested `tui`.
+- `packages/cody/src/cli/cmd/tui/config/tui-migrate.ts`: migrates legacy TUI keys from `cody.json` into `tui.json`, including `theme`, `keybinds`, and nested `tui`.
 - `packages/cody/src/cli/cmd/tui/config/tui-schema.ts`: still accepts deprecated `keybinds` via `KeybindOverride` and marks it as deprecated. This file also contains the new `keymap` config schema.
 - `packages/cody/src/cli/cmd/tui/config/tui.ts`: parses legacy `keybinds`, applies the Windows `terminal_suspend`/`input_undo` adjustment, and uses `LegacyKeymapTransform.create(...)` as the fallback when no `keymap` section is configured.
 - `packages/plugin/src/tui.ts`: plugin-facing `tuiConfig` still includes `keybinds` through `PluginConfig`; this should be removed when the public plugin API no longer exposes legacy config.

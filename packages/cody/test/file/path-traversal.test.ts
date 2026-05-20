@@ -144,7 +144,7 @@ describe("containsPath", () => {
     await WithInstance.provide({
       directory: subdir,
       fn: () => {
-        // .opencode at worktree root, but we're running from packages/lib
+        // .cody at worktree root, but we're running from packages/lib
         expect(containsPath(path.join(tmp.path, ".cody", "state"), Instance.current)).toBe(true)
         // sibling package should also be accessible
         expect(containsPath(path.join(tmp.path, "packages", "other", "file.ts"), Instance.current)).toBe(true)

@@ -1,4 +1,4 @@
-name: opencode
+name: cody
 
 on:
   issue_comment:
@@ -7,12 +7,12 @@ on:
     types: [created]
 
 jobs:
-  opencode:
+  cody:
     if: |
       contains(github.event.comment.body, ' /oc') ||
       startsWith(github.event.comment.body, '/oc') ||
-      contains(github.event.comment.body, ' /opencode') ||
-      startsWith(github.event.comment.body, '/opencode')
+      contains(github.event.comment.body, ' /cody') ||
+      startsWith(github.event.comment.body, '/cody')
     runs-on: blacksmith-4vcpu-ubuntu-2404
     permissions:
       id-token: write
@@ -25,8 +25,8 @@ jobs:
 
       - uses: ./.github/actions/setup-bun
 
-      - name: Run opencode
-        uses: anomalyco/opencode/github@latest
+      - name: Run cody
+        uses: anomalyco/cody/github@latest
         env:
           CODY_API_KEY: ${{ secrets.CODY_API_KEY }}
           CODY_PERMISSION: '{"bash": "deny"}'

@@ -44,7 +44,7 @@ echo ============================================
 echo.
 
 rem Start the server in background
-start "CodyPro Server" /B "%BUN%" run --cwd "%ROOT%packages\opencode" --conditions=browser src\index.ts
+start "CodyPro Server" /B "%BUN%" run --cwd "%ROOT%packages\cody" --conditions=browser src\index.ts
 
 rem Wait a moment for server to start
 timeout /t 3 /nobreak >nul

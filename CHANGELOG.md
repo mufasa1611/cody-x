@@ -4,7 +4,7 @@
 
 ### Added
 
-- Created Cody Pro as an opencode-based fork.
+- Created Cody Pro as an cody-based fork.
 - Added `cody-pro` launcher and global Windows command shims.
 - Added Cody Pro CLI help branding and startup banner.
 - Added local model discovery for Ollama and GGUF files.

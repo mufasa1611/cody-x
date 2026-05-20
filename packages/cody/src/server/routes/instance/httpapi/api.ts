@@ -28,12 +28,12 @@ import { Authorization } from "./middleware/authorization"
 const EventSchema = Schema.Union(BusEvent.effectPayloads()).annotate({ identifier: "Event" })
 const SyncEventSchemas = SyncEvent.effectPayloads()
 
-export const RootHttpApi = HttpApi.make("opencode-root")
+export const RootHttpApi = HttpApi.make("cody-root")
   .addHttpApi(ControlApi)
   .addHttpApi(GlobalApi)
   .middleware(Authorization)
 
-export const InstanceHttpApi = HttpApi.make("opencode-instance")
+export const InstanceHttpApi = HttpApi.make("cody-instance")
   .addHttpApi(AgentApi)
   .addHttpApi(ConfigApi)
   .addHttpApi(ExperimentalApi)
@@ -51,7 +51,7 @@ export const InstanceHttpApi = HttpApi.make("opencode-instance")
   .addHttpApi(TuiApi)
   .addHttpApi(WorkspaceApi)
 
-export const OpenCodeHttpApi = HttpApi.make("cody")
+export const CodyHttpApi = HttpApi.make("cody")
   .addHttpApi(RootHttpApi)
   .addHttpApi(EventApi)
   .addHttpApi(InstanceHttpApi)

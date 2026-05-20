@@ -199,7 +199,7 @@ Push-Location (Join-Path $root "packages\app")
 $buildExit = $LASTEXITCODE
 Pop-Location
 if ($buildExit -ne 0) {
-  Write-Host "[warn] Web UI build failed, server will proxy to app.opencode.ai."
+  Write-Host "[warn] Web UI build failed, server will proxy to app.cody.ai."
 }
 
 Write-Host "Creating .env.proxy with Cloudflare proxy settings..."
@@ -220,11 +220,11 @@ NO_PROXY=localhost,127.0.0.1,::1
 
 
 Write-Host "Setting default model to cody/big-pickle..."
-$generatedDir = Join-Path $root ".opencode\generated"
+$generatedDir = Join-Path $root ".cody\generated"
 if (-not (Test-Path $generatedDir)) {
   New-Item -ItemType Directory -Force -Path $generatedDir | Out-Null
 }
-$defaultModelFile = Join-Path $generatedDir "opencode.json"
+$defaultModelFile = Join-Path $generatedDir "cody.json"
 if (-not (Test-Path $defaultModelFile)) {
   $json = @'
 {
@@ -318,7 +318,7 @@ if ([string]::IsNullOrWhiteSpace($answer) -or $answer -match '^[yY]') {
     Receive-Job -Job $job -Wait -AutoRemoveJob | Out-Null
     
     # Show results
-    $reportPath = Join-Path (Join-Path $root ".opencode\generated") "cody-local-models.report.json"
+    $reportPath = Join-Path (Join-Path $root ".cody\generated") "cody-local-models.report.json"
     if (Test-Path $reportPath) {
       try {
         $report = Get-Content $reportPath -Raw | ConvertFrom-Json

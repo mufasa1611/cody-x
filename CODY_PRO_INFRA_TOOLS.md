@@ -7,7 +7,7 @@ Tool: `cody-windows-inspect`
 Location:
 
 ```text
-<repo>\.opencode\tool\cody-windows-inspect.ts
+<repo>\.cody\tool\cody-windows-inspect.ts
 ```
 
 Purpose:
@@ -40,7 +40,7 @@ Tool: `cody-ssh-inspect`
 Location:
 
 ```text
-<repo>\.opencode\tool\cody-ssh-inspect.ts
+<repo>\.cody\tool\cody-ssh-inspect.ts
 ```
 
 Purpose:
@@ -74,7 +74,7 @@ Tool: `cody-docker-inspect`
 Location:
 
 ```text
-<repo>\.opencode\tool\cody-docker-inspect.ts
+<repo>\.cody\tool\cody-docker-inspect.ts
 ```
 
 Purpose:
@@ -109,7 +109,7 @@ Tool: `cody-systemd-inspect`
 Location:
 
 ```text
-<repo>\.opencode\tool\cody-systemd-inspect.ts
+<repo>\.cody\tool\cody-systemd-inspect.ts
 ```
 
 Purpose:
@@ -143,7 +143,7 @@ Tool: `cody-proxmox-inspect`
 Location:
 
 ```text
-<repo>\.opencode\tool\cody-proxmox-inspect.ts
+<repo>\.cody\tool\cody-proxmox-inspect.ts
 ```
 
 Purpose:
@@ -187,7 +187,7 @@ Tool: `cody-backup-inventory`
 Location:
 
 ```text
-<repo>\.opencode\tool\cody-backup-inventory.ts
+<repo>\.cody\tool\cody-backup-inventory.ts
 ```
 
 Purpose:

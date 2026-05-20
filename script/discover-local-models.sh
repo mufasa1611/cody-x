@@ -20,7 +20,7 @@ if [ -z "$ROOT" ]; then
 fi
 
 GENERATED_DIR="$ROOT/.cody/generated"
-CONFIG_PATH="$GENERATED_DIR/opencode.jsonc"
+CONFIG_PATH="$GENERATED_DIR/cody.jsonc"
 REPORT_PATH="$GENERATED_DIR/cody-local-models.report.json"
 
 mkdir -p "$GENERATED_DIR"

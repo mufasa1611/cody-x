@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# opencode Korean IME Fix Installer
+# cody Korean IME Fix Installer
 # https://github.com/your-org/cody/issues/14371
 #
-# Patches opencode to prevent Korean (and other CJK) IME last character
+# Patches cody to prevent Korean (and other CJK) IME last character
 # truncation when pressing Enter in Kitty and other terminals.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/claudianus/opencode/fix-zhipuai-coding-plan-thinking/patches/install-korean-ime-fix.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/claudianus/cody/fix-zhipuai-coding-plan-thinking/patches/install-korean-ime-fix.sh | bash
 #   # or from a cloned repo:
 #   ./patches/install-korean-ime-fix.sh
 
@@ -18,9 +18,9 @@ ORANGE='\033[38;5;214m'
 MUTED='\033[0;2m'
 NC='\033[0m'
 
-CODY_DIR="${CODY_DIR:-$HOME/.opencode}"
-CODY_SRC="${CODY_SRC:-$HOME/.opencode-src}"
-FORK_REPO="${FORK_REPO:-https://github.com/claudianus/opencode.git}"
+CODY_DIR="${CODY_DIR:-$HOME/.cody}"
+CODY_SRC="${CODY_SRC:-$HOME/.cody-src}"
+FORK_REPO="${FORK_REPO:-https://github.com/claudianus/cody.git}"
 FORK_BRANCH="${FORK_BRANCH:-fix-zhipuai-coding-plan-thinking}"
 
 info()  { echo -e "${MUTED}$*${NC}"; }
@@ -76,7 +76,7 @@ cd "$CODY_SRC"
 bun install --frozen-lockfile 2>/dev/null || bun install
 
 # ── 4. Build (current platform only) ──────────────────────────────────
-info "Building opencode for current platform ..."
+info "Building cody for current platform ..."
 cd "$CODY_SRC/packages/cody"
 bun run build --single
 
@@ -90,23 +90,23 @@ ARCH=$(uname -m)
 [ "$PLATFORM" = "darwin" ] && true
 [ "$PLATFORM" = "linux" ] && true
 
-BUILT_BINARY="$CODY_SRC/packages/cody/dist/opencode-${PLATFORM}-${ARCH}/bin/opencode"
+BUILT_BINARY="$CODY_SRC/packages/cody/dist/cody-${PLATFORM}-${ARCH}/bin/cody"
 
 if [ ! -f "$BUILT_BINARY" ]; then
   BUILT_BINARY=$(find "$CODY_SRC/packages/cody/dist" -name "cody" -type f -executable 2>/dev/null | head -1)
 fi
 
 if [ -f "$BUILT_BINARY" ]; then
-  if [ -f "$CODY_DIR/bin/opencode" ]; then
-    cp "$CODY_DIR/bin/opencode" "$CODY_DIR/bin/opencode.bak.$(date +%Y%m%d%H%M%S)"
+  if [ -f "$CODY_DIR/bin/cody" ]; then
+    cp "$CODY_DIR/bin/cody" "$CODY_DIR/bin/cody.bak.$(date +%Y%m%d%H%M%S)"
   fi
-  cp "$BUILT_BINARY" "$CODY_DIR/bin/opencode"
-  chmod +x "$CODY_DIR/bin/opencode"
-  ok "Installed to $CODY_DIR/bin/opencode"
+  cp "$BUILT_BINARY" "$CODY_DIR/bin/cody"
+  chmod +x "$CODY_DIR/bin/cody"
+  ok "Installed to $CODY_DIR/bin/cody"
 else
   err "Build failed - binary not found in dist/"
   info "Try running manually:"
-  echo "  cd $CODY_SRC/packages/opencode && bun run build --single"
+  echo "  cd $CODY_SRC/packages/cody && bun run build --single"
   exit 1
 fi
 
@@ -114,7 +114,7 @@ echo ""
 ok "Done! Korean IME fix is now active."
 echo ""
 info "To uninstall and revert to the official release:"
-echo "  curl -fsSL https://opencode.ai/install | bash"
+echo "  curl -fsSL https://cody.ai/install | bash"
 echo ""
 info "To update (re-pull and rebuild):"
 echo "  $0"

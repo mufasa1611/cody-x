@@ -51,7 +51,7 @@ function model(input: {
     providerID: "cody",
     api: {
       id: "cody",
-      url: "https://opencode.ai",
+      url: "https://cody.ai",
       npm: "@ai-sdk/openai-compatible",
     },
     name: input.name,

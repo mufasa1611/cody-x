@@ -251,7 +251,7 @@ set +e
 BUILD_EXIT=$?
 set -e
 if [ $BUILD_EXIT -ne 0 ]; then
-  echo "[warn] Web UI build failed; server will proxy to app.opencode.ai."
+  echo "[warn] Web UI build failed; server will proxy to app.cody.ai."
 fi
 
 # ---- Create proxy config ----

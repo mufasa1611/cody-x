@@ -7,7 +7,7 @@ import { InstallationVersion } from "@cody/core/installation/version"
 export const UpgradeCommand = {
   command: "upgrade [target]",
   describe:
-    process.env.CODY_PRO === "0" ? "upgrade opencode to the latest or a specific version" : "upgrade Cody Pro",
+    process.env.CODY_PRO === "0" ? "upgrade cody to the latest or a specific version" : "upgrade Cody Pro",
   builder: (yargs: Argv) => {
     return yargs
       .positional("target", {

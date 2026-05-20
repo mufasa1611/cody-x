@@ -1,17 +1,17 @@
 ---
 title: Configuración
-description: Usando la configuración OpenCode JSON.
+description: Usando la configuración Cody JSON.
 ---
 
-Puede configurar OpenCode usando un archivo de configuración JSON.
+Puede configurar Cody usando un archivo de configuración JSON.
 
 ---
 
 ## Formato
 
-OpenCode admite los formatos **JSON** y **JSONC** (JSON con comentarios).
+Cody admite los formatos **JSON** y **JSONC** (JSON con comentarios).
 
-```jsonc title="opencode.jsonc"
+```jsonc title="cody.jsonc"
 {
   "$schema": "https://cody.dev/config.json",
   // Theme configuration
@@ -42,30 +42,30 @@ Por ejemplo, si su configuración global establece `theme: "cody"` y `autoupdate
 
 Las fuentes de configuración se cargan en este orden (las fuentes posteriores anulan las anteriores):
 
-1. **Configuración remota** (de `.well-known/opencode`): valores predeterminados de la organización
-2. **Configuración global** (`~/.config/opencode/opencode.json`) - preferencias del usuario
+1. **Configuración remota** (de `.well-known/cody`): valores predeterminados de la organización
+2. **Configuración global** (`~/.config/cody/cody.json`) - preferencias del usuario
 3. **Configuración personalizada** (`CODY_CONFIG` env var): anulaciones personalizadas
-4. **Configuración del proyecto** (`opencode.json` en el proyecto): configuración específica del proyecto
-5. Directorios **`.opencode`** - agentes, comandos, complementos
+4. **Configuración del proyecto** (`cody.json` en el proyecto): configuración específica del proyecto
+5. Directorios **`.cody`** - agentes, comandos, complementos
 6. **Configuración en línea** (`CODY_CONFIG_CONTENT` env var): anulaciones del tiempo de ejecución
 
 Esto significa que las configuraciones del proyecto pueden anular los valores predeterminados globales y las configuraciones globales pueden anular los valores predeterminados de la organización remota.
 
 :::note
-Los directorios `.opencode` y `~/.config/opencode` usan **nombres en plural** para los subdirectorios: `agents/`, `commands/`, `modes/`, `plugins/`, `skills/`, `tools/` y `themes/`. También se admiten nombres singulares (por ejemplo, `agent/`) para compatibilidad con versiones anteriores.
+Los directorios `.cody` y `~/.config/cody` usan **nombres en plural** para los subdirectorios: `agents/`, `commands/`, `modes/`, `plugins/`, `skills/`, `tools/` y `themes/`. También se admiten nombres singulares (por ejemplo, `agent/`) para compatibilidad con versiones anteriores.
 :::
 
 ---
 
 ### Remoto
 
-Las organizaciones pueden proporcionar una configuración predeterminada a través del punto final `.well-known/opencode`. Esto se obtiene automáticamente cuando se autentica con un proveedor que lo admita.
+Las organizaciones pueden proporcionar una configuración predeterminada a través del punto final `.well-known/cody`. Esto se obtiene automáticamente cuando se autentica con un proveedor que lo admita.
 
 La configuración remota se carga primero y sirve como capa base. Todas las demás fuentes de configuración (global, proyecto) pueden anular estos valores predeterminados.
 
 Por ejemplo, si su organización proporciona servidores MCP que están deshabilitados de forma predeterminada:
 
-```json title="Remote config from .well-known/opencode"
+```json title="Remote config from .well-known/cody"
 {
   "mcp": {
     "jira": {
@@ -79,7 +79,7 @@ Por ejemplo, si su organización proporciona servidores MCP que están deshabili
 
 Puede habilitar servidores específicos en su configuración local:
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "mcp": {
     "jira": {
@@ -95,7 +95,7 @@ Puede habilitar servidores específicos en su configuración local:
 
 ### Global
 
-Coloque su configuración global OpenCode en `~/.config/opencode/opencode.json`. Utilice la configuración global para las preferencias de todo el usuario, como temas, proveedores o combinaciones de teclas.
+Coloque su configuración global Cody en `~/.config/cody/cody.json`. Utilice la configuración global para las preferencias de todo el usuario, como temas, proveedores o combinaciones de teclas.
 
 La configuración global anula los valores predeterminados de la organización remota.
 
@@ -103,13 +103,13 @@ La configuración global anula los valores predeterminados de la organización r
 
 ### Por proyecto
 
-Agregue `opencode.json` en la raíz de su proyecto. La configuración del proyecto tiene la mayor prioridad entre los archivos de configuración estándar: anula las configuraciones globales y remotas.
+Agregue `cody.json` en la raíz de su proyecto. La configuración del proyecto tiene la mayor prioridad entre los archivos de configuración estándar: anula las configuraciones globales y remotas.
 
 :::tip
 Coloque la configuración específica del proyecto en la raíz de su proyecto.
 :::
 
-Cuando se inicia OpenCode, busca un archivo de configuración en el directorio actual o recorre hasta el directorio Git más cercano.
+Cuando se inicia Cody, busca un archivo de configuración en el directorio actual o recorre hasta el directorio Git más cercano.
 
 Esto también es seguro para registrarlo en Git y utiliza el mismo esquema que el global.
 
@@ -121,7 +121,7 @@ Especifique una ruta de archivo de configuración personalizada utilizando la va
 
 ```bash
 export CODY_CONFIG=/path/to/my/custom-config.json
-opencode run "Hello world"
+cody run "Hello world"
 ```
 
 La configuración personalizada se carga entre las configuraciones globales y del proyecto en orden de prioridad.
@@ -132,21 +132,21 @@ La configuración personalizada se carga entre las configuraciones globales y de
 
 Especifique un directorio de configuración personalizado usando `CODY_CONFIG_DIR`
 variable de entorno. En este directorio se buscarán agentes, comandos,
-modos y complementos como el directorio estándar `.opencode`, y debería
+modos y complementos como el directorio estándar `.cody`, y debería
 Sigue la misma estructura.
 
 ```bash
 export CODY_CONFIG_DIR=/path/to/my/config-directory
-opencode run "Hello world"
+cody run "Hello world"
 ```
 
-El directorio personalizado se carga después de los directorios global config y `.opencode`, por lo que **puede anular** su configuración.
+El directorio personalizado se carga después de los directorios global config y `.cody`, por lo que **puede anular** su configuración.
 
 ---
 
 ## Esquema
 
-El archivo de configuración tiene un esquema definido en [**`opencode.ai/config.json`**](https://cody.dev/config.json).
+El archivo de configuración tiene un esquema definido en [**`cody.ai/config.json`**](https://cody.dev/config.json).
 
 Su editor debería poder validar y autocompletar según el esquema.
 
@@ -156,7 +156,7 @@ Su editor debería poder validar y autocompletar según el esquema.
 
 Puede configurar ajustes específicos de TUI a través de la opción `tui`.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "tui": {
@@ -181,9 +181,9 @@ Opciones disponibles:
 
 ### Servidor
 
-Puede configurar los ajustes del servidor para los comandos `opencode serve` y `opencode web` a través de la opción `server`.
+Puede configurar los ajustes del servidor para los comandos `cody serve` y `cody web` a través de la opción `server`.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "server": {
@@ -200,8 +200,8 @@ Opciones disponibles:
 
 - `port` - Puerto para escuchar.
 - `hostname`: nombre de host para escuchar. Cuando `mdns` está habilitado y no se establece ningún nombre de host, el valor predeterminado es `0.0.0.0`.
-- `mdns`: habilita el descubrimiento de servicios mDNS. Esto permite que otros dispositivos en la red descubran su servidor OpenCode.
-- `mdnsDomain` - Nombre de dominio personalizado para el servicio mDNS. El valor predeterminado es `opencode.local`. Útil para ejecutar múltiples instancias en la misma red.
+- `mdns`: habilita el descubrimiento de servicios mDNS. Esto permite que otros dispositivos en la red descubran su servidor Cody.
+- `mdnsDomain` - Nombre de dominio personalizado para el servicio mDNS. El valor predeterminado es `cody.local`. Útil para ejecutar múltiples instancias en la misma red.
 - `cors`: orígenes adicionales para permitir CORS cuando se utiliza el servidor HTTP desde un cliente basado en navegador. Los valores deben ser orígenes completos (esquema + host + puerto opcional), por ejemplo, `https://app.example.com`.
 
 [Obtenga más información sobre el servidor aquí](/docs/server).
@@ -212,7 +212,7 @@ Opciones disponibles:
 
 Puede administrar las herramientas que un LLM puede usar a través de la opción `tools`.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "tools": {
@@ -228,9 +228,9 @@ Puede administrar las herramientas que un LLM puede usar a través de la opción
 
 ### Modelos
 
-Puede configurar los proveedores y modelos que desea utilizar en su configuración OpenCode a través de las opciones `provider`, `model` y `small_model`.
+Puede configurar los proveedores y modelos que desea utilizar en su configuración Cody a través de las opciones `provider`, `model` y `small_model`.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "provider": {},
@@ -239,11 +239,11 @@ Puede configurar los proveedores y modelos que desea utilizar en su configuraci�
 }
 ```
 
-La opción `small_model` configura un modelo separado para tareas livianas como la generación de títulos. De forma predeterminada, OpenCode intenta utilizar un modelo más económico si su proveedor tiene uno disponible; de ​​lo contrario, recurre a su modelo principal.
+La opción `small_model` configura un modelo separado para tareas livianas como la generación de títulos. De forma predeterminada, Cody intenta utilizar un modelo más económico si su proveedor tiene uno disponible; de ​​lo contrario, recurre a su modelo principal.
 
 Las opciones de proveedores pueden incluir `timeout` y `setCacheKey`:
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "provider": {
@@ -272,7 +272,7 @@ Algunos proveedores admiten opciones de configuración adicionales más allá de
 
 Amazon Bedrock admite la configuración específica de AWS:
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "provider": {
@@ -301,9 +301,9 @@ Los tokens de portador (`AWS_BEARER_TOKEN_BEDROCK` o `/connect`) tienen priorida
 
 ### Temas
 
-Puede configurar el tema que desea usar en su configuración OpenCode a través de la opción `theme`.
+Puede configurar el tema que desea usar en su configuración Cody a través de la opción `theme`.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "theme": ""
@@ -318,7 +318,7 @@ Puede configurar el tema que desea usar en su configuración OpenCode a través 
 
 Puedes configurar agentes especializados para tareas específicas a través de la opción `agent`.
 
-```jsonc title="opencode.jsonc"
+```jsonc title="cody.jsonc"
 {
   "$schema": "https://cody.dev/config.json",
   "agent": {
@@ -336,7 +336,7 @@ Puedes configurar agentes especializados para tareas específicas a través de l
 }
 ```
 
-También puede definir agentes utilizando archivos de Markdown en `~/.config/opencode/agents/` o `.cody/agents/`. [Más información aquí](/docs/agents).
+También puede definir agentes utilizando archivos de Markdown en `~/.config/cody/agents/` o `.cody/agents/`. [Más información aquí](/docs/agents).
 
 ---
 
@@ -344,16 +344,16 @@ También puede definir agentes utilizando archivos de Markdown en `~/.config/ope
 
 Puede configurar el agente predeterminado usando la opción `default_agent`. Esto determina qué agente se utiliza cuando no se especifica ninguno explícitamente.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "default_agent": "plan"
 }
 ```
 
-El agente predeterminado debe ser un agente principal (no un subagente). Puede ser un agente integrado como `"build"` o `"plan"`, o un [agente personalizado](/docs/agents) que haya definido. Si el agente especificado no existe o es un subagente, OpenCode recurrirá a `"build"` con una advertencia.
+El agente predeterminado debe ser un agente principal (no un subagente). Puede ser un agente integrado como `"build"` o `"plan"`, o un [agente personalizado](/docs/agents) que haya definido. Si el agente especificado no existe o es un subagente, Cody recurrirá a `"build"` con una advertencia.
 
-Esta configuración se aplica en todas las interfaces: TUI, CLI (`opencode run`), aplicación de escritorio y GitHub Acción.
+Esta configuración se aplica en todas las interfaces: TUI, CLI (`cody run`), aplicación de escritorio y GitHub Acción.
 
 ---
 
@@ -361,7 +361,7 @@ Esta configuración se aplica en todas las interfaces: TUI, CLI (`opencode run`)
 
 Puede configurar la función [compartir](/docs/share) a través de la opción `share`.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "share": "manual"
@@ -382,7 +382,7 @@ De forma predeterminada, el uso compartido está configurado en modo manual, don
 
 Puede configurar comandos personalizados para tareas repetitivas a través de la opción `command`.
 
-```jsonc title="opencode.jsonc"
+```jsonc title="cody.jsonc"
 {
   "$schema": "https://cody.dev/config.json",
   "command": {
@@ -400,7 +400,7 @@ Puede configurar comandos personalizados para tareas repetitivas a través de la
 }
 ```
 
-También puede definir comandos utilizando archivos de Markdown en `~/.config/opencode/commands/` o `.cody/commands/`. [Más información aquí](/docs/commands).
+También puede definir comandos utilizando archivos de Markdown en `~/.config/cody/commands/` o `.cody/commands/`. [Más información aquí](/docs/commands).
 
 ---
 
@@ -408,7 +408,7 @@ También puede definir comandos utilizando archivos de Markdown en `~/.config/op
 
 Puede personalizar sus combinaciones de teclas a través de la opción `keybinds`.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "keybinds": {}
@@ -421,9 +421,9 @@ Puede personalizar sus combinaciones de teclas a través de la opción `keybinds
 
 ### Actualización automática
 
-OpenCode descargará automáticamente cualquier actualización nueva cuando se inicie. Puede desactivar esto con la opción `autoupdate`.
+Cody descargará automáticamente cualquier actualización nueva cuando se inicie. Puede desactivar esto con la opción `autoupdate`.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "autoupdate": false
@@ -439,7 +439,7 @@ Tenga en cuenta que esto sólo funciona si no se instaló mediante un administra
 
 Puede configurar formateadores de código a través de la opción `formatter`.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "formatter": {
@@ -463,11 +463,11 @@ Puede configurar formateadores de código a través de la opción `formatter`.
 
 ### Permisos
 
-De forma predeterminada, opencode **permite todas las operaciones** sin requerir aprobación explícita. Puede cambiar esto usando la opción `permission`.
+De forma predeterminada, cody **permite todas las operaciones** sin requerir aprobación explícita. Puede cambiar esto usando la opción `permission`.
 
 Por ejemplo, para garantizar que las herramientas `edit` y `bash` requieran la aprobación del usuario:
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "permission": {
@@ -485,7 +485,7 @@ Por ejemplo, para garantizar que las herramientas `edit` y `bash` requieran la a
 
 Puede controlar el comportamiento de compactación del contexto a través de la opción `compaction`.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "compaction": {
@@ -504,7 +504,7 @@ Puede controlar el comportamiento de compactación del contexto a través de la 
 
 Puede configurar patrones de ignorancia del observador de archivos a través de la opción `watcher`.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "watcher": {
@@ -521,7 +521,7 @@ Los patrones siguen la sintaxis global. Utilice esto para excluir directorios ru
 
 Puede configurar los servidores MCP que desee utilizar a través de la opción `mcp`.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "mcp": {}
@@ -534,14 +534,14 @@ Puede configurar los servidores MCP que desee utilizar a través de la opción `
 
 ### Complementos
 
-Los [complementos](/docs/plugins) amplían OpenCode con herramientas, enlaces e integraciones personalizados.
+Los [complementos](/docs/plugins) amplían Cody con herramientas, enlaces e integraciones personalizados.
 
-Coloque los archivos de complemento en `.cody/plugins/` o `~/.config/opencode/plugins/`. También puedes cargar complementos desde npm a través de la opción `plugin`.
+Coloque los archivos de complemento en `.cody/plugins/` o `~/.config/cody/plugins/`. También puedes cargar complementos desde npm a través de la opción `plugin`.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
-  "plugin": ["opencode-helicone-session", "@my-org/custom-plugin"]
+  "plugin": ["cody-helicone-session", "@my-org/custom-plugin"]
 }
 ```
 
@@ -553,7 +553,7 @@ Coloque los archivos de complemento en `.cody/plugins/` o `~/.config/opencode/pl
 
 Puedes configurar las instrucciones para el modelo que estás usando a través de la opción `instructions`.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "instructions": ["CONTRIBUTING.md", "docs/guidelines.md", ".cursor/rules/*.md"]
@@ -569,7 +569,7 @@ sobre las reglas aquí](/docs/rules).
 
 Puede deshabilitar proveedores que se cargan automáticamente a través de la opción `disabled_providers`. Esto es útil cuando desea evitar que se carguen ciertos proveedores incluso si sus credenciales están disponibles.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "disabled_providers": ["openai", "gemini"]
@@ -592,14 +592,14 @@ La opción `disabled_providers` acepta una variedad de ID de proveedores. Cuando
 
 Puede especificar una lista de proveedores permitidos a través de la opción `enabled_providers`. Cuando se establece, solo se habilitarán los proveedores especificados y se ignorarán todos los demás.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "enabled_providers": ["anthropic", "openai"]
 }
 ```
 
-Esto es útil cuando desea restringir OpenCode para que utilice únicamente proveedores específicos en lugar de deshabilitarlos uno por uno.
+Esto es útil cuando desea restringir Cody para que utilice únicamente proveedores específicos en lugar de deshabilitarlos uno por uno.
 
 :::note
 El `disabled_providers` tiene prioridad sobre `enabled_providers`.
@@ -613,7 +613,7 @@ Si un proveedor aparece tanto en `enabled_providers` como en `disabled_providers
 
 La clave `experimental` contiene opciones que se encuentran en desarrollo activo.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "experimental": {}
@@ -636,7 +636,7 @@ Puede utilizar la sustitución de variables en sus archivos de configuración pa
 
 Utilice `{env:VARIABLE_NAME}` para sustituir variables de entorno:
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "model": "{env:CODY_MODEL}",
@@ -659,7 +659,7 @@ Si la variable de entorno no está configurada, se reemplazará con una cadena v
 
 Utilice `{file:path/to/file}` para sustituir el contenido de un archivo:
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
   "instructions": ["./custom-instructions.md"],

@@ -31,9 +31,9 @@ export const GenerateCommand = {
           {
             lang: "js",
             source: [
-              `import { createOpencodeClient } from "@cody/sdk`,
+              `import { createCodyClient } from "@cody/sdk`,
               ``,
-              `const client = createOpencodeClient()`,
+              `const client = createCodyClient()`,
               `await client.${operation.operationId}({`,
               `  ...`,
               `})`,

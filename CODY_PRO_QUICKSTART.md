@@ -45,7 +45,7 @@ Equivalent Bun command:
 bun run cody-pro
 ```
 
-Cody Pro branding is the default in this fork, even when launching from `packages/opencode`. Set `CODY_PRO=0` only if you need to inspect the inherited upstream branding.
+Cody Pro branding is the default in this fork, even when launching from `packages/cody`. Set `CODY_PRO=0` only if you need to inspect the inherited upstream branding.
 
 Pass a project path if you want Cody Pro to open somewhere else:
 
@@ -85,7 +85,7 @@ If the global command is missing, reinstall the local shim:
 On first normal startup, Cody Pro discovers local Ollama models and `.gguf` files, then writes a generated config:
 
 ```text
-.opencode\generated\opencode.jsonc
+.cody\generated\cody.jsonc
 ```
 
 During that scan it prints `[cody-pro:model-scan]` progress lines so you can see the current phase, drive, folder, and found model count. Refresh later with:
@@ -106,7 +106,7 @@ Local model setup notes are in `CODY_LOCAL_MODELS.md`.
 
 ## Notes
 
-- The upstream `opencode` entry point also works for testing upstream behavior.
+- The upstream `cody` entry point also works for testing upstream behavior.
 - The first launch may run a local database migration.
 - Keep dangerous infra actions permission-gated. Cody Pro agents should inspect first and ask before mutating systems.
 

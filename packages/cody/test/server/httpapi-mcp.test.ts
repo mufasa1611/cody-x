@@ -27,7 +27,7 @@ type TestApp = ReturnType<typeof app>
 
 function request(route: string, directory: string, init?: RequestInit) {
   const headers = new Headers(init?.headers)
-  headers.set("x-opencode-directory", directory)
+  headers.set("x-cody-directory", directory)
   return ExperimentalHttpApiServer.webHandler().handler(
     new Request(`http://localhost${route}`, {
       ...init,
@@ -41,10 +41,10 @@ function withMcpProject<A, E, R>(self: (dir: string) => Effect.Effect<A, E, R>) 
   return Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem
     const path = yield* Path.Path
-    const dir = yield* fs.makeTempDirectoryScoped({ prefix: "opencode-test-" })
+    const dir = yield* fs.makeTempDirectoryScoped({ prefix: "cody-test-" })
 
     yield* fs.writeFileString(
-      path.join(dir, "opencode.json"),
+      path.join(dir, "cody.json"),
       JSON.stringify({
         $schema: "https://cody.dev/config.json",
         formatter: false,
@@ -168,7 +168,7 @@ describe("mcp HttpApi", () => {
     "matches legacy unsupported OAuth error responses",
     withMcpProject((dir) =>
       Effect.gen(function* () {
-        const headers = { "x-opencode-directory": dir }
+        const headers = { "x-cody-directory": dir }
         const legacy = app(false)
         const httpapi = app(true)
 

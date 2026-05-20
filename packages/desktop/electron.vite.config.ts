@@ -9,7 +9,7 @@ const channel = (() => {
   return "dev"
 })()
 
-const CODY_SERVER_DIST = "../opencode/dist/node"
+const CODY_SERVER_DIST = "../cody/dist/node"
 
 const nodePtyPkg = `@lydell/node-pty-${process.platform}-${process.arch}`
 
@@ -43,21 +43,21 @@ export default defineConfig({
     },
     plugins: [
       {
-        name: "opencode:node-pty-narrower",
+        name: "cody:node-pty-narrower",
         enforce: "pre",
         resolveId(s) {
           if (s === "@lydell/node-pty") return nodePtyPkg
         },
       },
       {
-        name: "opencode:virtual-server-module",
+        name: "cody:virtual-server-module",
         enforce: "pre",
         resolveId(id) {
-          if (id === "virtual:opencode-server") return this.resolve(`${CODY_SERVER_DIST}/node.js`)
+          if (id === "virtual:cody-server") return this.resolve(`${CODY_SERVER_DIST}/node.js`)
         },
       },
       {
-        name: "opencode:copy-server-assets",
+        name: "cody:copy-server-assets",
         async writeBundle() {
           for (const l of await fs.readdir(CODY_SERVER_DIST)) {
             if (!l.endsWith(".wasm")) continue

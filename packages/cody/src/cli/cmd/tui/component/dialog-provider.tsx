@@ -17,15 +17,15 @@ import { useConnected } from "./use-connected"
 import { useBindings } from "../keymap"
 
 const PROVIDER_PRIORITY: Record<string, number> = {
-  opencode: 0,
-  "opencode-go": 1,
+  cody: 0,
+  "cody-go": 1,
   openai: 2,
   "github-copilot": 3,
   anthropic: 4,
   google: 5,
 }
 
-const CUSTOM_PROVIDER_OPTION_VALUE = "__opencode_custom_provider__"
+const CUSTOM_PROVIDER_OPTION_VALUE = "__cody_custom_provider__"
 const CUSTOM_PROVIDER_ID = /^[a-z0-9][a-z0-9-_]*$/
 
 type ProviderOptionBase = {
@@ -55,10 +55,10 @@ export function providerOptions(list: { id: string; name: string }[]): ProviderO
         value: provider.id,
         providerID: provider.id,
         description: {
-          opencode: "(Recommended)",
+          cody: "(Recommended)",
           anthropic: "(API key)",
           openai: "(ChatGPT Plus/Pro or API key)",
-          "opencode-go": "Low cost subscription for everyone",
+          "cody-go": "Low cost subscription for everyone",
         }[provider.id],
         category: provider.id in PROVIDER_PRIORITY ? "Popular" : "Providers",
       })),
@@ -92,7 +92,7 @@ export function createDialogProviderOptions() {
       placeholder: "Provider id",
       description: () => (
         <text fg={theme.textMuted}>
-          This only stores a credential. Configure the provider in opencode.json to use it.
+          This only stores a credential. Configure the provider in cody.json to use it.
         </text>
       ),
     })
@@ -355,7 +355,7 @@ function ApiMethod(props: ApiMethodProps) {
       placeholder="API key"
       description={
         {
-          opencode: (
+          cody: (
             <box gap={1}>
               <text fg={theme.textMuted}>
                 Cody Pro gives you access to curated coding models through a single API key.
@@ -365,7 +365,7 @@ function ApiMethod(props: ApiMethodProps) {
               </text>
             </box>
           ),
-          "opencode-go": (
+          "cody-go": (
             <box gap={1}>
               <text fg={theme.textMuted}>
                 Cody Pro Go is a $10 per month subscription that provides reliable access to popular open coding models
@@ -393,7 +393,7 @@ function ApiMethod(props: ApiMethodProps) {
         if (props.custom && !sync.data.provider_next.all.some((provider) => provider.id === props.providerID)) {
           toast.show({
             variant: "info",
-            message: `Saved credential for ${props.providerID}. Configure it in opencode.json to use it.`,
+            message: `Saved credential for ${props.providerID}. Configure it in cody.json to use it.`,
           })
           dialog.clear()
           return

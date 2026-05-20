@@ -3,7 +3,7 @@ description: "find issue(s) on github"
 model: cody/claude-haiku-4-5
 ---
 
-Search through existing issues in anomalyco/opencode using the gh cli to find issues matching this query:
+Search through existing issues in anomalyco/cody using the gh cli to find issues matching this query:
 
 $ARGUMENTS
 

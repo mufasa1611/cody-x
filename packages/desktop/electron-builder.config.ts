@@ -54,7 +54,7 @@ const getBase = (): Configuration => ({
     sign: true,
   },
   protocols: {
-    name: "OpenCode",
+    name: "Cody",
     schemes: ["cody"],
   },
   win: {
@@ -85,27 +85,27 @@ function getConfig() {
     case "dev": {
       return {
         ...base,
-        appId: "ai.opencode.desktop.dev",
-        productName: "OpenCode Dev",
-        rpm: { packageName: "opencode-dev" },
+        appId: "ai.cody.desktop.dev",
+        productName: "Cody Dev",
+        rpm: { packageName: "cody-dev" },
       }
     }
     case "beta": {
       return {
         ...base,
-        appId: "ai.opencode.desktop.beta",
-        productName: "OpenCode Beta",
-        protocols: { name: "OpenCode Beta", schemes: ["cody"] },
-        publish: { provider: "github", owner: "anomalyco", repo: "opencode-beta", channel: "latest" },
-        rpm: { packageName: "opencode-beta" },
+        appId: "ai.cody.desktop.beta",
+        productName: "Cody Beta",
+        protocols: { name: "Cody Beta", schemes: ["cody"] },
+        publish: { provider: "github", owner: "anomalyco", repo: "cody-beta", channel: "latest" },
+        rpm: { packageName: "cody-beta" },
       }
     }
     case "prod": {
       return {
         ...base,
-        appId: "ai.opencode.desktop",
-        productName: "OpenCode",
-        protocols: { name: "OpenCode", schemes: ["cody"] },
+        appId: "ai.cody.desktop",
+        productName: "Cody",
+        protocols: { name: "Cody", schemes: ["cody"] },
         publish: { provider: "github", owner: "anomalyco", repo: "cody", channel: "latest" },
         rpm: { packageName: "cody" },
       }

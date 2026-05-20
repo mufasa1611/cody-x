@@ -11,24 +11,24 @@ import previewLogoLightSquare from "../../asset/brand/preview-cody-logo-light-sq
 import previewLogoDarkSquare from "../../asset/brand/preview-cody-logo-dark-square.png"
 import previewWordmarkLight from "../../asset/brand/preview-cody-wordmark-light.png"
 import previewWordmarkDark from "../../asset/brand/preview-cody-wordmark-dark.png"
-import previewWordmarkSimpleLight from "../../asset/brand/preview-opencode-wordmark-simple-light.png"
-import previewWordmarkSimpleDark from "../../asset/brand/preview-opencode-wordmark-simple-dark.png"
+import previewWordmarkSimpleLight from "../../asset/brand/preview-cody-wordmark-simple-light.png"
+import previewWordmarkSimpleDark from "../../asset/brand/preview-cody-wordmark-simple-dark.png"
 import logoLightPng from "../../asset/brand/cody-logo-light.png"
 import logoDarkPng from "../../asset/brand/cody-logo-dark.png"
 import logoLightSquarePng from "../../asset/brand/cody-logo-light-square.png"
 import logoDarkSquarePng from "../../asset/brand/cody-logo-dark-square.png"
 import wordmarkLightPng from "../../asset/brand/cody-wordmark-light.png"
 import wordmarkDarkPng from "../../asset/brand/cody-wordmark-dark.png"
-import wordmarkSimpleLightPng from "../../asset/brand/opencode-wordmark-simple-light.png"
-import wordmarkSimpleDarkPng from "../../asset/brand/opencode-wordmark-simple-dark.png"
+import wordmarkSimpleLightPng from "../../asset/brand/cody-wordmark-simple-light.png"
+import wordmarkSimpleDarkPng from "../../asset/brand/cody-wordmark-simple-dark.png"
 import logoLightSvg from "../../asset/brand/cody-logo-light.svg"
 import logoDarkSvg from "../../asset/brand/cody-logo-dark.svg"
 import logoLightSquareSvg from "../../asset/brand/cody-logo-light-square.svg"
 import logoDarkSquareSvg from "../../asset/brand/cody-logo-dark-square.svg"
 import wordmarkLightSvg from "../../asset/brand/cody-wordmark-light.svg"
 import wordmarkDarkSvg from "../../asset/brand/cody-wordmark-dark.svg"
-import wordmarkSimpleLightSvg from "../../asset/brand/opencode-wordmark-simple-light.svg"
-import wordmarkSimpleDarkSvg from "../../asset/brand/opencode-wordmark-simple-dark.svg"
+import wordmarkSimpleLightSvg from "../../asset/brand/cody-wordmark-simple-light.svg"
+import wordmarkSimpleDarkSvg from "../../asset/brand/cody-wordmark-simple-dark.svg"
 const brandAssets = "/cody-brand-assets.zip"
 
 export default function Brand() {
@@ -253,7 +253,7 @@ export default function Brand() {
               <div>
                 <img src={previewWordmarkSimpleLight} alt={alt} />
                 <div data-component="actions">
-                  <button onClick={() => downloadFile(wordmarkSimpleLightPng, "opencode-wordmark-simple-light.png")}>
+                  <button onClick={() => downloadFile(wordmarkSimpleLightPng, "cody-wordmark-simple-light.png")}>
                     PNG
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path
@@ -264,7 +264,7 @@ export default function Brand() {
                       />
                     </svg>
                   </button>
-                  <button onClick={() => downloadFile(wordmarkSimpleLightSvg, "opencode-wordmark-simple-light.svg")}>
+                  <button onClick={() => downloadFile(wordmarkSimpleLightSvg, "cody-wordmark-simple-light.svg")}>
                     SVG
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path
@@ -280,7 +280,7 @@ export default function Brand() {
               <div>
                 <img src={previewWordmarkSimpleDark} alt={alt} />
                 <div data-component="actions">
-                  <button onClick={() => downloadFile(wordmarkSimpleDarkPng, "opencode-wordmark-simple-dark.png")}>
+                  <button onClick={() => downloadFile(wordmarkSimpleDarkPng, "cody-wordmark-simple-dark.png")}>
                     PNG
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path
@@ -291,7 +291,7 @@ export default function Brand() {
                       />
                     </svg>
                   </button>
-                  <button onClick={() => downloadFile(wordmarkSimpleDarkSvg, "opencode-wordmark-simple-dark.svg")}>
+                  <button onClick={() => downloadFile(wordmarkSimpleDarkSvg, "cody-wordmark-simple-dark.svg")}>
                     SVG
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path

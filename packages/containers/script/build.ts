@@ -23,10 +23,10 @@ const setup = async () => {
   if (!push) return
   const list = await $`docker buildx ls`.text()
   if (list.includes("cody")) {
-    await $`docker buildx use opencode`
+    await $`docker buildx use cody`
     return
   }
-  await $`docker buildx create --name opencode --use`
+  await $`docker buildx create --name cody --use`
 }
 
 await setup()

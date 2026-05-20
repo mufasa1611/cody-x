@@ -1,13 +1,13 @@
 ---
 title: SDK
-description: Client JS type-safe per il server opencode.
+description: Client JS type-safe per il server cody.
 ---
 
 import config from "../../../../config.mjs"
 export const typesUrl = `${config.github}/blob/dev/packages/sdk/js/src/gen/types.gen.ts`
 
-L'SDK JS/TS di opencode fornisce un client type-safe per interagire con il server.
-Usalo per creare integrazioni e controllare opencode in modo programmatico.
+L'SDK JS/TS di cody fornisce un client type-safe per interagire con il server.
+Usalo per creare integrazioni e controllare cody in modo programmatico.
 
 [Scopri di piu](/docs/server) su come funziona il server. Per esempi, guarda i [progetti](/docs/ecosystem#projects) creati dalla comunita.
 
@@ -25,12 +25,12 @@ npm install @cody/sdk
 
 ## Crea un client
 
-Crea un'istanza di opencode:
+Crea un'istanza di cody:
 
 ```javascript
-import { createOpencode } from "@cody/sdk"
+import { createCody } from "@cody/sdk"
 
-const { client } = await createOpencode()
+const { client } = await createCody()
 ```
 
 Questo avvia sia un server sia un client
@@ -49,12 +49,12 @@ Questo avvia sia un server sia un client
 
 ## Configurazione
 
-Puoi passare un oggetto di configurazione per personalizzare il comportamento. L'istanza legge comunque `opencode.json`, ma puoi sovrascrivere o aggiungere configurazione inline:
+Puoi passare un oggetto di configurazione per personalizzare il comportamento. L'istanza legge comunque `cody.json`, ma puoi sovrascrivere o aggiungere configurazione inline:
 
 ```javascript
-import { createOpencode } from "@cody/sdk"
+import { createCody } from "@cody/sdk"
 
-const opencode = await createOpencode({
+const cody = await createCody({
   hostname: "127.0.0.1",
   port: 4096,
   config: {
@@ -62,19 +62,19 @@ const opencode = await createOpencode({
   },
 })
 
-console.log(`Server running at ${opencode.server.url}`)
+console.log(`Server running at ${cody.server.url}`)
 
-opencode.server.close()
+cody.server.close()
 ```
 
 ## Solo client
 
-Se hai gia un'istanza di opencode in esecuzione, puoi creare un client per collegarti:
+Se hai gia un'istanza di cody in esecuzione, puoi creare un client per collegarti:
 
 ```javascript
-import { createOpencodeClient } from "@cody/sdk"
+import { createCodyClient } from "@cody/sdk"
 
-const client = createOpencodeClient({
+const client = createCodyClient({
   baseUrl: "http://localhost:4096",
 })
 ```
@@ -376,7 +376,7 @@ await client.session.prompt({
 ```javascript
 // Search and read files
 const textResults = await client.find.text({
-  query: { pattern: "function.*opencode" },
+  query: { pattern: "function.*cody" },
 })
 
 const files = await client.find.files({

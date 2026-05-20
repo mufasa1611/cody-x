@@ -144,7 +144,7 @@ pushd "%ROOT%\packages\app"
 call bun run build
 if errorlevel 1 (
   popd
-  echo [warn] Web UI build failed, server will proxy to app.opencode.ai.
+  echo [warn] Web UI build failed, server will proxy to app.cody.ai.
   goto AfterWebBuild
 )
 popd
@@ -168,9 +168,9 @@ if not exist "%ROOT%\.env.proxy" (
   )
 )
 if not "%CODY_DISCOVER_MODELS%"=="1" goto SkipModelDiscovery
-if not exist "%ROOT%\.opencode\generated\opencode.jsonc" (
+if not exist "%ROOT%\.cody\generated\cody.jsonc" (
   powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\discover-local-models.ps1" -Root "%ROOT%"
-  if exist "%ROOT%\.opencode\generated\cody-local-models.report.json" (
+  if exist "%ROOT%\.cody\generated\cody-local-models.report.json" (
     echo [ok] Model discovery complete.
   ) else (
     echo [info] No local models found.
@@ -179,7 +179,7 @@ if not exist "%ROOT%\.opencode\generated\opencode.jsonc" (
   echo [ok] Model config already exists, skipping.
 )
 :SkipModelDiscovery
-if not exist "%ROOT%\.opencode\generated" mkdir "%ROOT%\.opencode\generated" >nul 2>nul
+if not exist "%ROOT%\.cody\generated" mkdir "%ROOT%\.cody\generated" >nul 2>nul
 powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\ensure-default-config.ps1" -Root "%ROOT%"
 
 echo.

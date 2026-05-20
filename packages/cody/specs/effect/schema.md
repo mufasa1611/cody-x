@@ -1,6 +1,6 @@
 # Schema migration
 
-Practical reference for migrating data types in `packages/opencode` from
+Practical reference for migrating data types in `packages/cody` from
 Zod-first definitions to Effect Schema with Zod compatibility shims.
 
 ## Goal

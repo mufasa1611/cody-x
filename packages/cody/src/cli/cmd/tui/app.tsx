@@ -66,7 +66,7 @@ import { createTuiApi } from "@/cli/cmd/tui/plugin/api"
 import type { RouteMap } from "@/cli/cmd/tui/plugin/api"
 import { FormatError, FormatUnknownError } from "@/cli/error"
 import { CommandPaletteProvider, useCommandPalette } from "./context/command-palette"
-import { OpencodeKeymapProvider, registerOpencodeKeymap, useBindings, useOpencodeKeymap } from "./keymap"
+import { CodyKeymapProvider, registerCodyKeymap, useBindings, useCodyKeymap } from "./keymap"
 
 import type { EventSource } from "./context/sdk"
 import { DialogVariant } from "./component/dialog-variant"
@@ -143,7 +143,7 @@ export function tui(input: {
     const mode = (await renderer.waitForThemeMode(1000)) ?? "dark"
 
     const keymap = createDefaultOpenTuiKeymap(renderer)
-    const offKeymap = registerOpencodeKeymap(keymap, renderer, input.config)
+    const offKeymap = registerCodyKeymap(keymap, renderer, input.config)
 
     await render(() => {
       return (
@@ -152,7 +152,7 @@ export function tui(input: {
             <ErrorComponent error={error} reset={reset} onBeforeExit={onBeforeExit} onExit={onExit} mode={mode} />
           )}
         >
-          <OpencodeKeymapProvider keymap={keymap}>
+          <CodyKeymapProvider keymap={keymap}>
             <ArgsProvider {...input.args}>
               <ExitProvider onBeforeExit={onBeforeExit} onExit={onExit}>
                 <KVProvider>
@@ -207,7 +207,7 @@ export function tui(input: {
                 </KVProvider>
               </ExitProvider>
             </ArgsProvider>
-          </OpencodeKeymapProvider>
+          </CodyKeymapProvider>
         </ErrorBoundary>
       )
     }, renderer)
@@ -226,7 +226,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
   const local = useLocal()
   const kv = useKV()
   const command = useCommandPalette()
-  const keymap = useOpencodeKeymap()
+  const keymap = useCodyKeymap()
   const event = useEvent()
   const sdk = useSDK()
   const toast = useToast()
@@ -300,14 +300,14 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
     if (!terminalTitleEnabled() || Flag.CODY_DISABLE_TERMINAL_TITLE) return
 
     if (route.data.type === "home") {
-      renderer.setTerminalTitle(process.env.CODY_PRO === "0" ? "OpenCode" : "Cody Pro")
+      renderer.setTerminalTitle(process.env.CODY_PRO === "0" ? "Cody" : "Cody Pro")
       return
     }
 
     if (route.data.type === "session") {
       const session = sync.session.get(route.data.sessionID)
       if (!session || SessionApi.isDefaultTitle(session.title)) {
-        renderer.setTerminalTitle(process.env.CODY_PRO === "0" ? "OpenCode" : "Cody Pro")
+        renderer.setTerminalTitle(process.env.CODY_PRO === "0" ? "Cody" : "Cody Pro")
         return
       }
 
@@ -573,7 +573,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
           ]
         : []),
       {
-        name: "opencode.status",
+        name: "cody.status",
         title: "View status",
         slashName: "status",
         run: () => {
@@ -622,7 +622,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
         name: "docs.open",
         title: "Open docs",
         run: () => {
-          open(process.env.CODY_PRO === "0" ? "https://opencode.ai/docs" : "https://github.com/mufasa1611/cody-pro")
+          open(process.env.CODY_PRO === "0" ? "https://cody.ai/docs" : "https://github.com/mufasa1611/cody-pro")
             .catch(() => {})
           dialog.clear()
         },

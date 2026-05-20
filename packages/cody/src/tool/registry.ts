@@ -53,7 +53,7 @@ export function webSearchEnabled(
   providerID: ProviderID,
   flags = { exa: Flag.CODY_ENABLE_EXA, parallel: Flag.CODY_ENABLE_PARALLEL },
 ) {
-  return providerID === ProviderID.opencode || flags.exa || flags.parallel
+  return providerID === ProviderID.cody || flags.exa || flags.parallel
 }
 
 type TaskDef = Tool.InferDef<typeof TaskTool>

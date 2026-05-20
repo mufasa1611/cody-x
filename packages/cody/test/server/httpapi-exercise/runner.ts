@@ -127,7 +127,7 @@ function withContext<A, E>(scenario: ActiveScenario, use: (ctx: SeededContext<un
         const base: ScenarioContext = {
           directory: context.dir?.path,
           headers: (extra) => ({
-            ...(context.dir?.path ? { "x-opencode-directory": context.dir.path } : {}),
+            ...(context.dir?.path ? { "x-cody-directory": context.dir.path } : {}),
             ...extra,
           }),
           file: (name, content) =>
@@ -154,7 +154,7 @@ function withContext<A, E>(scenario: ActiveScenario, use: (ctx: SeededContext<un
                 time: { created: Date.now() },
                 agent: "build",
                 model: {
-                  providerID: ProviderID.opencode,
+                  providerID: ProviderID.cody,
                   modelID: ModelID.make("test"),
                 },
               }

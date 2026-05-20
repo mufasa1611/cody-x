@@ -5,7 +5,7 @@ import { NonNegativeInt } from "@/util/schema"
 import { Global } from "@cody/core/global"
 import { AppFileSystem } from "@cody/core/filesystem"
 
-export const OAUTH_DUMMY_KEY = "opencode-oauth-dummy-key"
+export const OAUTH_DUMMY_KEY = "cody-oauth-dummy-key"
 
 const file = path.join(Global.Path.data, "auth.json")
 

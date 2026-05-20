@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   Hooks,
   PluginInput,
   Plugin as PluginInstance,
@@ -8,7 +8,7 @@ import type {
 import { Config } from "@/config/config"
 import { Bus } from "../bus"
 import * as Log from "@cody/core/util/log"
-import { createOpencodeClient } from "@cody/sdk"
+import { createCodyClient } from "@cody/sdk"
 import { Flag } from "@cody/core/flag/flag"
 import { ServerAuth } from "@/server/auth"
 import { CodexAuthPlugin } from "./codex"
@@ -122,7 +122,7 @@ export const layer = Layer.effect(
 
         const { Server } = yield* Effect.promise(() => import("../server/server"))
 
-        const client = createOpencodeClient({
+        const client = createCodyClient({
           baseUrl: "http://localhost:4096",
           directory: ctx.directory,
           headers: ServerAuth.headers(),

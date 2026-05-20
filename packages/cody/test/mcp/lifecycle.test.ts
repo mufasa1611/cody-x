@@ -185,7 +185,7 @@ function withInstance(
     await using tmp = await tmpdir({
       init: async (dir) => {
         await Bun.write(
-          `${dir}/opencode.json`,
+          `${dir}/cody.json`,
           JSON.stringify({
             $schema: "https://cody.dev/config.json",
             mcp: config,

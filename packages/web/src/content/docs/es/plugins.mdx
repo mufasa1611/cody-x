@@ -1,9 +1,9 @@
 ---
 title: Complementos
-description: Escriba sus propios complementos para extender OpenCode.
+description: Escriba sus propios complementos para extender Cody.
 ---
 
-Los complementos le permiten extender OpenCode al conectarse a varios eventos y personalizar el comportamiento. Puede crear complementos para agregar nuevas funciones, integrarlos con servicios externos o modificar el comportamiento predeterminado de OpenCode.
+Los complementos le permiten extender Cody al conectarse a varios eventos y personalizar el comportamiento. Puede crear complementos para agregar nuevas funciones, integrarlos con servicios externos o modificar el comportamiento predeterminado de Cody.
 
 Para ver ejemplos, consulte los [complementos](/docs/ecosystem#plugins) creados por la comunidad.
 
@@ -20,7 +20,7 @@ Hay dos formas de cargar complementos.
 Coloque los archivos JavaScript o TypeScript en el directorio del complemento.
 
 - `.cody/plugins/` - Complementos a nivel de proyecto
-- `~/.config/opencode/plugins/` - Complementos globales
+- `~/.config/cody/plugins/` - Complementos globales
 
 Los archivos en estos directorios se cargan automáticamente al inicio.
 
@@ -30,10 +30,10 @@ Los archivos en estos directorios se cargan automáticamente al inicio.
 
 Especifique paquetes npm en su archivo de configuración.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
-  "plugin": ["opencode-helicone-session", "opencode-wakatime", "@my-org/custom-plugin"]
+  "plugin": ["cody-helicone-session", "cody-wakatime", "@my-org/custom-plugin"]
 }
 ```
 
@@ -45,7 +45,7 @@ Explore los complementos disponibles en el [ecosistema](/docs/ecosystem#plugins)
 
 ### Cómo se instalan los complementos
 
-Los **complementos npm** se instalan automáticamente usando Bun al inicio. Los paquetes y sus dependencias se almacenan en caché en `~/.cache/opencode/node_modules/`.
+Los **complementos npm** se instalan automáticamente usando Bun al inicio. Los paquetes y sus dependencias se almacenan en caché en `~/.cache/cody/node_modules/`.
 
 **Los complementos locales** se cargan directamente desde el directorio de complementos. Para usar paquetes externos, debe crear un `package.json` dentro de su directorio de configuración (consulte [Dependencias](#dependencies)), o publicar el complemento en npm y [agregarlo a su configuración](/docs/config#plugins).
 
@@ -55,9 +55,9 @@ Los **complementos npm** se instalan automáticamente usando Bun al inicio. Los 
 
 Los complementos se cargan desde todas las fuentes y todos los enlaces se ejecutan en secuencia. El orden de carga es:
 
-1. Configuración global (`~/.config/opencode/opencode.json`)
-2. Configuración del proyecto (`opencode.json`)
-3. Directorio global de complementos (`~/.config/opencode/plugins/`)
+1. Configuración global (`~/.config/cody/cody.json`)
+2. Configuración del proyecto (`cody.json`)
+3. Directorio global de complementos (`~/.config/cody/plugins/`)
 4. Directorio de complementos del proyecto (`.cody/plugins/`)
 
 Los paquetes npm duplicados con el mismo nombre y versión se cargan una vez. Sin embargo, un complemento local y un complemento npm con nombres similares se cargan por separado.
@@ -83,7 +83,7 @@ Los complementos locales y las herramientas personalizadas pueden utilizar paque
 }
 ```
 
-OpenCode ejecuta `bun install` al inicio para instalarlos. Luego, sus complementos y herramientas pueden importarlos.
+Cody ejecuta `bun install` al inicio para instalarlos. Luego, sus complementos y herramientas pueden importarlos.
 
 ```ts title=".cody/plugins/my-plugin.ts"
 import { escape } from "shescape"
@@ -118,7 +118,7 @@ La función del complemento recibe:
 - `project`: La información actual del proyecto.
 - `directory`: El directorio de trabajo actual.
 - `worktree`: La ruta del árbol de trabajo de git.
-- `client`: Un cliente SDK opencode para interactuar con la IA.
+- `client`: Un cliente SDK cody para interactuar con la IA.
 - `$`: [shell API](https://bun.com/docs/runtime/shell) de Bun para ejecutar comandos.
 
 ---
@@ -211,7 +211,7 @@ Los complementos pueden suscribirse a eventos como se ve a continuación en la s
 
 ## Ejemplos
 
-A continuación se muestran algunos ejemplos de complementos que puede utilizar para ampliar opencode.
+A continuación se muestran algunos ejemplos de complementos que puede utilizar para ampliar cody.
 
 ---
 
@@ -235,14 +235,14 @@ export const NotificationPlugin = async ({ project, client, $, directory, worktr
 Estamos usando `osascript` para ejecutar AppleScript en macOS. Aquí lo estamos usando para enviar notificaciones.
 
 :::note
-Si está utilizando la aplicación de escritorio OpenCode, puede enviar notificaciones del sistema automáticamente cuando una respuesta esté lista o cuando se produzca un error en una sesión.
+Si está utilizando la aplicación de escritorio Cody, puede enviar notificaciones del sistema automáticamente cuando una respuesta esté lista o cuando se produzca un error en una sesión.
 :::
 
 ---
 
 ### Protección .env
 
-Evite que opencode lea archivos `.env`:
+Evite que cody lea archivos `.env`:
 
 ```javascript title=".cody/plugins/env-protection.js"
 export const EnvProtection = async ({ project, client, $, directory, worktree }) => {
@@ -277,7 +277,7 @@ export const InjectEnvPlugin = async () => {
 
 ### Herramientas personalizadas
 
-Los complementos también pueden agregar herramientas personalizadas a opencode:
+Los complementos también pueden agregar herramientas personalizadas a cody:
 
 ```ts title=".cody/plugins/custom-tools.ts"
 import { type Plugin, tool } from "@cody/plugin"
@@ -300,13 +300,13 @@ export const CustomToolsPlugin: Plugin = async (ctx) => {
 }
 ```
 
-El ayudante `tool` crea una herramienta personalizada a la que opencode puede llamar. Toma una función de esquema Zod y devuelve una definición de herramienta con:
+El ayudante `tool` crea una herramienta personalizada a la que cody puede llamar. Toma una función de esquema Zod y devuelve una definición de herramienta con:
 
 - `description`: Qué hace la herramienta
 - `args`: Esquema Zod para los argumentos de la herramienta.
 - `execute`: Función que se ejecuta cuando se llama a la herramienta
 
-Sus herramientas personalizadas estarán disponibles para opencode junto con las herramientas integradas.
+Sus herramientas personalizadas estarán disponibles para cody junto con las herramientas integradas.
 
 :::note
 Si una herramienta de complemento utiliza el mismo nombre que una herramienta integrada, la herramienta de complemento tiene prioridad.
@@ -331,7 +331,7 @@ export const MyPlugin = async ({ client }) => {
 }
 ```
 
-Niveles: `debug`, `info`, `warn`, `error`. Consulte la [documentación del SDK](https://opencode.ai/docs/sdk) para obtener más detalles.
+Niveles: `debug`, `info`, `warn`, `error`. Consulte la [documentación del SDK](https://cody.ai/docs/sdk) para obtener más detalles.
 
 ---
 

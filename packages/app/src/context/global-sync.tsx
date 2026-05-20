@@ -1,6 +1,6 @@
 import type {
   Config,
-  OpencodeClient,
+  CodyClient,
   Path,
   Project,
   ProviderAuthResponse,
@@ -52,7 +52,7 @@ export const loadSessionsQueryKey = (directory: string) => [directory, "loadSess
 
 export const mcpQueryKey = (directory: string) => [directory, "mcp"] as const
 
-export const loadMcpQuery = (directory: string, sdk: OpencodeClient) =>
+export const loadMcpQuery = (directory: string, sdk: CodyClient) =>
   queryOptions({
     queryKey: mcpQueryKey(directory),
     queryFn: () => sdk.mcp.status().then((r) => r.data ?? {}),
@@ -60,7 +60,7 @@ export const loadMcpQuery = (directory: string, sdk: OpencodeClient) =>
 
 export const lspQueryKey = (directory: string) => [directory, "lsp"] as const
 
-export const loadLspQuery = (directory: string, sdk: OpencodeClient) =>
+export const loadLspQuery = (directory: string, sdk: CodyClient) =>
   queryOptions({
     queryKey: lspQueryKey(directory),
     queryFn: () => sdk.lsp.status().then((r) => r.data ?? []),
@@ -72,7 +72,7 @@ function createGlobalSync() {
   const owner = getOwner()
   if (!owner) throw new Error("GlobalSync must be created within owner")
 
-  const sdkCache = new Map<string, OpencodeClient>()
+  const sdkCache = new Map<string, CodyClient>()
   const booting = new Map<string, Promise<void>>()
   const sessionLoads = new Map<string, Promise<void>>()
   const sessionMeta = new Map<string, { limit: number }>()

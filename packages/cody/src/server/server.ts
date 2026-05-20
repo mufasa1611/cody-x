@@ -151,7 +151,7 @@ function createHono(opts: CorsOptions, selection: ServerBackend.Selection = Serv
  * Since the Effect HttpApi backend now covers every Hono route (plus the new
  * `/api/session/*` v2 routes — see `httpapi-bridge.test.ts` for the parity
  * audit), `Server.openapi()` derives the spec from `OpenApi.fromApi(PublicApi)`.
- * `PublicApi` is `OpenCodeHttpApi` annotated with the `matchLegacyOpenApi`
+ * `PublicApi` is `CodyHttpApi` annotated with the `matchLegacyOpenApi`
  * transform that injects instance query parameters, strips Effect's optional
  * null arms, normalizes component names, and patches SSE response schemas so
  * the generated SDK keeps the legacy Hono shape.
@@ -179,7 +179,7 @@ export async function openapiHono() {
       info: {
         title: process.env.CODY_PRO === "0" ? "cody" : "cody-pro",
         version: "1.0.0",
-        description: process.env.CODY_PRO === "0" ? "opencode api" : "Cody Pro API",
+        description: process.env.CODY_PRO === "0" ? "cody api" : "Cody Pro API",
       },
       openapi: "3.1.1",
     },
@@ -252,7 +252,7 @@ async function listenLegacy(opts: ListenOptions): Promise<Listener> {
 async function listenHttpApi(opts: ListenOptions, selection: ServerBackend.Selection): Promise<Listener> {
   log.info("server backend selected", {
     ...ServerBackend.attributes(selection),
-    "opencode.server.runtime": HttpApiServer.name,
+    "cody.server.runtime": HttpApiServer.name,
   })
 
   const buildLayer = (port: number) =>

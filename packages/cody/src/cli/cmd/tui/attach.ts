@@ -9,7 +9,7 @@ import { ServerAuth } from "@/server/auth"
 export const AttachCommand = cmd({
   command: "attach <url>",
   describe:
-    process.env.CODY_PRO === "0" ? "attach to a running opencode server" : "attach to a running Cody Pro server",
+    process.env.CODY_PRO === "0" ? "attach to a running cody server" : "attach to a running Cody Pro server",
   builder: (yargs) =>
     yargs
       .positional("url", {

@@ -1,4 +1,4 @@
-import { createOpencodeClient } from "@cody/sdk/v2"
+import { createCodyClient } from "@cody/sdk/v2"
 import { RGBA, type CliRenderer } from "@opentui/core"
 import type { HostPluginApi } from "../../src/cli/cmd/tui/plugin/slots"
 import { LegacyKeymapTransform } from "../../src/cli/cmd/tui/config/legacy-keymap-transform"
@@ -124,7 +124,7 @@ export function createTuiPluginApi(opts: Opts = {}): HostPluginApi {
   const kv: Record<string, unknown> = {}
   const count = opts.count
   const ctrl = new AbortController()
-  const own = createOpencodeClient({
+  const own = createCodyClient({
     baseUrl: "http://localhost:4096",
   })
   const fallback = () => own

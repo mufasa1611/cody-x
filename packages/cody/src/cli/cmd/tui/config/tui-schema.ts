@@ -69,7 +69,7 @@ const GlobalKeymapSection = {
   "variant.list": keymapBinding("none"),
   "provider.connect": keymapBinding("none"),
   "console.org.switch": keymapBinding("none"),
-  "opencode.status": keymapBinding("<leader>s"),
+  "cody.status": keymapBinding("<leader>s"),
   "theme.switch": keymapBinding("<leader>t"),
   "theme.switch_mode": keymapBinding("none"),
   "theme.mode.lock": keymapBinding("none"),
@@ -354,7 +354,7 @@ export const TuiInfo = z
     theme: z.string().optional(),
     keybinds: KeybindOverride.optional().meta({
       deprecated: true,
-      description: "Use keymap instead. This will be removed in opencode v2.0.",
+      description: "Use keymap instead. This will be removed in cody v2.0.",
     }),
     keymap: KeymapConfigInput.optional(),
     plugin: ConfigPlugin.Spec.zod.array().optional(),

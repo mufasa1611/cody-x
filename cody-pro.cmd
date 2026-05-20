@@ -91,7 +91,7 @@ for %%A in (%*) do (
   if /I "%%~A"=="version" set "CODY_DISCOVER_MODELS=0"
 )
 
-set "CODY_GENERATED_CONFIG=%ROOT%.opencode\generated\opencode.jsonc"
+set "CODY_GENERATED_CONFIG=%ROOT%.cody\generated\cody.jsonc"
 
 rem Auto-fix: strip UTF-8 BOM and repair empty keys in generated config
 powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%script\fix-generated-config.ps1"
@@ -110,12 +110,12 @@ if "%CODY_SHOULD_DISCOVER_MODELS%"=="1" (
 )
 
 if not defined CODY_CONFIG_DIR (
-  set "CODY_CONFIG_DIR=%ROOT%.opencode\generated"
+  set "CODY_CONFIG_DIR=%ROOT%.cody\generated"
 )
 
 rem If arguments provided, run CLI directly (no menu)
 if not "%*"=="" (
-  call "%BUN%" run --cwd "%ROOT%packages\opencode" --conditions=browser src\index.ts %*
+  call "%BUN%" run --cwd "%ROOT%packages\cody" --conditions=browser src\index.ts %*
   exit /b %ERRORLEVEL%
 )
 
@@ -134,6 +134,6 @@ if "%CODY_CHOICE%"=="1" (
   call "%BUN%" run cody-pro web
   popd
 ) else (
-  call "%BUN%" run --cwd "%ROOT%packages\opencode" --conditions=browser src\index.ts
+  call "%BUN%" run --cwd "%ROOT%packages\cody" --conditions=browser src\index.ts
 )
 exit /b %ERRORLEVEL%

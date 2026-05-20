@@ -1,10 +1,10 @@
 param([string]$Root)
 if (-not $Root -or -not (Test-Path $Root)) { $Root = Join-Path $PSScriptRoot ".." }
-$genDir = Join-Path $root ".opencode\generated"
+$genDir = Join-Path $root ".cody\generated"
 $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
-# Strip UTF-8 BOM from both opencode.json and opencode.jsonc
-foreach ($name in @("opencode.json", "opencode.jsonc")) {
+# Strip UTF-8 BOM from both cody.json and cody.jsonc
+foreach ($name in @("cody.json", "cody.jsonc")) {
     $cfg = Join-Path $genDir $name
     if (Test-Path $cfg) {
         $bytes = [System.IO.File]::ReadAllBytes($cfg)
@@ -15,12 +15,12 @@ foreach ($name in @("opencode.json", "opencode.jsonc")) {
     }
 }
 
-# Fix empty key in opencode.json caused by old install.ps1 here-string $schema interpolation
-$legacyCfg = Join-Path $genDir "opencode.json"
+# Fix empty key in cody.json caused by old install.ps1 here-string $schema interpolation
+$legacyCfg = Join-Path $genDir "cody.json"
 if (Test-Path $legacyCfg) {
     $text = [System.IO.File]::ReadAllText($legacyCfg, [Text.Encoding]::UTF8)
     if ($text.Contains('"":')) {
-        Write-Host "[cody-pro] Fixed empty key in opencode.json"
+        Write-Host "[cody-pro] Fixed empty key in cody.json"
         $fixed = @'
 {
   "$schema": "https://cody.dev/config.json",

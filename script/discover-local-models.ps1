@@ -7,8 +7,8 @@ param(
 
 $ErrorActionPreference = "SilentlyContinue"
 
-$generatedDir = Join-Path $Root ".opencode\generated"
-$configPath = Join-Path $generatedDir "opencode.jsonc"
+$generatedDir = Join-Path $Root ".cody\generated"
+$configPath = Join-Path $generatedDir "cody.jsonc"
 $reportPath = Join-Path $generatedDir "cody-local-models.report.json"
 $shouldRefresh = $Refresh -or $env:CODY_REFRESH_MODELS -eq "1"
 

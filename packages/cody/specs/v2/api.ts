@@ -1,13 +1,13 @@
 // @ts-nocheck
 
-import { OpenCode } from "@cody/core"
+import { Cody } from "@cody/core"
 import { ReadTool } from "@cody/core/tools"
 
-const opencode = OpenCode.make({})
+const cody = Cody.make({})
 
-opencode.tool.add(ReadTool)
+cody.tool.add(ReadTool)
 
-opencode.tool.add({
+cody.tool.add({
   name: "bash",
   schema: {
     type: "object",
@@ -22,13 +22,13 @@ opencode.tool.add({
   execute(input, ctx) {},
 })
 
-opencode.auth.add({
+cody.auth.add({
   provider: "openai",
   type: "api",
   value: process.env.OPENAI_API_KEY,
 })
 
-opencode.agent.add({
+cody.agent.add({
   name: "build",
   permissions: [],
   model: {
@@ -38,20 +38,20 @@ opencode.agent.add({
   },
 })
 
-const sessionID = await opencode.session.create({
+const sessionID = await cody.session.create({
   agent: "build",
 })
 
-opencode.subscribe((event) => {
+cody.subscribe((event) => {
   console.log(event)
 })
 
-await opencode.session.prompt({
+await cody.session.prompt({
   sessionID,
   text: "hey what is up",
 })
 
-await opencode.session.prompt({
+await cody.session.prompt({
   sessionID,
   text: "what is up with this",
   files: [
@@ -62,6 +62,6 @@ await opencode.session.prompt({
   ],
 })
 
-await opencode.session.wait()
+await cody.session.wait()
 
-console.log(await opencode.session.messages(sessionID))
+console.log(await cody.session.messages(sessionID))

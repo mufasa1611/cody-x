@@ -9,7 +9,7 @@ export const PrCommand = effectCmd({
   command: "pr <number>",
   describe:
     process.env.CODY_PRO === "0"
-      ? "fetch and checkout a GitHub PR branch, then run opencode"
+      ? "fetch and checkout a GitHub PR branch, then run cody"
       : "fetch and checkout a GitHub PR branch, then run Cody Pro",
   builder: (yargs) =>
     yargs.positional("number", {
@@ -103,10 +103,10 @@ export const PrCommand = effectCmd({
     UI.println(`Starting ${process.env.CODY_PRO === "0" ? "cody" : "Cody Pro"}...`)
     UI.println()
 
-    const opencodeArgs = sessionId ? ["-s", sessionId] : []
+    const codyArgs = sessionId ? ["-s", sessionId] : []
     const code = yield* Effect.promise(
       () =>
-        Process.spawn([process.env.CODY_PRO === "0" ? "cody" : "cody-pro", ...opencodeArgs], {
+        Process.spawn([process.env.CODY_PRO === "0" ? "cody" : "cody-pro", ...codyArgs], {
           stdin: "inherit",
           stdout: "inherit",
           stderr: "inherit",

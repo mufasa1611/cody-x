@@ -18,9 +18,9 @@ Example:
 
 ```json
 {
-  "$schema": "https://opencode.ai/tui.json",
+  "$schema": "https://cody.ai/tui.json",
   "theme": "smoke-theme",
-  "plugin": ["@acme/opencode-plugin@1.2.3", ["./plugins/demo.tsx", { "label": "demo" }]],
+  "plugin": ["@acme/cody-plugin@1.2.3", ["./plugins/demo.tsx", { "label": "demo" }]],
   "plugin_enabled": {
     "acme.demo": false
   }
@@ -129,7 +129,7 @@ Example:
 
 ```json
 {
-  "name": "@acme/opencode-plugin",
+  "name": "@acme/cody-plugin",
   "type": "module",
   "main": "./dist/server.js",
   "exports": {
@@ -160,19 +160,19 @@ npm plugins can declare a version compatibility range in `package.json` using th
 }
 ```
 
-- The value is a semver range checked against the running OpenCode version.
+- The value is a semver range checked against the running Cody version.
 - If the range is not satisfied, the plugin is skipped with a warning and a session error.
-- If `engines.opencode` is absent, no check is performed (backward compatible).
+- If `engines.cody` is absent, no check is performed (backward compatible).
 - File plugins are never checked; only npm package plugins are validated.
 
 - Install flow is shared by CLI and TUI in `src/plugin/install.ts`.
 - Shared helpers are `installPlugin`, `readPluginManifest`, and `patchPluginConfig`.
-- `opencode plugin <module>` and TUI install both run install → manifest read → config patch.
-- Alias: `opencode plug <module>`.
+- `cody plugin <module>` and TUI install both run install → manifest read → config patch.
+- Alias: `cody plug <module>`.
 - `-g` / `--global` writes into the global config dir.
 - Local installs resolve target dir inside `patchPluginConfig`.
-- For local scope, path is `<worktree>/.opencode` only when VCS is git and `worktree !== "/"`; otherwise `<directory>/.opencode`.
-- Root-worktree fallback (`worktree === "/"` uses `<directory>/.opencode`) is covered by regression tests.
+- For local scope, path is `<worktree>/.cody` only when VCS is git and `worktree !== "/"`; otherwise `<directory>/.cody`.
+- Root-worktree fallback (`worktree === "/"` uses `<directory>/.cody`) is covered by regression tests.
 - `patchPluginConfig` applies all detected targets (`server` and/or `tui`) in one call.
 - `patchPluginConfig` returns structured result unions (`ok`, `code`, fields by error kind) instead of custom thrown errors.
 - `patchPluginConfig` serializes per-target config writes with `Flock.acquire(...)`.
@@ -189,7 +189,7 @@ npm plugins can declare a version compatibility range in `package.json` using th
 - There is no uninstall, list, or update CLI command for external plugins.
 - Local file plugins are configured directly in `tui.json`.
 
-When `plugin` entries exist in a writable `.opencode` dir or `CODY_CONFIG_DIR`, OpenCode installs `@cody/plugin` into that dir and writes:
+When `plugin` entries exist in a writable `.cody` dir or `CODY_CONFIG_DIR`, Cody installs `@cody/plugin` into that dir and writes:
 
 - `package.json`
 - `bun.lock`
@@ -221,7 +221,7 @@ Top-level API groups exposed to `tui(api, options, meta)`:
 ### Keymap
 
 - `api.keymap` exposes the raw `Keymap<Renderable, KeyEvent>` instance from the host.
-- The host already installs the default OpenTUI bundle (`default keys`, metadata fields, and enabled fields) plus OpenCode's comma bindings, leader token, base layout fallback, pending-sequence helpers, and managed textarea layer.
+- The host already installs the default OpenTUI bundle (`default keys`, metadata fields, and enabled fields) plus Cody's comma bindings, leader token, base layout fallback, pending-sequence helpers, and managed textarea layer.
 - Register commands with `api.keymap.registerLayer({ commands: [...] })`.
 - Register key bindings with `bindings: [{ key, cmd, desc }]` in the same layer or a separate layer.
 - Use `api.keymap.acquireResource(...)` for shared plugin addon setup that should ref-count against the host keymap.

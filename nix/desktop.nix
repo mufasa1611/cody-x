@@ -21,11 +21,11 @@
   openssl,
   webkitgtk_4_1,
   gst_all_1,
-  opencode,
+  cody,
 }:
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "cody-desktop";
-  inherit (opencode)
+  inherit (cody)
     version
     src
     node_modules
@@ -72,7 +72,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
     patchShebangs packages/desktop/node_modules
 
     mkdir -p packages/desktop/src-tauri/sidecars
-    cp ${opencode}/bin/opencode packages/desktop/src-tauri/sidecars/opencode-cli-${stdenv.hostPlatform.rust.rustcTarget}
+    cp ${cody}/bin/cody packages/desktop/src-tauri/sidecars/cody-cli-${stdenv.hostPlatform.rust.rustcTarget}
   '';
 
   # see publish-tauri job in .github/workflows/publish.yml
@@ -86,15 +86,15 @@ rustPlatform.buildRustPackage (finalAttrs: {
   # should be removed once binary is renamed or decided otherwise
   # darwin output is a .app bundle so no conflict
   postFixup = lib.optionalString stdenv.hostPlatform.isLinux ''
-    mv $out/bin/OpenCode $out/bin/cody-desktop
-    sed -i 's|^Exec=OpenCode$|Exec=cody-desktop|' $out/share/applications/OpenCode.desktop
+    mv $out/bin/Cody $out/bin/cody-desktop
+    sed -i 's|^Exec=Cody$|Exec=cody-desktop|' $out/share/applications/Cody.desktop
   '';
 
   meta = {
-    description = "OpenCode Desktop App";
-    homepage = "https://opencode.ai";
+    description = "Cody Desktop App";
+    homepage = "https://cody.ai";
     license = lib.licenses.mit;
     mainProgram = "cody-desktop";
-    inherit (opencode.meta) platforms;
+    inherit (cody.meta) platforms;
   };
 })

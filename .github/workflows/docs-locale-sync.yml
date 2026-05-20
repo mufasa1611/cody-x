@@ -10,7 +10,7 @@ on:
 jobs:
   sync-locales:
     if: false
-    #if: github.actor != 'opencode-agent[bot]'
+    #if: github.actor != 'cody-agent[bot]'
     runs-on: blacksmith-4vcpu-ubuntu-2404
     permissions:
       contents: write
@@ -29,8 +29,8 @@ jobs:
         id: committer
         uses: ./.github/actions/setup-git-committer
         with:
-          opencode-app-id: ${{ vars.CODY_APP_ID }}
-          opencode-app-secret: ${{ secrets.CODY_APP_SECRET }}
+          cody-app-id: ${{ vars.CODY_APP_ID }}
+          cody-app-secret: ${{ secrets.CODY_APP_SECRET }}
 
       - name: Compute changed English docs
         id: changes
@@ -48,11 +48,11 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Install OpenCode
+      - name: Install Cody
         if: steps.changes.outputs.has_changes == 'true'
-        run: curl -fsSL https://opencode.ai/install | bash
+        run: curl -fsSL https://cody.ai/install | bash
 
-      - name: Sync locale docs with OpenCode
+      - name: Sync locale docs with Cody
         if: steps.changes.outputs.has_changes == 'true'
         env:
           CODY_API_KEY: ${{ secrets.CODY_API_KEY }}
@@ -67,7 +67,7 @@ jobs:
               }
             }
         run: |
-          opencode run --agent docs --model opencode/gpt-5.3-codex <<'EOF'
+          cody run --agent docs --model cody/gpt-5.3-codex <<'EOF'
             Update localized docs to match the latest English docs changes.
 
             Changed English doc files:

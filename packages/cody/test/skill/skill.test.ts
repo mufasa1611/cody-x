@@ -393,21 +393,21 @@ description: A skill in the .agents/skills directory.
               Bun.write(
                 path.join(dir, ".cody", "skill", "agent-skill", "SKILL.md"),
                 `---
-name: opencode-skill
+name: cody-skill
 description: A skill in the .cody/skill directory.
 ---
 
-# OpenCode Skill
+# Cody Skill
 `,
               ),
               Bun.write(
                 path.join(dir, ".cody", "skills", "agent-skill", "SKILL.md"),
                 `---
-name: opencode-skill
+name: cody-skill
 description: A skill in the .cody/skills directory.
 ---
 
-# OpenCode Skill
+# Cody Skill
 `,
               ),
             ]),

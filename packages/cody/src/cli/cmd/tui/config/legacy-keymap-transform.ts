@@ -97,7 +97,7 @@ export function create(keybinds: LegacyKeybinds): KeymapConfigInput {
   add(config, "global", "variant.cycle", keybinds.variant_cycle)
   add(config, "global", "variant.list", keybinds.variant_list)
   add(config, "prompt", "prompt.editor", keybinds.editor_open)
-  add(config, "global", "opencode.status", keybinds.status_view)
+  add(config, "global", "cody.status", keybinds.status_view)
   add(config, "global", "theme.switch", keybinds.theme_list)
   add(config, "global", "app.exit", keybinds.app_exit)
   add(config, "global", "terminal.suspend", keybinds.terminal_suspend)

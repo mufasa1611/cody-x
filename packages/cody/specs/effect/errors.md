@@ -1,6 +1,6 @@
 # Typed error migration
 
-Plan for moving `packages/opencode` from temporary defect/`NamedError`
+Plan for moving `packages/cody` from temporary defect/`NamedError`
 compatibility toward typed Effect service errors and explicit HTTP error
 contracts.
 
@@ -291,7 +291,7 @@ For HttpApi conversions:
 
 ## Verification Commands
 
-Run from `packages/opencode` unless noted otherwise.
+Run from `packages/cody` unless noted otherwise.
 
 ```bash
 bun run prettier --write <changed files>

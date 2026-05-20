@@ -11,8 +11,8 @@ import { SDKProvider, type EventSource } from "../../../../src/cli/cmd/tui/conte
 import { SyncProvider, useSync } from "../../../../src/cli/cmd/tui/context/sync"
 import { tmpdir } from "../../../fixture/fixture"
 
-const worktree = "/tmp/opencode"
-const directory = `${worktree}/packages/opencode`
+const worktree = "/tmp/cody"
+const directory = `${worktree}/packages/cody`
 
 async function wait(fn: () => boolean, timeout = 2000) {
   const start = Date.now()

@@ -1,9 +1,9 @@
 ---
 title: Dodaci
-description: Napišite vlastite dodatke za proširenje OpenCode.
+description: Napišite vlastite dodatke za proširenje Cody.
 ---
 
-Dodaci vam omogućavaju da proširite OpenCode spajanjem na različite događaje i prilagođavanjem ponašanja. Možete kreirati dodatke za dodavanje novih funkcija, integraciju sa eksternim uslugama ili izmenu zadanog ponašanja OpenCode.
+Dodaci vam omogućavaju da proširite Cody spajanjem na različite događaje i prilagođavanjem ponašanja. Možete kreirati dodatke za dodavanje novih funkcija, integraciju sa eksternim uslugama ili izmenu zadanog ponašanja Cody.
 Za primjere, pogledajte [plugins](/docs/ecosystem#plugins) kreirane od strane zajednice.
 
 ---
@@ -17,7 +17,7 @@ Postoje dva načina za učitavanje dodataka.
 Postavite JavaScript ili TypeScript datoteke u direktorij dodataka.
 
 - `.cody/plugins/` - Dodaci na nivou projekta
-- `~/.config/opencode/plugins/` - Globalni dodaci
+- `~/.config/cody/plugins/` - Globalni dodaci
   Datoteke u ovim direktorijumima se automatski učitavaju pri pokretanju.
 
 ---
@@ -26,10 +26,10 @@ Postavite JavaScript ili TypeScript datoteke u direktorij dodataka.
 
 Navedite npm pakete u vašoj konfiguracijskoj datoteci.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
-  "plugin": ["opencode-helicone-session", "opencode-wakatime", "@my-org/custom-plugin"]
+  "plugin": ["cody-helicone-session", "cody-wakatime", "@my-org/custom-plugin"]
 }
 ```
 
@@ -40,7 +40,7 @@ Pregledajte dostupne dodatke u [ecosystem](/docs/ecosystem#plugins).
 
 ### Kako se instaliraju dodaci
 
-**npm dodaci** se instaliraju automatski pomoću Bun pri pokretanju. Paketi i njihove zavisnosti su keširani u `~/.cache/opencode/node_modules/`.
+**npm dodaci** se instaliraju automatski pomoću Bun pri pokretanju. Paketi i njihove zavisnosti su keširani u `~/.cache/cody/node_modules/`.
 **Lokalni dodaci** se učitavaju direktno iz direktorija dodataka. Da biste koristili vanjske pakete, morate kreirati `package.json` unutar svog konfiguracijskog direktorija (pogledajte [Zavisnosti](#dependencies)) ili objaviti dodatak na npm i [dodati ga u svoju konfiguraciju](/docs/config#plugins).
 
 ---
@@ -49,9 +49,9 @@ Pregledajte dostupne dodatke u [ecosystem](/docs/ecosystem#plugins).
 
 Dodaci se učitavaju iz svih izvora i svi zakačnjaci rade u nizu. Redoslijed učitavanja je:
 
-1. Globalna konfiguracija (`~/.config/opencode/opencode.json`)
-2. Konfiguracija projekta (`opencode.json`)
-3. Globalni direktorij dodataka (`~/.config/opencode/plugins/`)
+1. Globalna konfiguracija (`~/.config/cody/cody.json`)
+2. Konfiguracija projekta (`cody.json`)
+3. Globalni direktorij dodataka (`~/.config/cody/plugins/`)
 4. Direktorij dodataka projekta (`.cody/plugins/`)
    Duplicirani npm paketi sa istim imenom i verzijom se učitavaju jednom. Međutim, lokalni dodatak i npm dodatak sa sličnim nazivima se učitavaju odvojeno.
 
@@ -76,7 +76,7 @@ Lokalni dodaci i prilagođeni alati mogu koristiti vanjske npm pakete. Dodajte `
 }
 ```
 
-OpenCode pokreće `bun install` pri pokretanju da ih instalira. Vaši dodaci i alati ih zatim mogu uvesti.
+Cody pokreće `bun install` pri pokretanju da ih instalira. Vaši dodaci i alati ih zatim mogu uvesti.
 
 ```ts title=".cody/plugins/my-plugin.ts"
 import { escape } from "shescape"
@@ -111,7 +111,7 @@ Funkcija dodatka prima:
 - `project`: Trenutne informacije o projektu.
 - `directory`: Trenutni radni direktorij.
 - `worktree`: Putanja git radnog stabla.
-- `client`: Opencode SDK klijent za interakciju sa AI.
+- `client`: Cody SDK klijent za interakciju sa AI.
 - `$`: Bun's [shell API](https://bun.com/docs/runtime/shell) za izvršavanje naredbi.
 
 ---
@@ -204,7 +204,7 @@ Dodaci se mogu pretplatiti na događaje kao što je prikazano ispod u odjeljku P
 
 ## Primjeri
 
-Evo nekoliko primjera dodataka koje možete koristiti za proširenje OpenCode.
+Evo nekoliko primjera dodataka koje možete koristiti za proširenje Cody.
 
 ### Slanje obavještenja
 
@@ -232,7 +232,7 @@ Ako alat dodatka koristi isto ime kao ugrađeni alat, alat dodatka ima prednost.
 
 ### .env zaštita
 
-Spriječite opencode da čita `.env` fajlove:
+Spriječite cody da čita `.env` fajlove:
 
 ```javascript title=".cody/plugins/env-protection.js"
 export const EnvProtection = async ({ project, client, $, directory, worktree }) => {
@@ -267,7 +267,7 @@ export const InjectEnvPlugin = async () => {
 
 ### Prilagođeni alati
 
-Dodaci također mogu dodati prilagođene alate u opencode:
+Dodaci također mogu dodati prilagođene alate u cody:
 
 ```ts title=".cody/plugins/custom-tools.ts"
 import { type Plugin, tool } from "@cody/plugin"
@@ -290,12 +290,12 @@ export const CustomToolsPlugin: Plugin = async (ctx) => {
 }
 ```
 
-Pomoćnik `tool` kreira prilagođeni alat koji opencode može pozvati. Uzima funkciju Zod sheme i vraća definiciju alata sa:
+Pomoćnik `tool` kreira prilagođeni alat koji cody može pozvati. Uzima funkciju Zod sheme i vraća definiciju alata sa:
 
 - `description`: Šta alat radi
 - `args`: Zod šema za argumente alata
 - `execute`: Funkcija koja se pokreće kada se pozove alat
-  Vaši prilagođeni alati će biti dostupni za opencode zajedno sa ugrađenim alatima.
+  Vaši prilagođeni alati će biti dostupni za cody zajedno sa ugrađenim alatima.
 
 ---
 
@@ -316,7 +316,7 @@ export const MyPlugin = async ({ client }) => {
 }
 ```
 
-Nivoi su: `debug`, `info`, `warn`, `error`. Pogledajte [SDK dokumentaciju](https://opencode.ai/docs/sdk) za detalje.
+Nivoi su: `debug`, `info`, `warn`, `error`. Pogledajte [SDK dokumentaciju](https://cody.ai/docs/sdk) za detalje.
 
 ### Kuke za sažimanje
 

@@ -22,8 +22,8 @@ function hasNewerFiles(dir: string, since: number): boolean {
 }
 
 export function ensureWebUIBuilt(): void {
-  const opencodeDir = resolve(import.meta.dirname, "..")
-  const repoRoot = resolve(opencodeDir, "..", "..", "..", "..")
+  const codyDir = resolve(import.meta.dirname, "..")
+  const repoRoot = resolve(codyDir, "..", "..", "..", "..")
   const appPkgDir = join(repoRoot, "packages", "app")
   const distDir = join(appPkgDir, "dist")
   const srcDir = join(appPkgDir, "src")

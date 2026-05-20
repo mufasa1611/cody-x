@@ -90,7 +90,7 @@ export function ControlPlaneRoutes(): Hono {
           info: {
             title: process.env.CODY_PRO === "0" ? "cody" : "cody-pro",
             version: "0.0.3",
-            description: process.env.CODY_PRO === "0" ? "opencode api" : "Cody Pro API",
+            description: process.env.CODY_PRO === "0" ? "cody api" : "Cody Pro API",
           },
           openapi: "3.1.1",
         },

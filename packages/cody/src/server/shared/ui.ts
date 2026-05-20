@@ -31,9 +31,9 @@ function localDevUIFiles(): Record<string, string> | null {
 const embeddedUIPromise = Flag.CODY_DISABLE_EMBEDDED_WEB_UI
   ? Promise.resolve(null)
   : // @ts-expect-error - generated file at build time
-    import("opencode-web-ui.gen.ts").then((module) => module.default as Record<string, string>).catch(() => localDevUIFiles())
+    import("cody-web-ui.gen.ts").then((module) => module.default as Record<string, string>).catch(() => localDevUIFiles())
 
-export const UI_UPSTREAM = new URL("https://app.opencode.ai")
+export const UI_UPSTREAM = new URL("https://app.cody.ai")
 
 export const csp = (hash = "") =>
   `default-src 'self'; script-src 'self' 'wasm-unsafe-eval'${hash ? ` 'sha256-${hash}'` : ""}; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; media-src 'self' data:; connect-src * data:`

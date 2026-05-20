@@ -11,7 +11,7 @@ export function activate(context: vscode.ExtensionContext) {
   })
 
   const openTerminalDisposable = vscode.commands.registerCommand("cody.openTerminal", async () => {
-    // An opencode terminal already exists => focus it
+    // An cody terminal already exists => focus it
     const existingTerminal = vscode.window.terminals.find((t) => t.name === TERMINAL_NAME)
     if (existingTerminal) {
       existingTerminal.show()
@@ -62,7 +62,7 @@ export function activate(context: vscode.ExtensionContext) {
     })
 
     terminal.show()
-    terminal.sendText(`opencode --port ${port}`)
+    terminal.sendText(`cody --port ${port}`)
 
     const fileRef = getActiveFile()
     if (!fileRef) {

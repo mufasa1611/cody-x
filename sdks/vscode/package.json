@@ -34,7 +34,7 @@
       },
       {
         "command": "cody.openNewTerminal",
-        "title": "Open opencode in new tab",
+        "title": "Open cody in new tab",
         "icon": {
           "light": "images/button-dark.svg",
           "dark": "images/button-light.svg"
@@ -56,7 +56,7 @@
     "keybindings": [
       {
         "command": "cody.openTerminal",
-        "title": "Run opencode",
+        "title": "Run cody",
         "key": "cmd+escape",
         "mac": "cmd+escape",
         "win": "ctrl+escape",
@@ -64,7 +64,7 @@
       },
       {
         "command": "cody.openNewTerminal",
-        "title": "Run opencode",
+        "title": "Run cody",
         "key": "cmd+shift+escape",
         "mac": "cmd+shift+escape",
         "win": "ctrl+shift+escape",

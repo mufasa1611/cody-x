@@ -59,8 +59,8 @@ describe("tool.registry", () => {
   it.instance("loads tools from .cody/tool (singular)", () =>
     Effect.gen(function* () {
       const test = yield* TestInstance
-      const opencode = path.join(test.directory, ".cody")
-      const tool = path.join(opencode, "tool")
+      const cody = path.join(test.directory, ".cody")
+      const tool = path.join(cody, "tool")
       yield* Effect.promise(() => fs.mkdir(tool, { recursive: true }))
       yield* Effect.promise(() =>
         Bun.write(
@@ -86,8 +86,8 @@ describe("tool.registry", () => {
   it.instance("loads tools from .cody/tools (plural)", () =>
     Effect.gen(function* () {
       const test = yield* TestInstance
-      const opencode = path.join(test.directory, ".cody")
-      const tools = path.join(opencode, "tools")
+      const cody = path.join(test.directory, ".cody")
+      const tools = path.join(cody, "tools")
       yield* Effect.promise(() => fs.mkdir(tools, { recursive: true }))
       yield* Effect.promise(() =>
         Bun.write(
@@ -113,12 +113,12 @@ describe("tool.registry", () => {
   it.instance("loads tools with external dependencies without crashing", () =>
     Effect.gen(function* () {
       const test = yield* TestInstance
-      const opencode = path.join(test.directory, ".cody")
-      const tools = path.join(opencode, "tools")
+      const cody = path.join(test.directory, ".cody")
+      const tools = path.join(cody, "tools")
       yield* Effect.promise(() => fs.mkdir(tools, { recursive: true }))
       yield* Effect.promise(() =>
         Bun.write(
-          path.join(opencode, "package.json"),
+          path.join(cody, "package.json"),
           JSON.stringify({
             name: "custom-tools",
             dependencies: {
@@ -130,7 +130,7 @@ describe("tool.registry", () => {
       )
       yield* Effect.promise(() =>
         Bun.write(
-          path.join(opencode, "package-lock.json"),
+          path.join(cody, "package-lock.json"),
           JSON.stringify({
             name: "custom-tools",
             lockfileVersion: 3,
@@ -146,7 +146,7 @@ describe("tool.registry", () => {
         ),
       )
 
-      const cowsay = path.join(opencode, "node_modules", "cowsay")
+      const cowsay = path.join(cody, "node_modules", "cowsay")
       yield* Effect.promise(() => fs.mkdir(cowsay, { recursive: true }))
       yield* Effect.promise(() =>
         Bun.write(

@@ -8,11 +8,11 @@ import { tmpdir } from "../../fixture/fixture"
 import { FakeWebSocket } from "../../lib/websocket"
 
 const originalClaudePort = process.env.CLAUDE_CODE_SSE_PORT
-const originalOpencodePort = process.env.CODY_EDITOR_SSE_PORT
+const originalCodyPort = process.env.CODY_EDITOR_SSE_PORT
 
 afterEach(() => {
   process.env.CLAUDE_CODE_SSE_PORT = originalClaudePort
-  process.env.CODY_EDITOR_SSE_PORT = originalOpencodePort
+  process.env.CODY_EDITOR_SSE_PORT = originalCodyPort
 })
 
 function nextTick() {

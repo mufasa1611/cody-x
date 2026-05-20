@@ -2,7 +2,7 @@ import { afterEach, describe, expect, mock, spyOn, test } from "bun:test"
 import type { KeyEvent, Renderable } from "@opentui/core"
 import type { Binding } from "@opentui/keymap"
 import { resolveBindingSections, type BindingSectionsConfig } from "@opentui/keymap/extras"
-import { OpencodeClient, type Provider } from "@cody/sdk/v2"
+import { CodyClient, type Provider } from "@cody/sdk/v2"
 import { TuiConfig, type Resolved } from "@/cli/cmd/tui/config/tui"
 import { formatBindings } from "@/cli/cmd/run/keymap.shared"
 import { KeymapSectionNames, keymapBindingDefaults, type KeymapSection } from "@/cli/cmd/tui/config/tui-schema"
@@ -176,7 +176,7 @@ describe("run runtime boot", () => {
   })
 
   test("prefers configured providers for model selector data", async () => {
-    const sdk = new OpencodeClient()
+    const sdk = new CodyClient()
     const data: {
       all: Provider[]
       default: Record<string, string>
@@ -218,7 +218,7 @@ describe("run runtime boot", () => {
       Promise.resolve({
         data,
         error: undefined,
-        request: new Request("https://opencode.test"),
+        request: new Request("https://cody.test"),
         response: new Response(),
       }),
     )
@@ -226,7 +226,7 @@ describe("run runtime boot", () => {
       Promise.resolve({
         data: configured,
         error: undefined,
-        request: new Request("https://opencode.test"),
+        request: new Request("https://cody.test"),
         response: new Response(),
       }),
     )
@@ -242,7 +242,7 @@ describe("run runtime boot", () => {
   })
 
   test("falls back to provider list when configured providers are unavailable", async () => {
-    const sdk = new OpencodeClient()
+    const sdk = new CodyClient()
     const data: {
       all: Provider[]
       default: Record<string, string>
@@ -281,7 +281,7 @@ describe("run runtime boot", () => {
       Promise.resolve({
         data,
         error: undefined,
-        request: new Request("https://opencode.test"),
+        request: new Request("https://cody.test"),
         response: new Response(),
       }),
     )

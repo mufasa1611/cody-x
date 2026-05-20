@@ -19,7 +19,7 @@ import {
   CODY_RUN_ID,
   ensureRunID,
   sanitizedProcessEnv,
-} from "@cody/core/util/opencode-process"
+} from "@cody/core/util/cody-process"
 import { validateSession } from "./validate-session"
 
 declare global {
@@ -78,12 +78,12 @@ export function resolveThreadDirectory(project?: string, envPWD = process.env.PW
 
 export const TuiThreadCommand = cmd({
   command: "$0 [project]",
-  describe: process.env.CODY_PRO === "0" ? "start opencode tui" : "start Cody Pro tui",
+  describe: process.env.CODY_PRO === "0" ? "start cody tui" : "start Cody Pro tui",
   builder: (yargs) =>
     withNetworkOptions(yargs)
       .positional("project", {
         type: "string",
-        describe: process.env.CODY_PRO === "0" ? "path to start opencode in" : "path to start Cody Pro in",
+        describe: process.env.CODY_PRO === "0" ? "path to start cody in" : "path to start Cody Pro in",
       })
       .option("model", {
         type: "string",
@@ -205,7 +205,7 @@ export const TuiThreadCommand = cmd({
             events: undefined,
           }
         : {
-            url: "http://opencode.internal",
+            url: "http://cody.internal",
             fetch: createWorkerFetch(client),
             events: createEventSource(client),
           }

@@ -1,4 +1,4 @@
-{
+﻿{
   description = "Cody development flake";
 
   inputs = {
@@ -37,15 +37,15 @@
             node_modules = final.callPackage ./nix/node_modules.nix {
               inherit rev;
             };
-            opencode = final.callPackage ./nix/opencode.nix {
+            cody = final.callPackage ./nix/cody.nix {
               inherit node_modules;
             };
             desktop = final.callPackage ./nix/desktop.nix {
-              inherit opencode;
+              inherit cody;
             };
           in
           {
-            inherit opencode;
+            inherit cody;
             cody-desktop = desktop;
           };
       };
@@ -56,16 +56,16 @@
           node_modules = pkgs.callPackage ./nix/node_modules.nix {
             inherit rev;
           };
-          opencode = pkgs.callPackage ./nix/opencode.nix {
+          cody = pkgs.callPackage ./nix/cody.nix {
             inherit node_modules;
           };
           desktop = pkgs.callPackage ./nix/desktop.nix {
-            inherit opencode;
+            inherit cody;
           };
         in
         {
-          default = opencode;
-          inherit opencode desktop;
+          default = cody;
+          inherit cody desktop;
           # Updater derivation with fakeHash - build fails and reveals correct hash
           node_modules_updater = node_modules.override {
             hash = pkgs.lib.fakeHash;

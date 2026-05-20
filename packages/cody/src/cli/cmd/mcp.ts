@@ -398,10 +398,10 @@ export const McpLogoutCommand = effectCmd({
 
 async function resolveConfigPath(baseDir: string, global = false) {
   // Check for existing config files (prefer .jsonc over .json, check .cody/ subdirectory too)
-  const candidates = [path.join(baseDir, "opencode.json"), path.join(baseDir, "opencode.jsonc")]
+  const candidates = [path.join(baseDir, "cody.json"), path.join(baseDir, "cody.jsonc")]
 
   if (!global) {
-    candidates.push(path.join(baseDir, ".cody", "opencode.json"), path.join(baseDir, ".cody", "opencode.jsonc"))
+    candidates.push(path.join(baseDir, ".cody", "cody.json"), path.join(baseDir, ".cody", "cody.jsonc"))
   }
 
   for (const candidate of candidates) {
@@ -410,7 +410,7 @@ async function resolveConfigPath(baseDir: string, global = false) {
     }
   }
 
-  // Default to opencode.json if none exist
+  // Default to cody.json if none exist
   return candidates[0]
 }
 
@@ -685,7 +685,7 @@ export const McpDebugCommand = effectCmd({
               protocolVersion: "2024-11-05",
               capabilities: {},
               clientInfo: {
-                name: process.env.CODY_PRO === "0" ? "opencode-debug" : "cody-pro-debug",
+                name: process.env.CODY_PRO === "0" ? "cody-debug" : "cody-pro-debug",
                 version: InstallationVersion,
               },
             },
@@ -730,7 +730,7 @@ export const McpDebugCommand = effectCmd({
 
           try {
             const client = new Client({
-              name: process.env.CODY_PRO === "0" ? "opencode-debug" : "cody-pro-debug",
+              name: process.env.CODY_PRO === "0" ? "cody-debug" : "cody-pro-debug",
               version: InstallationVersion,
             })
             await client.connect(transport)

@@ -10,14 +10,14 @@ import path from "path"
 import { createClient } from "@hey-api/openapi-ts"
 
 const openapiSource = process.env.CODY_SDK_OPENAPI === "hono" ? "hono" : "httpapi"
-const opencode = path.resolve(dir, "../../opencode")
+const cody = path.resolve(dir, "../../cody")
 
 // `bun dev generate` now derives the spec from the Effect HttpApi contract by
 // default; pass `--hono` to fall back to the legacy Hono spec for parity diffs.
 if (openapiSource === "httpapi") {
-  await $`bun dev generate > ${dir}/openapi.json`.cwd(opencode)
+  await $`bun dev generate > ${dir}/openapi.json`.cwd(cody)
 } else {
-  await $`bun dev generate --hono > ${dir}/openapi.json`.cwd(opencode)
+  await $`bun dev generate --hono > ${dir}/openapi.json`.cwd(cody)
 }
 
 await createClient({
@@ -34,7 +34,7 @@ await createClient({
     },
     {
       name: "@hey-api/sdk",
-      instance: "OpencodeClient",
+      instance: "CodyClient",
       exportFromIndex: false,
       auth: false,
       paramsStructure: "flat",

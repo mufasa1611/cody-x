@@ -50,7 +50,7 @@ import { ConfigMCP } from "@/config/mcp"
 import { Todo } from "@/session/todo"
 import { Result, Schema } from "effect"
 import { LoadAPIKeyError } from "ai"
-import type { AssistantMessage, Event, OpencodeClient, SessionMessageResponse, ToolPart } from "@cody/sdk/v2"
+import type { AssistantMessage, Event, CodyClient, SessionMessageResponse, ToolPart } from "@cody/sdk/v2"
 import { applyPatch } from "diff"
 import { InstallationVersion } from "@cody/core/installation/version"
 import { ShellID } from "@/tool/shell/id"
@@ -64,7 +64,7 @@ const DEFAULT_VARIANT_VALUE = "default"
 const log = Log.create({ service: "acp-agent" })
 
 async function getContextLimit(
-  sdk: OpencodeClient,
+  sdk: CodyClient,
   providerID: ProviderID,
   modelID: ModelID,
   directory: string,
@@ -84,7 +84,7 @@ async function getContextLimit(
 
 async function sendUsageUpdate(
   connection: AgentSideConnection,
-  sdk: OpencodeClient,
+  sdk: CodyClient,
   sessionID: string,
   directory: string,
 ): Promise<void> {
@@ -132,7 +132,7 @@ async function sendUsageUpdate(
     })
 }
 
-export function init({ sdk: _sdk }: { sdk: OpencodeClient }) {
+export function init({ sdk: _sdk }: { sdk: CodyClient }) {
   return {
     create: (connection: AgentSideConnection, fullConfig: ACPConfig) => {
       return new Agent(connection, fullConfig)
@@ -143,7 +143,7 @@ export function init({ sdk: _sdk }: { sdk: OpencodeClient }) {
 export class Agent implements ACPAgent {
   private connection: AgentSideConnection
   private config: ACPConfig
-  private sdk: OpencodeClient
+  private sdk: CodyClient
   private sessionManager: ACPSessionManager
   private eventAbort = new AbortController()
   private eventStarted = false
@@ -540,10 +540,10 @@ export class Agent implements ACPAgent {
     const authMethod: AuthMethod = {
       description:
         process.env.CODY_PRO === "0"
-          ? "Run `opencode auth login` in the terminal"
+          ? "Run `cody auth login` in the terminal"
           : "Run `cody-pro auth login` in the terminal",
-      name: process.env.CODY_PRO === "0" ? "Login with opencode" : "Login with Cody Pro",
-      id: process.env.CODY_PRO === "0" ? "opencode-login" : "cody-pro-login",
+      name: process.env.CODY_PRO === "0" ? "Login with cody" : "Login with Cody Pro",
+      id: process.env.CODY_PRO === "0" ? "cody-login" : "cody-pro-login",
     }
 
     // If client supports terminal-auth capability, use that instead.
@@ -552,7 +552,7 @@ export class Agent implements ACPAgent {
         "terminal-auth": {
           command: process.env.CODY_PRO === "0" ? "cody" : "cody-pro",
           args: ["auth", "login"],
-          label: process.env.CODY_PRO === "0" ? "OpenCode Login" : "Cody Pro Login",
+          label: process.env.CODY_PRO === "0" ? "Cody Login" : "Cody Pro Login",
         },
       }
     }
@@ -578,7 +578,7 @@ export class Agent implements ACPAgent {
       },
       authMethods: [authMethod],
       agentInfo: {
-        name: process.env.CODY_PRO === "0" ? "OpenCode" : "Cody Pro",
+        name: process.env.CODY_PRO === "0" ? "Cody" : "Cody Pro",
         version: InstallationVersion,
       },
     }
@@ -994,7 +994,7 @@ export class Agent implements ACPAgent {
         }
       } else if (part.type === "file") {
         // Replay file attachments as appropriate ACP content blocks.
-        // OpenCode stores files internally as { type: "file", url, filename, mime }.
+        // Cody stores files internally as { type: "file", url, filename, mime }.
         // We convert these back to ACP blocks based on the URL scheme and MIME type:
         // - file:// URLs → resource_link
         // - data: URLs with image/* → image block
@@ -1689,9 +1689,9 @@ async function defaultModel(config: ACPConfig, cwd?: string): Promise<{ provider
   const lastUsed = await lastUsedModel(sdk, directory, providers)
   if (lastUsed) return lastUsed
 
-  const opencodeProvider = providers.find((p) => p.id === "cody")
-  if (opencodeProvider) {
-    const [best] = Provider.sort(Object.values(opencodeProvider.models))
+  const codyProvider = providers.find((p) => p.id === "cody")
+  if (codyProvider) {
+    const [best] = Provider.sort(Object.values(codyProvider.models))
     if (best) {
       return {
         providerID: ProviderID.make(best.providerID),
@@ -1714,7 +1714,7 @@ async function defaultModel(config: ACPConfig, cwd?: string): Promise<{ provider
 }
 
 async function lastUsedModel(
-  sdk: OpencodeClient,
+  sdk: CodyClient,
   directory: string,
   providers: Array<{ id: string; models: Record<string, unknown> }>,
 ): Promise<{ providerID: ProviderID; modelID: ModelID } | undefined> {
@@ -1860,7 +1860,7 @@ function buildVariantMeta(input: {
   availableVariants: string[]
 }) {
   return {
-    opencode: {
+    cody: {
       modelId: `${input.model.providerID}/${input.model.modelID}`,
       variant: input.variant ?? null,
       availableVariants: input.availableVariants,

@@ -42,15 +42,15 @@ Brug kommandoen ved at skrive `/` efterfulgt af kommandonavnet.
 
 ## Konfiguration
 
-Du kan tilføje brugerdefinerede kommandoer gennem OpenCode-konfigurationen eller ved at oprette markdown-filer i `commands/`-mappen.
+Du kan tilføje brugerdefinerede kommandoer gennem Cody-konfigurationen eller ved at oprette markdown-filer i `commands/`-mappen.
 
 ---
 
 ### JSON
 
-Brug indstillingerne `command` i din OpenCode [config](/docs/config):
+Brug indstillingerne `command` i din Cody [config](/docs/config):
 
-```json title="opencode.jsonc" {4-12}
+```json title="cody.jsonc" {4-12}
 {
   "$schema": "https://cody.dev/config.json",
   "command": {
@@ -79,10 +79,10 @@ Nu kan du køre denne kommando i TUI:
 
 Du kan også definere kommandoer ved hjælp af markdown-filer. Placer dem i:
 
-- Globalt: `~/.config/opencode/commands/`
+- Globalt: `~/.config/cody/commands/`
 - Pr. projekt: `.cody/commands/`
 
-```markdown title="~/.config/opencode/commands/test.md"
+```markdown title="~/.config/cody/commands/test.md"
 ---
 description: Run tests with coverage
 agent: build
@@ -222,7 +222,7 @@ Lad os se nærmere på konfigurationsmulighederne.
 
 Indstillingen `template` definerer den prompt, der sendes til LLM, når kommandoen udføres.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "command": {
     "test": {
@@ -240,7 +240,7 @@ Dette er en **påkrævet** konfigurationsindstilling.
 
 Brug indstillingen `description` til at give en kort beskrivelse af, hvad kommandoen gør.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "command": {
     "test": {
@@ -260,7 +260,7 @@ Brug `agent`-konfigurationen til valgfrit at angive, hvilken [agent](/docs/agent
 Hvis dette er en [subagent](/docs/agents/#subagents), vil kommandoen som standard udløse en subagent påkaldelse.
 For at deaktivere denne adfærd skal du indstille `subtask` til `false`.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "command": {
     "review": {
@@ -280,7 +280,7 @@ Brug `subtask` boolean til at tvinge kommandoen til at udløse en [subagent](/do
 Dette er nyttigt, hvis du ønsker, at kommandoen ikke skal forurene din primære kontekst og vil **tvinge** agenten til at fungere som en underagent,
 øjeblikkelig `mode` er sat til `primary` på [agent](/docs/agents) konfigurationen.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "command": {
     "analyze": {
@@ -298,7 +298,7 @@ Dette er en **valgfri** konfigurationsindstilling.
 
 Brug `model`-konfigurationen til at tilsidesætte standardmodellen for denne kommando.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "command": {
     "analyze": {
@@ -314,7 +314,7 @@ Dette er en **valgfri** konfigurationsindstilling.
 
 ## Indbyggede kommandoer
 
-opencode indeholder flere indbyggede kommandoer som `/init`, `/undo`, `/redo`, `/share`, `/help`; [learn more](/docs/tui#commands).
+cody indeholder flere indbyggede kommandoer som `/init`, `/undo`, `/redo`, `/share`, `/help`; [learn more](/docs/tui#commands).
 
 :::note
 Brugerdefinerede kommandoer kan tilsidesætte indbyggede kommandoer.

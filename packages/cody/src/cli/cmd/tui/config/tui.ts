@@ -93,7 +93,7 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
       const data = ConfigParse.jsonc(expanded, configFilepath)
       if (!isRecord(data)) return {} as Info
       // Flatten a nested "tui" key so users who wrote `{ "tui": { ... } }` inside tui.json
-      // (mirroring the old opencode.json shape) still get their settings applied.
+      // (mirroring the old cody.json shape) still get their settings applied.
       const validated = ConfigParse.schema(Info, normalize(data), configFilepath)
       return yield* resolvePlugins(validated, configFilepath)
     }).pipe(
@@ -139,7 +139,7 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
       acc.plugin_origins = plugins
     })
 
-  // Every config dir we may read from: global config dir, any `.opencode`
+  // Every config dir we may read from: global config dir, any `.cody`
   // folders between cwd and home, and CODY_CONFIG_DIR.
   const directories = yield* ConfigPaths.directories(ctx.directory)
   yield* Effect.promise(() => migrateTuiConfig({ directories, cwd: ctx.directory }))
@@ -168,7 +168,7 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
     yield* mergeFile(acc, file)
   }
 
-  // 4. `.opencode` directories (and CODY_CONFIG_DIR) discovered while
+  // 4. `.cody` directories (and CODY_CONFIG_DIR) discovered while
   // walking up the tree. Also returned below so callers can install plugin
   // dependencies from each location.
   const dirs = unique(directories).filter((dir) => dir.endsWith(".cody") || dir === Flag.CODY_CONFIG_DIR)
@@ -207,7 +207,7 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
     ...acc.result,
     keybinds: parsedKeybinds,
     plugin_origins: acc.plugin_origins.length ? acc.plugin_origins : undefined,
-    // `keybinds` is deprecated and will be removed in opencode v2.0. Keep it
+    // `keybinds` is deprecated and will be removed in cody v2.0. Keep it
     // only as the legacy fallback; once `keymap` is configured, ignore
     // `keybinds` for keymap resolution.
     keymap,

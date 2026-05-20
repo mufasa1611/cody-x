@@ -1,4 +1,4 @@
-// CLI entry point for `opencode run`.
+// CLI entry point for `cody run`.
 //
 // Handles three modes:
 //   1. Non-interactive (default): sends a single prompt, streams events to
@@ -6,7 +6,7 @@
 //   2. Interactive local (`--interactive`): boots the split-footer direct mode
 //      with an in-process server (no external HTTP).
 //   3. Interactive attach (`--interactive --attach`): connects to a running
-//      opencode server and runs interactive mode against it.
+//      cody server and runs interactive mode against it.
 //
 // Also supports `--command` for slash-command execution, `--format json` for
 // raw event streaming, `--continue` / `--session` for session resumption,
@@ -21,13 +21,13 @@ import { Flag } from "@cody/core/flag/flag"
 import { ServerAuth } from "@/server/auth"
 import { EOL } from "os"
 import { Filesystem } from "@/util/filesystem"
-import { createOpencodeClient, type OpencodeClient, type ToolPart } from "@cody/sdk/v2"
+import { createCodyClient, type CodyClient, type ToolPart } from "@cody/sdk/v2"
 import { Agent } from "@/agent/agent"
 import { Permission } from "@/permission"
 import { INTERACTIVE_INPUT_ERROR, resolveInteractiveStdin } from "./run/runtime.stdin"
 
 const runtimeTask = import("./run/runtime")
-type ModelInput = Parameters<OpencodeClient["session"]["prompt"]>[0]["model"]
+type ModelInput = Parameters<CodyClient["session"]["prompt"]>[0]["model"]
 
 function pick(value: string | undefined): ModelInput | undefined {
   if (!value) return undefined
@@ -120,7 +120,7 @@ async function toolError(part: ToolPart) {
 
 export const RunCommand = effectCmd({
   command: "run [message..]",
-  describe: process.env.CODY_PRO === "0" ? "run opencode with a message" : "run Cody Pro with a message",
+  describe: process.env.CODY_PRO === "0" ? "run cody with a message" : "run Cody Pro with a message",
   // --attach connects to a remote server (no local instance needed); the
   // default path runs an in-process server and needs the project instance.
   instance: (args) => !args.attach,
@@ -186,7 +186,7 @@ export const RunCommand = effectCmd({
         type: "string",
         describe:
           process.env.CODY_PRO === "0"
-            ? "attach to a running opencode server (e.g., http://localhost:4096)"
+            ? "attach to a running cody server (e.g., http://localhost:4096)"
             : "attach to a running Cody Pro server (e.g., http://localhost:4096)",
       })
       .option("password", {
@@ -296,7 +296,7 @@ export const RunCommand = effectCmd({
         ? ServerAuth.headers({ password: args.password, username: args.username })
         : undefined
       const attachSDK = (dir?: string) => {
-        return createOpencodeClient({
+        return createCodyClient({
           baseUrl: args.attach!,
           directory: dir,
           headers: attachHeaders,
@@ -365,7 +365,7 @@ export const RunCommand = effectCmd({
         return message.slice(0, 50) + (message.length > 50 ? "..." : "")
       }
 
-      async function session(sdk: OpencodeClient): Promise<SessionInfo | undefined> {
+      async function session(sdk: CodyClient): Promise<SessionInfo | undefined> {
         if (args.session) {
           const current = await sdk.session
             .get({
@@ -444,7 +444,7 @@ export const RunCommand = effectCmd({
         }
       }
 
-      async function share(sdk: OpencodeClient, sessionID: string) {
+      async function share(sdk: CodyClient, sessionID: string) {
         const cfg = await sdk.config.get()
         if (!cfg.data) return
         if (cfg.data.share !== "auto" && !Flag.CODY_AUTO_SHARE && !args.share) return
@@ -460,7 +460,7 @@ export const RunCommand = effectCmd({
       }
 
       async function createFreshSession(
-        sdk: OpencodeClient,
+        sdk: CodyClient,
         input: { agent: string | undefined; model: ModelInput | undefined; variant: string | undefined },
       ): Promise<SessionInfo> {
         const result = await sdk.session.create({
@@ -487,7 +487,7 @@ export const RunCommand = effectCmd({
         }
       }
 
-      async function current(sdk: OpencodeClient): Promise<string> {
+      async function current(sdk: CodyClient): Promise<string> {
         if (!args.attach) {
           return directory ?? root
         }
@@ -528,7 +528,7 @@ export const RunCommand = effectCmd({
         return name
       }
 
-      async function attachAgent(sdk: OpencodeClient) {
+      async function attachAgent(sdk: CodyClient) {
         if (!args.agent) return undefined
         const name = args.agent
 
@@ -568,7 +568,7 @@ export const RunCommand = effectCmd({
         return name
       }
 
-      async function pickAgent(sdk: OpencodeClient) {
+      async function pickAgent(sdk: CodyClient) {
         if (!args.agent) return undefined
         if (args.attach) {
           return attachAgent(sdk)
@@ -577,7 +577,7 @@ export const RunCommand = effectCmd({
         return localAgent()
       }
 
-      async function execute(sdk: OpencodeClient) {
+      async function execute(sdk: CodyClient) {
         const sess = await session(sdk)
         if (!sess?.id) {
           UI.error("Session not found")
@@ -604,7 +604,7 @@ export const RunCommand = effectCmd({
         // to stdout/UI. `client` is passed explicitly because attach mode may
         // rebind the SDK to the session's directory after the subscription is
         // created, and replies issued from inside the loop must use that client.
-        async function loop(client: OpencodeClient, events: Awaited<ReturnType<typeof sdk.event.subscribe>>) {
+        async function loop(client: CodyClient, events: Awaited<ReturnType<typeof sdk.event.subscribe>>) {
           const toggles = new Map<string, boolean>()
           let error: string | undefined
 
@@ -828,8 +828,8 @@ export const RunCommand = effectCmd({
         const request = new Request(input, init)
         return Server.Default().app.fetch(request)
       }) as typeof globalThis.fetch
-      const sdk = createOpencodeClient({
-        baseUrl: "http://opencode.internal",
+      const sdk = createCodyClient({
+        baseUrl: "http://cody.internal",
         fetch: fetchFn,
         directory,
       })

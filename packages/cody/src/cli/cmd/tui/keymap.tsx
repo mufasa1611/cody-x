@@ -17,8 +17,8 @@ import { useTuiConfig } from "./context/tui-config"
 
 export const LEADER_TOKEN = "leader"
 
-export const OpencodeKeymapProvider = KeymapProvider
-export const useOpencodeKeymap = useKeymap
+export const CodyKeymapProvider = KeymapProvider
+export const useCodyKeymap = useKeymap
 
 export { reactiveMatcherFromSignal, useBindings, useKeymapSelector }
 
@@ -51,7 +51,7 @@ export function formatKeyBindings(
   return formatCommandBindingsExtra(bindings, formatOptions(config))
 }
 
-export function registerOpencodeKeymap(keymap: OpenTuiKeymap, renderer: CliRenderer, config: TuiConfig.Resolved) {
+export function registerCodyKeymap(keymap: OpenTuiKeymap, renderer: CliRenderer, config: TuiConfig.Resolved) {
   const offCommaBindings = addons.registerCommaBindings(keymap)
   const offBaseLayout = addons.registerBaseLayoutFallback(keymap)
   const offLeader = addons.registerTimedLeader(keymap, {

@@ -11345,9 +11345,9 @@
     "id": "cody",
     "env": ["CODY_API_KEY"],
     "npm": "@ai-sdk/openai-compatible",
-    "api": "https://opencode.ai/zen/v1",
-    "name": "OpenCode Zen",
-    "doc": "https://opencode.ai/docs/zen",
+    "api": "https://cody.ai/zen/v1",
+    "name": "Cody Zen",
+    "doc": "https://cody.ai/docs/zen",
     "models": {
       "gpt-5.2-codex": {
         "id": "gpt-5.2-codex",
@@ -64067,13 +64067,13 @@
       }
     }
   },
-  "opencode-go": {
-    "id": "opencode-go",
+  "cody-go": {
+    "id": "cody-go",
     "env": ["CODY_API_KEY"],
     "npm": "@ai-sdk/openai-compatible",
-    "api": "https://opencode.ai/zen/go/v1",
-    "name": "OpenCode Go",
-    "doc": "https://opencode.ai/docs/zen",
+    "api": "https://cody.ai/zen/go/v1",
+    "name": "Cody Go",
+    "doc": "https://cody.ai/docs/zen",
     "models": {
       "kimi-k2.5": {
         "id": "kimi-k2.5",

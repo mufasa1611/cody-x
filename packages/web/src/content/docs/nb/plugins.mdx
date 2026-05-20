@@ -1,9 +1,9 @@
 ---
 title: Programtillegg
-description: Skriv dine egne programtillegg for å utvide OpenCode.
+description: Skriv dine egne programtillegg for å utvide Cody.
 ---
 
-Plugins lar deg utvide OpenCode ved å koble til ulike hendelser og tilpasse atferd. Du kan lage plugins for å legge til nye funksjoner, integrere med eksterne tjenester eller endre standardoppførselen til OpenCode.
+Plugins lar deg utvide Cody ved å koble til ulike hendelser og tilpasse atferd. Du kan lage plugins for å legge til nye funksjoner, integrere med eksterne tjenester eller endre standardoppførselen til Cody.
 
 For eksempler, sjekk ut [plugins](/docs/ecosystem#plugins) opprettet av fellesskapet.
 
@@ -20,7 +20,7 @@ Det er to måter å laste inn plugins.
 Plasser JavaScript- eller TypeScript-filer i plugin-katalogen.
 
 - `.cody/plugins/` - Programtillegg på prosjektnivå
-- `~/.config/opencode/plugins/` - Globale plugins
+- `~/.config/cody/plugins/` - Globale plugins
 
 Filer i disse katalogene lastes automatisk ved oppstart.
 
@@ -30,10 +30,10 @@ Filer i disse katalogene lastes automatisk ved oppstart.
 
 Spesifiser npm-pakker i konfigurasjonsfilen.
 
-```json title="opencode.json"
+```json title="cody.json"
 {
   "$schema": "https://cody.dev/config.json",
-  "plugin": ["opencode-helicone-session", "opencode-wakatime", "@my-org/custom-plugin"]
+  "plugin": ["cody-helicone-session", "cody-wakatime", "@my-org/custom-plugin"]
 }
 ```
 
@@ -45,7 +45,7 @@ Bla gjennom tilgjengelige plugins i [økosystemet](/docs/ecosystem#plugins).
 
 ### Hvordan plugins installeres
 
-**npm-plugins** installeres automatisk ved hjelp av Bun ved oppstart. Pakker og deres avhengigheter er bufret i `~/.cache/opencode/node_modules/`.
+**npm-plugins** installeres automatisk ved hjelp av Bun ved oppstart. Pakker og deres avhengigheter er bufret i `~/.cache/cody/node_modules/`.
 
 **Lokale plugins** lastes direkte fra plugin-katalogen. For å bruke eksterne pakker, må du opprette en `package.json` i konfigurasjonskatalogen din (se [Dependencies](#dependencies)), eller publisere plugin-en til npm og [legg den til i konfigurasjonen din](/docs/config#plugins).
 
@@ -55,9 +55,9 @@ Bla gjennom tilgjengelige plugins i [økosystemet](/docs/ecosystem#plugins).
 
 Plugins lastes inn fra alle kilder og alle kroker kjøres i rekkefølge. Lastrekkefølgen er:
 
-1. Global konfigurasjon (`~/.config/opencode/opencode.json`)
-2. Prosjektkonfigurasjon (`opencode.json`)
-3. Global plugin-katalog (`~/.config/opencode/plugins/`)
+1. Global konfigurasjon (`~/.config/cody/cody.json`)
+2. Prosjektkonfigurasjon (`cody.json`)
+3. Global plugin-katalog (`~/.config/cody/plugins/`)
 4. Prosjektpluginkatalog (`.cody/plugins/`)
 
 Dupliserte npm-pakker med samme navn og versjon lastes inn én gang. Imidlertid lastes en lokal plugin og en npm plugin med lignende navn begge separat.
@@ -83,7 +83,7 @@ Lokale plugins og tilpassede verktøy kan bruke eksterne npm-pakker. Legg til en
 }
 ```
 
-OpenCode kjører `bun install` ved oppstart for å installere disse. Programtilleggene og verktøyene dine kan deretter importere dem.
+Cody kjører `bun install` ved oppstart for å installere disse. Programtilleggene og verktøyene dine kan deretter importere dem.
 
 ```ts title=".cody/plugins/my-plugin.ts"
 import { escape } from "shescape"
@@ -118,7 +118,7 @@ Plugin-funksjonen mottar:
 - `project`: Gjeldende prosjektinformasjon.
 - `directory`: Gjeldende arbeidskatalog.
 - `worktree`: Git-arbeidstrebanen.
-- `client`: En OpenCode SDK klient for samhandling med AI.
+- `client`: En Cody SDK klient for samhandling med AI.
 - `$`: Buns [shell API](https://bun.com/docs/runtime/shell) for å utføre kommandoer.
 
 ---
@@ -211,7 +211,7 @@ Plugins kan abonnere på hendelser som vist nedenfor i Eksempler-delen. Her er e
 
 ## Eksempler
 
-Her er noen eksempler på plugins du kan bruke for å utvide OpenCode.
+Her er noen eksempler på plugins du kan bruke for å utvide Cody.
 
 ---
 
@@ -235,14 +235,14 @@ export const NotificationPlugin = async ({ project, client, $, directory, worktr
 Vi bruker `osascript` for å kjøre AppleScript på macOS. Her bruker vi den til å sende varsler.
 
 :::note
-Hvis du bruker OpenCode-skrivebordsappen, kan den sende systemvarsler automatisk når et svar er klart eller når en økt feiler.
+Hvis du bruker Cody-skrivebordsappen, kan den sende systemvarsler automatisk når et svar er klart eller når en økt feiler.
 :::
 
 ---
 
 ### .env-beskyttelse
 
-Hindre OpenCode fra å lese `.env` filer:
+Hindre Cody fra å lese `.env` filer:
 
 ```javascript title=".cody/plugins/env-protection.js"
 export const EnvProtection = async ({ project, client, $, directory, worktree }) => {
@@ -277,7 +277,7 @@ export const InjectEnvPlugin = async () => {
 
 ### Egendefinerte verktøy
 
-Plugins kan også legge til egendefinerte verktøy til OpenCode:
+Plugins kan også legge til egendefinerte verktøy til Cody:
 
 ```ts title=".cody/plugins/custom-tools.ts"
 import { type Plugin, tool } from "@cody/plugin"
@@ -300,13 +300,13 @@ export const CustomToolsPlugin: Plugin = async (ctx) => {
 }
 ```
 
-`tool`-hjelperen lager et tilpasset verktøy som OpenCode kan kalle. Den tar en Zod-skjemafunksjon og returnerer en verktøydefinisjon med:
+`tool`-hjelperen lager et tilpasset verktøy som Cody kan kalle. Den tar en Zod-skjemafunksjon og returnerer en verktøydefinisjon med:
 
 - `description`: Hva verktøyet gjør
 - `args`: Zod-skjema for verktøyets argumenter
   - `execute`: Funksjon som kjører når verktøyet kalles
 
-Dine egendefinerte verktøy vil være tilgjengelige for OpenCode sammen med innebygde verktøy.
+Dine egendefinerte verktøy vil være tilgjengelige for Cody sammen med innebygde verktøy.
 
 :::note
 Hvis et plugin-verktøy bruker samme navn som et innebygd verktøy, vil plugin-verktøyet ha forrang.
@@ -331,7 +331,7 @@ export const MyPlugin = async ({ client }) => {
 }
 ```
 
-Nivåer: `debug`, `info`, `warn`, `error`. Se [SDK dokumentasjon](https://opencode.ai/docs/sdk) for detaljer.
+Nivåer: `debug`, `info`, `warn`, `error`. Se [SDK dokumentasjon](https://cody.ai/docs/sdk) for detaljer.
 
 ---
 

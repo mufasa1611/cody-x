@@ -1,6 +1,6 @@
 ---
 title: SDK
-description: Типобезопасный JS-клиент для сервера opencode.
+description: Типобезопасный JS-клиент для сервера cody.
 ---
 
 import config from "../../../../config.mjs"
@@ -25,12 +25,12 @@ npm install @cody/sdk
 
 ## Создать клиента
 
-Создайте экземпляр opencode:
+Создайте экземпляр cody:
 
 ```javascript
-import { createOpencode } from "@cody/sdk"
+import { createCody } from "@cody/sdk"
 
-const { client } = await createOpencode()
+const { client } = await createCody()
 ```
 
 Это запускает и сервер, и клиент.
@@ -49,12 +49,12 @@ const { client } = await createOpencode()
 
 ## Конфигурация
 
-Вы можете передать объект конфигурации для настройки поведения. Экземпляр по-прежнему получает ваш `opencode.json`, но вы можете переопределить или добавить встроенную конфигурацию:
+Вы можете передать объект конфигурации для настройки поведения. Экземпляр по-прежнему получает ваш `cody.json`, но вы можете переопределить или добавить встроенную конфигурацию:
 
 ```javascript
-import { createOpencode } from "@cody/sdk"
+import { createCody } from "@cody/sdk"
 
-const opencode = await createOpencode({
+const cody = await createCody({
   hostname: "127.0.0.1",
   port: 4096,
   config: {
@@ -62,19 +62,19 @@ const opencode = await createOpencode({
   },
 })
 
-console.log(`Server running at ${opencode.server.url}`)
+console.log(`Server running at ${cody.server.url}`)
 
-opencode.server.close()
+cody.server.close()
 ```
 
 ## Только клиент
 
-Если у вас уже есть работающий экземпляр opencode, вы можете создать экземпляр клиента для подключения к нему:
+Если у вас уже есть работающий экземпляр cody, вы можете создать экземпляр клиента для подключения к нему:
 
 ```javascript
-import { createOpencodeClient } from "@cody/sdk"
+import { createCodyClient } from "@cody/sdk"
 
-const client = createOpencodeClient({
+const client = createCodyClient({
   baseUrl: "http://localhost:4096",
 })
 ```
@@ -376,7 +376,7 @@ await client.session.prompt({
 ```javascript
 // Search and read files
 const textResults = await client.find.text({
-  query: { pattern: "function.*opencode" },
+  query: { pattern: "function.*cody" },
 })
 
 const files = await client.find.files({

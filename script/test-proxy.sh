@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-URL="${1:-https://api.opencode.ai}"
+URL="${1:-https://api.cody.ai}"
 PROXY_FILE="$ROOT/.env.proxy"
 
 if [ ! -f "$PROXY_FILE" ]; then

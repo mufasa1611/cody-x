@@ -1,5 +1,5 @@
 import { OpenApi } from "effect/unstable/httpapi"
-import { OpenCodeHttpApi } from "./api"
+import { CodyHttpApi } from "./api"
 
 type OpenApiParameter = {
   name: string
@@ -438,7 +438,7 @@ function fixSelfReferencingComponents(spec: OpenApiSpec) {
     }
   }
   // Simplest fix: generate the raw spec (without transform) to get correct schemas
-  const raw = OpenApi.fromApi(OpenCodeHttpApi) as unknown as OpenApiSpec
+  const raw = OpenApi.fromApi(CodyHttpApi) as unknown as OpenApiSpec
   const rawSchemas = raw.components?.schemas
   if (!rawSchemas) return
   for (const name of selfRefs) {
@@ -535,11 +535,11 @@ function pathParameterSchema(route: string, name: string) {
   return undefined
 }
 
-export const PublicApi = OpenCodeHttpApi.annotateMerge(
+export const PublicApi = CodyHttpApi.annotateMerge(
   OpenApi.annotations({
     title: process.env.CODY_PRO === "0" ? "cody" : "cody-pro",
     version: "1.0.0",
-    description: process.env.CODY_PRO === "0" ? "opencode api" : "Cody Pro API",
+    description: process.env.CODY_PRO === "0" ? "cody api" : "Cody Pro API",
     transform: matchLegacyOpenApi,
   }),
 )

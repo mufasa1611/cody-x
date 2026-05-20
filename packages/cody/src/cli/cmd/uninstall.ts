@@ -26,7 +26,7 @@ export const UninstallCommand = {
   command: "uninstall",
   describe:
     process.env.CODY_PRO === "0"
-      ? "uninstall opencode and remove all related files"
+      ? "uninstall cody and remove all related files"
       : "uninstall Cody Pro and remove all related files",
   builder: (yargs: Argv) =>
     yargs
@@ -58,7 +58,7 @@ export const UninstallCommand = {
     UI.empty()
     UI.println(UI.logo("  "))
     UI.empty()
-    prompts.intro(process.env.CODY_PRO === "0" ? "Uninstall OpenCode" : "Uninstall Cody Pro")
+    prompts.intro(process.env.CODY_PRO === "0" ? "Uninstall Cody" : "Uninstall Cody Pro")
 
     const method = await Installation.method()
     prompts.log.info(`Installation method: ${method}`)
@@ -132,13 +132,13 @@ async function showRemovalSummary(targets: RemovalTargets, method: Installation.
 
   if (method !== "curl" && method !== "unknown") {
     const cmds: Record<string, string> = {
-      npm: "npm uninstall -g opencode-ai",
-      pnpm: "pnpm uninstall -g opencode-ai",
-      bun: "bun remove -g opencode-ai",
-      yarn: "yarn global remove opencode-ai",
-      brew: "brew uninstall opencode",
-      choco: "choco uninstall opencode",
-      scoop: "scoop uninstall opencode",
+      npm: "npm uninstall -g cody-ai",
+      pnpm: "pnpm uninstall -g cody-ai",
+      bun: "bun remove -g cody-ai",
+      yarn: "yarn global remove cody-ai",
+      brew: "brew uninstall cody",
+      choco: "choco uninstall cody",
+      scoop: "scoop uninstall cody",
     }
     prompts.log.info(`  ✓ Package: ${cmds[method] || method}`)
   }
@@ -183,10 +183,10 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
 
   if (method !== "curl" && method !== "unknown") {
     const cmds: Record<string, string[]> = {
-      npm: ["npm", "uninstall", "-g", "opencode-ai"],
-      pnpm: ["pnpm", "uninstall", "-g", "opencode-ai"],
-      bun: ["bun", "remove", "-g", "opencode-ai"],
-      yarn: ["yarn", "global", "remove", "opencode-ai"],
+      npm: ["npm", "uninstall", "-g", "cody-ai"],
+      pnpm: ["pnpm", "uninstall", "-g", "cody-ai"],
+      bun: ["bun", "remove", "-g", "cody-ai"],
+      yarn: ["yarn", "global", "remove", "cody-ai"],
       brew: ["brew", "uninstall", "cody"],
       choco: ["choco", "uninstall", "cody"],
       scoop: ["scoop", "uninstall", "cody"],
@@ -232,7 +232,7 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
   }
 
   UI.empty()
-  prompts.log.success(process.env.CODY_PRO === "0" ? "Thank you for using OpenCode!" : "Thank you for using Cody Pro!")
+  prompts.log.success(process.env.CODY_PRO === "0" ? "Thank you for using Cody!" : "Thank you for using Cody Pro!")
 }
 
 async function getShellConfigFile(): Promise<string | null> {
@@ -269,7 +269,7 @@ async function getShellConfigFile(): Promise<string | null> {
     if (!exists) continue
 
     const content = await Filesystem.readText(file).catch(() => "")
-    if (content.includes("# opencode") || content.includes(".cody/bin")) {
+    if (content.includes("# cody") || content.includes(".cody/bin")) {
       return file
     }
   }
@@ -287,7 +287,7 @@ async function cleanShellConfig(file: string) {
   for (const line of lines) {
     const trimmed = line.trim()
 
-    if (trimmed === "# opencode") {
+    if (trimmed === "# cody") {
       skip = true
       continue
     }

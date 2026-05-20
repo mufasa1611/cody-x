@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 param(
   [string]$Root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path,
-  [string]$Url = "https://api.opencode.ai"
+  [string]$Url = "https://api.cody.ai"
 )
 
 $ErrorActionPreference = "Stop"

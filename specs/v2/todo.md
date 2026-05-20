@@ -28,8 +28,8 @@ Some ideas:
 
 - plugins get immer drafts so bad mutations can be thrown away
 - plugins get global "cody" instance like in that post i showed
-- opencode instance has stuff like `opencode.session.prompt()` or
-  `opencode.tool.register({...})`
+- cody instance has stuff like `cody.session.prompt()` or
+  `cody.tool.register({...})`
 
 ## Rework Config - ???
 

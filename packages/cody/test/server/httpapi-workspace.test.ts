@@ -35,7 +35,7 @@ function request(path: string, directory: string, init: RequestInit = {}, httpAp
   return Effect.promise(() => {
     Flag.CODY_EXPERIMENTAL_HTTPAPI = httpApi
     const headers = new Headers(init.headers)
-    headers.set("x-opencode-directory", directory)
+    headers.set("x-cody-directory", directory)
     return Promise.resolve(Server.Default().app.request(path, { ...init, headers }))
   })
 }
@@ -394,7 +394,7 @@ describe("workspace HttpApi", () => {
           headers: {
             "accept-encoding": "br",
             "content-type": "application/json",
-            "x-opencode-workspace": "internal",
+            "x-cody-workspace": "internal",
           },
           body: JSON.stringify({ $schema: "https://cody.dev/config.json" }),
         })
@@ -416,8 +416,8 @@ describe("workspace HttpApi", () => {
             body: JSON.stringify({ $schema: "https://cody.dev/config.json" }),
           },
         ])
-        expect(forwarded[0]?.headers).not.toHaveProperty("x-opencode-directory")
-        expect(forwarded[0]?.headers).not.toHaveProperty("x-opencode-workspace")
+        expect(forwarded[0]?.headers).not.toHaveProperty("x-cody-directory")
+        expect(forwarded[0]?.headers).not.toHaveProperty("x-cody-workspace")
       } finally {
         void remote.stop(true)
         yield* request(WorkspacePaths.remove.replace(":id", workspace.id), dir, { method: "DELETE" })

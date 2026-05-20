@@ -22,8 +22,8 @@ jobs:
         id: committer
         uses: ./.github/actions/setup-git-committer
         with:
-          opencode-app-id: ${{ vars.CODY_APP_ID }}
-          opencode-app-secret: ${{ secrets.CODY_APP_SECRET }}
+          cody-app-id: ${{ vars.CODY_APP_ID }}
+          cody-app-secret: ${{ secrets.CODY_APP_SECRET }}
 
       - name: Generate
         run: ./script/generate.ts
