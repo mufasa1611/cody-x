@@ -7,6 +7,11 @@ import { described } from "./metadata"
 
 const root = "/agent"
 
+const ListDirQuery = Schema.Struct({ path: Schema.optional(Schema.String) })
+const ReadFileQuery = Schema.Struct({ path: Schema.String })
+const WriteFilePayload = Schema.Struct({ path: Schema.String, content: Schema.String, encoding: Schema.optional(Schema.String) })
+const ExecPayload = Schema.Struct({ command: Schema.String })
+
 const PairingCodeSchema = Schema.Struct({ code: Schema.String, expiresAt: Schema.Number })
 const AgentStatusSchema = Schema.Struct({
   connected: Schema.Boolean,
@@ -49,7 +54,7 @@ export const AgentApi = HttpApi.make("agent")
           }),
         ),
         HttpApiEndpoint.get("listDir", `${root}/fs/list`, {
-          success: described(RemoteFileListSchema, "Directory listing"),
+          success: described(RemoteFileListSchema, "Directory listing"), query: ListDirQuery,
         }).annotateMerge(
           OpenApi.annotations({
             identifier: "agent.fs.list",
@@ -58,7 +63,7 @@ export const AgentApi = HttpApi.make("agent")
           }),
         ),
         HttpApiEndpoint.get("readFile", `${root}/fs/read`, {
-          success: described(FileContentSchema, "File content"),
+          success: described(FileContentSchema, "File content"), query: ReadFileQuery,
         }).annotateMerge(
           OpenApi.annotations({
             identifier: "agent.fs.read",
@@ -67,7 +72,7 @@ export const AgentApi = HttpApi.make("agent")
           }),
         ),
         HttpApiEndpoint.post("writeFile", `${root}/fs/write`, {
-          success: described(WriteOutputSchema, "Write result"),
+          success: described(WriteOutputSchema, "Write result"), payload: WriteFilePayload,
         }).annotateMerge(
           OpenApi.annotations({
             identifier: "agent.fs.write",
@@ -76,7 +81,7 @@ export const AgentApi = HttpApi.make("agent")
           }),
         ),
         HttpApiEndpoint.post("exec", `${root}/exec`, {
-          success: described(ExecOutputSchema, "Command result"),
+          success: described(ExecOutputSchema, "Command result"), payload: ExecPayload,
         }).annotateMerge(
           OpenApi.annotations({
             identifier: "agent.exec",
@@ -111,3 +116,5 @@ export const AgentApi = HttpApi.make("agent")
       description: "Experimental HttpApi surface for selected instance routes.",
     }),
   )
+
+

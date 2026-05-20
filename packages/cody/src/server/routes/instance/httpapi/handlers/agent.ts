@@ -16,22 +16,28 @@ export const agentHandlers = HttpApiBuilder.group(InstanceHttpApi, "agent", (han
       return yield* hub.getStatus
     })
 
-    // These HttpApi endpoints exist for route parity / OpenAPI docs.
-    // Full agent functionality is handled by the Hono REST routes.
-    const listDir = Effect.fn("AgentHttpApi.listDir")(function* () {
-      return { files: [] } as { files: Array<{ name: string; path: string; type: "file" | "directory"; size?: number; modifiedAt?: number }> }
+    const listDir = Effect.fn("AgentHttpApi.listDir")(function* (ctx: { query: { path?: string } }) {
+      const path = ctx.query.path || "/"
+      const result: unknown = yield* hub.listDir(path).pipe(Effect.orDie)
+      return result as { files: Array<{ name: string; path: string; type: "file" | "directory"; size?: number; modifiedAt?: number }> }
     })
 
-    const readFile = Effect.fn("AgentHttpApi.readFile")(function* () {
-      return { content: "" } as { content: string; encoding?: string }
+    const readFile = Effect.fn("AgentHttpApi.readFile")(function* (ctx: { query: { path: string } }) {
+      const result: unknown = yield* hub.readFile(ctx.query.path).pipe(Effect.orDie)
+      return result as { content: string; encoding?: string }
     })
 
-    const writeFile = Effect.fn("AgentHttpApi.writeFile")(function* () {
-      return { success: false }
+    const writeFile = Effect.fn("AgentHttpApi.writeFile")(function* (ctx: { payload: { path: string; content: string; encoding?: string } }) {
+      const content = ctx.payload.encoding === "base64"
+        ? Buffer.from(ctx.payload.content, "base64").toString("utf-8")
+        : ctx.payload.content
+      yield* hub.writeFile(ctx.payload.path, content).pipe(Effect.orDie)
+      return { success: true }
     })
 
-    const exec = Effect.fn("AgentHttpApi.exec")(function* () {
-      return { stdout: "", stderr: "Not implemented via HttpApi", exitCode: 1 }
+    const exec = Effect.fn("AgentHttpApi.exec")(function* (ctx: { payload: { command: string } }) {
+      const result: unknown = yield* hub.exec(ctx.payload.command).pipe(Effect.orDie)
+      return result as { stdout: string; stderr: string; exitCode: number }
     })
 
     const disconnect = Effect.fn("AgentHttpApi.disconnect")(function* () {
