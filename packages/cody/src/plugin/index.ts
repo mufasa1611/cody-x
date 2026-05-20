@@ -1,4 +1,4 @@
-﻿import type {
+import type {
   Hooks,
   PluginInput,
   Plugin as PluginInstance,
@@ -15,8 +15,8 @@ import { CodexAuthPlugin } from "./codex"
 import { Session } from "@/session/session"
 import { NamedError } from "@cody/core/util/error"
 import { CopilotAuthPlugin } from "./github-copilot/copilot"
-import { gitlabAuthPlugin as GitlabAuthPlugin } from "opencode-gitlab-auth"
-import { PoeAuthPlugin } from "opencode-poe-auth"
+import { gitlabAuthPlugin as GitlabAuthPlugin } from "@cody/gitlab-auth"
+import { PoeAuthPlugin } from "@cody/poe-auth"
 import { CloudflareAIGatewayAuthPlugin, CloudflareWorkersAuthPlugin } from "./cloudflare"
 import { AzureAuthPlugin } from "./azure"
 import { Effect, Layer, Context, Stream } from "effect"

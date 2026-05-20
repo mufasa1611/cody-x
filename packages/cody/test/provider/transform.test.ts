@@ -1,4 +1,4 @@
-﻿import { describe, expect, test } from "bun:test"
+import { describe, expect, test } from "bun:test"
 import { ProviderTransform } from "@/provider/transform"
 import { ModelID, ProviderID } from "../../src/provider/schema"
 
@@ -1837,7 +1837,7 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
       providerID: "cody",
       api: {
         id: "cody-test",
-        url: "https://api.cody.ai",
+        url: "https://api.opencode.ai",
         npm: "@ai-sdk/openai-compatible",
       },
     }
@@ -1871,7 +1871,7 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
       providerID: "cody",
       api: {
         id: "cody-test",
-        url: "https://api.cody.ai",
+        url: "https://api.opencode.ai",
         npm: "@ai-sdk/openai-compatible",
       },
     }

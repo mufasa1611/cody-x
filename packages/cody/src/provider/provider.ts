@@ -411,7 +411,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://cody.ai/",
+            "HTTP-Referer": "https://opencode.ai/",
             "X-Title": "cody",
             "X-Source": "cody",
           },
@@ -422,7 +422,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://cody.ai/",
+            "HTTP-Referer": "https://opencode.ai/",
             "X-Title": "cody",
           },
         },
@@ -432,7 +432,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://cody.ai/",
+            "HTTP-Referer": "https://opencode.ai/",
             "X-Title": "cody",
           },
         },
@@ -442,7 +442,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "http-referer": "https://cody.ai/",
+            "http-referer": "https://opencode.ai/",
             "x-title": "cody",
           },
         },
@@ -540,7 +540,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://cody.ai/",
+            "HTTP-Referer": "https://opencode.ai/",
             "X-Title": "cody",
           },
         },
@@ -825,7 +825,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://cody.ai/",
+            "HTTP-Referer": "https://opencode.ai/",
             "X-Title": "cody",
           },
         },

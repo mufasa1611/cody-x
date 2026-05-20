@@ -8,3 +8,6 @@ src/provider/models-snapshot.d.ts
 script/build-*.ts
 temporary-*.md
 .artifacts
+
+# Runtime data (backups, logs, runs, config)
+.cody/

@@ -120,7 +120,7 @@ export function createMenu(deps: Deps) {
     {
       label: "Help",
       submenu: [
-        { label: "Cody Documentation", click: () => shell.openExternal("https://cody.ai/docs") },
+        { label: "Cody Documentation", click: () => shell.openExternal("https://opencode.ai/docs") },
         { label: "Support Forum", click: () => shell.openExternal("https://discord.com/invite/cody") },
         { type: "separator" },
         { type: "separator" },

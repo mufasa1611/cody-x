@@ -241,7 +241,7 @@ describe("SessionStatus.Info", () => {
         title: "Free limit reached",
         message: "Subscribe to Cody Go.",
         label: "subscribe",
-        link: "https://cody.ai/go",
+        link: "https://opencode.ai/go",
       },
       next: 500,
     }
