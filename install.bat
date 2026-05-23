@@ -1,0 +1,353 @@
+@echo off
+setlocal EnableExtensions EnableDelayedExpansion
+
+set "REPO_URL=https://github.com/your-org/cody.git"
+if not defined CODY_BRANCH set "CODY_BRANCH=main"
+set "INSTALLER_URL=https://raw.githubusercontent.com/mufasa1611/cody_pro/%CODY_BRANCH%/install.bat"
+set "DEFAULT_PARENT=%LOCALAPPDATA%\CodyPro"
+set "DEFAULT_ROOT=%DEFAULT_PARENT%\cody_pro"
+set "GLOBAL_BIN=%APPDATA%\npm"
+set "GLOBAL_CMD=%GLOBAL_BIN%\cody_pro.cmd"
+set "ROOT=%~dp0"
+if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
+
+if defined CODY_INSTALL_ROOT set "ROOT=%CODY_INSTALL_ROOT%"
+if not exist "%ROOT%\package.json" set "ROOT=%DEFAULT_ROOT%"
+
+echo Cody Pro Windows installer
+echo Repo: "%ROOT%"
+echo.
+
+if "%CODY_INSTALLER_SELF_UPDATED%"=="1" goto AfterSelfUpdate
+
+where powershell >nul 2>nul
+if errorlevel 1 (
+  echo [warn] PowerShell not found. Skipping installer self-update check.
+  goto AfterSelfUpdate
+)
+
+set "LATEST_INSTALLER=%TEMP%\cody_pro-install-latest-%RANDOM%%RANDOM%.bat"
+if "%CODY_INSTALLER_SELF_UPDATE%"=="0" goto AfterSelfUpdate
+echo Checking for installer updates...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri '%INSTALLER_URL%' -OutFile '%LATEST_INSTALLER%'; exit 0 } catch { Write-Host ('[warn] Could not download latest installer: ' + $_.Exception.Message); exit 1 }"
+if errorlevel 1 (
+  del "%LATEST_INSTALLER%" >nul 2>nul
+  echo [warn] Continuing with the current installer.
+  goto AfterSelfUpdate
+)
+
+fc /b "%~f0" "%LATEST_INSTALLER%" >nul 2>nul
+if not errorlevel 1 (
+  del "%LATEST_INSTALLER%" >nul 2>nul
+  echo [ok] Installer is up to date.
+  goto AfterSelfUpdate
+)
+
+echo [info] New installer found. Running latest installer from GitHub...
+set "CODY_INSTALLER_SELF_UPDATED=1"
+set "CODY_INSTALL_ROOT=%ROOT%"
+call "%LATEST_INSTALLER%" %*
+set "LATEST_INSTALLER_EXIT=!ERRORLEVEL!"
+del "%LATEST_INSTALLER%" >nul 2>nul
+exit /b %LATEST_INSTALLER_EXIT%
+
+:AfterSelfUpdate
+
+where winget >nul 2>nul
+if not errorlevel 1 (
+  set "HAS_WINGET=1"
+) else (
+  set "HAS_WINGET=0"
+)
+
+call :EnsureCommand git "Git.Git" "Git"
+if errorlevel 1 exit /b 1
+
+set "HAS_CHECKOUT=0"
+if exist "%ROOT%\package.json" if exist "%ROOT%\cody-pro.cmd" set "HAS_CHECKOUT=1"
+
+if "%HAS_CHECKOUT%"=="1" (
+  echo [ok] Cody Pro checkout found.
+) else (
+  echo Cody Pro checkout not found. Cloning from GitHub...
+  if exist "%DEFAULT_ROOT%" (
+    echo [error] "%DEFAULT_ROOT%" exists but is not a Cody Pro checkout.
+    echo Move it away or set up Cody Pro there, then rerun install.bat.
+    exit /b 1
+  )
+  if not exist "%DEFAULT_PARENT%" mkdir "%DEFAULT_PARENT%" >nul 2>nul
+  git clone --branch "%CODY_BRANCH%" "%REPO_URL%" "%DEFAULT_ROOT%"
+  if errorlevel 1 (
+    echo [warn] Branch "%CODY_BRANCH%" clone failed. Retrying default branch...
+    git clone "%REPO_URL%" "%DEFAULT_ROOT%"
+  )
+  if errorlevel 1 (
+    echo [error] Failed to clone Cody Pro from "%REPO_URL%".
+    exit /b 1
+  )
+  set "ROOT=%DEFAULT_ROOT%"
+  echo [ok] Cody Pro cloned to "%ROOT%".
+  echo [ok] Checking Git safe directory configuration...
+  git config --global --add safe.directory "%ROOT%" >nul 2>nul
+)
+
+call :UpdateCheckout
+
+call :EnsureCommand node "OpenJS.NodeJS.LTS" "Node.js LTS"
+if errorlevel 1 exit /b 1
+
+where npm >nul 2>nul
+if not errorlevel 1 (
+  echo [ok] npm found.
+) else (
+  echo [warn] npm was not found after Node.js check. Cody Pro does not require npm for startup, but Node.js should normally provide it.
+)
+
+call :EnsureBun
+if errorlevel 1 exit /b 1
+
+set "PATH=%USERPROFILE%\.bun\bin;%APPDATA%\npm;%ProgramFiles%\nodejs;%PATH%"
+
+where bun >nul 2>nul
+if errorlevel 1 (
+  echo [error] Bun is still not available on PATH.
+  echo Close and reopen the terminal, then rerun install.bat.
+  exit /b 1
+)
+
+echo.
+echo Installing Cody Pro dependencies...
+pushd "%ROOT%"
+call bun install
+if errorlevel 1 (
+  set "BUN_INSTALL_EXIT=!ERRORLEVEL!"
+  echo.
+  echo [warn] Bun install failed with exit code !BUN_INSTALL_EXIT!. Retrying with --no-optional...
+  call bun install --no-optional
+  if !ERRORLEVEL! neq 0 (
+    set "BUN_INSTALL_RETRY_EXIT=!ERRORLEVEL!"
+    echo.
+    echo [error] Bun install failed again with exit code !BUN_INSTALL_RETRY_EXIT!.
+    echo   This project has many dependencies and may need more memory.
+    echo   Try increasing the Windows page file size, then rerun install.bat.
+    echo   You can also run: bun install --frozen-lockfile
+    popd
+    set "CODY_FATAL_EXIT=!BUN_INSTALL_RETRY_EXIT!"
+    goto FatalExit
+  )
+  echo [ok] Dependencies installed with --no-optional.
+)
+
+echo.
+echo Building Web UI...
+pushd "%ROOT%\packages\app"
+call bun run build
+if errorlevel 1 (
+  popd
+  echo [warn] Web UI build failed, server will proxy to app.cody.ai.
+  goto AfterWebBuild
+)
+popd
+:AfterWebBuild
+
+echo.
+echo Creating .env.proxy with proxy settings...
+if not exist "%ROOT%\.env.proxy" (
+  >"%ROOT%\.env.proxy" echo CODY_PROXY_ENABLED=1
+  >>"%ROOT%\.env.proxy" echo HTTPS_PROXY=http://192.168.68.68:8888
+  >>"%ROOT%\.env.proxy" echo HTTP_PROXY=http://192.168.68.68:8888
+  >>"%ROOT%\.env.proxy" echo NO_PROXY=localhost,127.0.0.1,::1
+  echo [ok] .env.proxy created with proxy settings.
+) else (
+  findstr /B /C:"NO_PROXY=" "%ROOT%\.env.proxy" >nul 2>nul
+  if errorlevel 1 (
+    >>"%ROOT%\.env.proxy" echo NO_PROXY=localhost,127.0.0.1,::1
+    echo [ok] Added NO_PROXY to existing .env.proxy.
+  ) else (
+    echo [ok] .env.proxy already has NO_PROXY.
+  )
+)
+if not "%CODY_DISCOVER_MODELS%"=="1" goto SkipModelDiscovery
+if not exist "%ROOT%\.cody\generated\cody.jsonc" (
+  powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\discover-local-models.ps1" -Root "%ROOT%"
+  if exist "%ROOT%\.cody\generated\cody-local-models.report.json" (
+    echo [ok] Model discovery complete.
+  ) else (
+    echo [info] No local models found.
+  )
+) else (
+  echo [ok] Model config already exists, skipping.
+)
+:SkipModelDiscovery
+if not exist "%ROOT%\.cody\generated" mkdir "%ROOT%\.cody\generated" >nul 2>nul
+powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\ensure-default-config.ps1" -Root "%ROOT%"
+
+echo.
+echo.
+echo Installing global cody_pro command...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\install-cody-pro-global.ps1"
+if errorlevel 1 (
+  set "CODY_FATAL_EXIT=!ERRORLEVEL!"
+  popd
+  goto FatalExit
+)
+
+echo.
+echo Verifying cody_pro command...
+if not exist "%GLOBAL_CMD%" (
+  echo [error] Global cody_pro command shim was not created.
+  echo Expected command shim:
+  echo   "%GLOBAL_CMD%"
+  popd
+  exit /b 1
+)
+
+set "PATH=%GLOBAL_BIN%;%USERPROFILE%\.bun\bin;%PATH%"
+set "FOUND_GLOBAL_CMD="
+pushd "%TEMP%"
+for /f "delims=" %%A in ('where cody_pro 2^>nul') do (
+  if /I "%%~fA"=="%GLOBAL_CMD%" set "FOUND_GLOBAL_CMD=1"
+)
+if not defined FOUND_GLOBAL_CMD (
+  popd
+  echo [error] cody_pro was installed but the global command directory is not on PATH.
+  echo Expected PATH entry:
+  echo   "%GLOBAL_BIN%"
+  echo Expected command shim:
+  echo   "%GLOBAL_CMD%"
+  echo Open a new terminal and rerun install.bat. If it still fails, run:
+  echo   "%GLOBAL_CMD%"
+  popd
+  exit /b 1
+)
+call cody_pro --help >nul 2>nul
+if errorlevel 1 (
+  popd
+  echo [error] cody_pro was found on PATH but failed to start.
+  popd
+  exit /b 1
+)
+popd
+echo [ok] cody_pro is ready on PATH.
+
+popd
+echo.
+echo Cody Pro installation complete.
+echo Start Cody Pro with:
+echo   cody_pro
+set "FINAL_PATH=%GLOBAL_BIN%;%USERPROFILE%\.bun\bin;%PATH%"
+endlocal & set "PATH=%FINAL_PATH%"
+exit /b 0
+
+:FatalExit
+exit /b !CODY_FATAL_EXIT!
+
+:EnsureCommand
+set "CMD_NAME=%~1"
+set "WINGET_ID=%~2"
+set "LABEL=%~3"
+
+where "%CMD_NAME%" >nul 2>nul
+if not errorlevel 1 (
+  echo [ok] %LABEL% found.
+  exit /b 0
+)
+
+echo [missing] %LABEL% not found.
+if "%HAS_WINGET%"=="1" (
+  echo Installing %LABEL% with winget...
+  winget install --id "%WINGET_ID%" --exact --source winget --accept-package-agreements --accept-source-agreements
+  if errorlevel 1 (
+    echo [error] Failed to install %LABEL% with winget.
+    exit /b 1
+  )
+  set "PATH=%ProgramFiles%\Git\cmd;%ProgramFiles%\nodejs;%PATH%"
+  where "%CMD_NAME%" >nul 2>nul
+  if not errorlevel 1 (
+    echo [ok] %LABEL% installed.
+    exit /b 0
+  )
+)
+
+echo [error] %LABEL% is required.
+echo Install it manually, reopen the terminal, and rerun install.bat.
+exit /b 1
+
+:EnsureBun
+where bun >nul 2>nul
+if not errorlevel 1 (
+  echo [ok] Bun found.
+  exit /b 0
+)
+
+if exist "%USERPROFILE%\.bun\bin\bun.exe" (
+  echo [ok] Bun found in "%USERPROFILE%\.bun\bin".
+  set "PATH=%USERPROFILE%\.bun\bin;%PATH%"
+  exit /b 0
+)
+
+if exist "%APPDATA%\npm\bun.cmd" (
+  echo [ok] Bun found in "%APPDATA%\npm".
+  set "PATH=%APPDATA%\npm;%PATH%"
+  exit /b 0
+)
+
+echo [missing] Bun not found.
+echo Installing Bun for the current user...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://bun.sh/install.ps1 | iex"
+if errorlevel 1 (
+  echo [error] Failed to install Bun.
+  exit /b 1
+)
+
+set "PATH=%USERPROFILE%\.bun\bin;%APPDATA%\npm;%PATH%"
+where bun >nul 2>nul
+if not errorlevel 1 (
+  echo [ok] Bun installed.
+  exit /b 0
+)
+
+if exist "%USERPROFILE%\.bun\bin\bun.exe" (
+  echo [ok] Bun installed.
+  exit /b 0
+)
+
+echo [error] Bun installation did not produce a usable bun command.
+exit /b 1
+
+:UpdateCheckout
+if not exist "%ROOT%\.git" (
+  echo [info] No .git directory found. Skipping repository update.
+  exit /b 0
+)
+
+pushd "%ROOT%"
+
+rem Avoid Git dubious ownership error when clone runs under a different user context
+git config --global --add safe.directory "%ROOT%" >nul 2>nul
+for /f "delims=" %%A in ('git branch --show-current 2^>nul') do set "CURRENT_BRANCH=%%A"
+if defined CURRENT_BRANCH if /I not "!CURRENT_BRANCH!"=="%CODY_BRANCH%" (
+  echo Switching Cody Pro checkout from !CURRENT_BRANCH! to %CODY_BRANCH%...
+  git fetch origin "%CODY_BRANCH%"
+  if errorlevel 1 (
+    echo [error] Could not fetch branch "%CODY_BRANCH%" from origin.
+    popd
+    exit /b 1
+  ) else (
+    git switch "%CODY_BRANCH%"
+    if errorlevel 1 (
+      echo [error] Could not switch to "%CODY_BRANCH%".
+      echo Back up or commit local changes in "%ROOT%", then rerun install.bat.
+      popd
+      exit /b 1
+    )
+  )
+)
+echo Updating Cody Pro checkout...
+git pull --ff-only
+if errorlevel 1 (
+  echo [warn] git pull --ff-only failed. Continuing with the current checkout.
+)
+popd
+exit /b 0
+
