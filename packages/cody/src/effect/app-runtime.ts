@@ -57,7 +57,10 @@ import { layer as AgentHubLayer } from '@/server/agent/hub'
 import { Npm } from "@cody/core/npm"
 import { memoMap } from "@cody/core/effect/memo-map"
 
-const agentFileSystemLayer = Layer.provideMerge(remoteFileSystemLayer, NodeFileSystem.layer)
+const agentFileSystemLayer = Layer.provideMerge(
+  Layer.provideMerge(remoteFileSystemLayer, NodeFileSystem.layer),
+  AgentHubLayer,
+)
 
 export const AppLayer = Layer.mergeAll(
   Npm.defaultLayer,
@@ -108,7 +111,7 @@ export const AppLayer = Layer.mergeAll(
   ShareNext.defaultLayer,
   SessionShare.defaultLayer,
   SyncEvent.defaultLayer,
-  AgentHubLayer,
+  agentFileSystemLayer,
 ).pipe(Layer.provideMerge(InstanceLayer.layer), Layer.provideMerge(Observability.layer))
 
 const rt = ManagedRuntime.make(AppLayer, { memoMap })
