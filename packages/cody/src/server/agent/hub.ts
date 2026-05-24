@@ -174,7 +174,20 @@ export const layer = Layer.effect(
         pendingCommands.set(id, { deferred })
 
         const message: HubMessage = { type: "command", id, command, args }
-        yield* agent.write(JSON.stringify(message))
+        const encoded = JSON.stringify(message)
+        log.info("sending command to agent", { id, command, encodedLen: encoded.length })
+
+        // Write with timeout to avoid hanging
+        yield* agent.write(encoded).pipe(
+          Effect.timeout(Duration.seconds(5)),
+          Effect.catch((err) => {
+            pendingCommands.delete(id)
+            log.error("write to agent failed or timed out", { id, command, error: String(err) })
+            return Effect.fail(
+              err instanceof Error ? err : new Error(`Write failed: ${String(err)}`),
+            )
+          }),
+        )
 
         log.info("sent command to agent", { id, command })
 

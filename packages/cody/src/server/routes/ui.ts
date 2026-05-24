@@ -17,6 +17,7 @@ export async function serveUI(request: Request) {
       const mime = AppFileSystem.mimeType(match)
       const headers = new Headers({ "content-type": mime })
       const body = new Uint8Array(await fs.readFile(match))
+      headers.set("cache-control", "no-cache, no-store, must-revalidate")
       if (mime.startsWith("text/html")) {
         headers.set("content-security-policy", cspForHtml(new TextDecoder().decode(body)))
       }

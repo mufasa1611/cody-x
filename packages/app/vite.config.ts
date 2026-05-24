@@ -42,5 +42,13 @@ export default defineConfig({
     target: "esnext",
     sourcemap: true,
     chunkSizeWarningLimit: 2000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("context/global-sync") || id.includes("context/sync")) return "shared-context"
+          if (id.includes("node_modules")) return "vendor"
+        },
+      },
+    },
   },
 })

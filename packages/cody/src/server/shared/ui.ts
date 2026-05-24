@@ -3,7 +3,7 @@ import { AppFileSystem } from "@cody/core/filesystem"
 import { Effect, Stream } from "effect"
 import { HttpBody, HttpClient, HttpClientRequest, HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
 import { createHash } from "node:crypto"
-import { existsSync, readdirSync } from "node:fs"
+import { existsSync, readdirSync, statSync } from "node:fs"
 import { resolve, join } from "node:path"
 import { ProxyUtil } from "../proxy-util"
 
@@ -79,6 +79,7 @@ function embeddedUIResponse(file: string, body: Uint8Array) {
   if (mime.startsWith("text/html")) {
     headers.set("content-security-policy", cspForHtml(new TextDecoder().decode(body)))
   }
+  headers.set("cache-control", "no-cache, no-store, must-revalidate")
   return HttpServerResponse.raw(body, { headers })
 }
 
