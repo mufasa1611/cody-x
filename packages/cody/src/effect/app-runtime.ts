@@ -2,7 +2,9 @@ import { Layer, ManagedRuntime } from "effect"
 import { attach } from "./run-service"
 import * as Observability from "@cody/core/effect/observability"
 
+import { NodeFileSystem } from "@effect/platform-node"
 import { AppFileSystem } from "@cody/core/filesystem"
+import { layer as remoteFileSystemLayer } from "@/server/agent/remote-fs"
 import { Bus } from "@/bus"
 import { Auth } from "@/auth"
 import { Account } from "@/account/account"
@@ -55,9 +57,10 @@ import { layer as AgentHubLayer } from '@/server/agent/hub'
 import { Npm } from "@cody/core/npm"
 import { memoMap } from "@cody/core/effect/memo-map"
 
+const agentFileSystemLayer = Layer.provideMerge(remoteFileSystemLayer, NodeFileSystem.layer)
+
 export const AppLayer = Layer.mergeAll(
   Npm.defaultLayer,
-  AppFileSystem.defaultLayer,
   Bus.defaultLayer,
   Auth.defaultLayer,
   Account.defaultLayer,
