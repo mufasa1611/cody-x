@@ -1043,7 +1043,7 @@ export const defaultLayer = layer.pipe(
   Layer.provide(Auth.defaultLayer),
   Layer.provide(Session.defaultLayer),
   Layer.provide(SyncEvent.defaultLayer),
-  Layer.provide(SessionPrompt.defaultLayer),
+  Layer.provide(SessionPrompt.defaultLayer()),
   Layer.provide(Project.defaultLayer),
   Layer.provide(Vcs.defaultLayer),
   Layer.provide(FetchHttpClient.layer),

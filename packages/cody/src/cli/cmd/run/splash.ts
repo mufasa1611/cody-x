@@ -19,7 +19,7 @@ import {
   type ScrollbackWriter,
 } from "@opentui/core"
 import * as Locale from "@/util/locale"
-import { codyPro, codyProCredit, codyProCreditColor, go, logo } from "@/cli/logo"
+import { codyPro, codyProCredit, codyProCreditColor, go, logo, mufasaBanner } from "@/cli/logo"
 import type { RunSplashTheme } from "./theme"
 
 export const SPLASH_TITLE_LIMIT = 50
@@ -211,35 +211,41 @@ function build(input: SplashWriterInput, kind: "entry" | "exit", ctx: Scrollback
     const brand = isCodyPro ? codyPro : logo
     const rightShadow = color(input.theme.rightShadow, fallback(240, "#475569"))
 
+    for (let i = 0; i < mufasaBanner.length; i += 1) {
+      const line = mufasaBanner[i] ?? ""
+      push(lines, 0, i, line, right)
+    }
+
+    const logoTop = mufasaBanner.length + 1
+
     for (let i = 0; i < brand.left.length; i += 1) {
       const leftText = brand.left[i] ?? ""
       const rightText = brand.right[i] ?? ""
 
       draw(lines, leftText, {
         left: 0,
-        top: i,
+        top: logoTop + i,
         fg: left,
         shadow: leftShadow,
       })
       draw(lines, rightText, {
         left: leftText.length + 1,
-        top: i,
+        top: logoTop + i,
         fg: right,
         shadow: rightShadow,
       })
     }
-
-    height = brand.left.length
+    height = logoTop + brand.left.length
 
     if (isCodyPro) {
       const logoWidth = (brand.left[0]?.length ?? 0) + 1 + (brand.right[0]?.length ?? 0)
       const creditLeft = Math.max(0, Math.floor((logoWidth - codyProCredit.length) / 2))
-      push(lines, creditLeft, brand.left.length, codyProCredit, credit, undefined, TextAttributes.BOLD)
-      height = brand.left.length + 1
+      push(lines, creditLeft, logoTop + brand.left.length, codyProCredit, credit, undefined, TextAttributes.BOLD)
+      height = logoTop + brand.left.length + 1
     }
 
     if (input.showSession !== false) {
-      const top = brand.left.length + (isCodyPro ? 2 : 1)
+      const top = logoTop + brand.left.length + (isCodyPro ? 2 : 1)
       const label = "Session".padEnd(10, " ")
       push(lines, 0, top, label, left, undefined, TextAttributes.DIM)
       push(lines, label.length, top, meta.title, right, undefined, TextAttributes.BOLD)

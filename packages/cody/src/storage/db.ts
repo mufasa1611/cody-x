@@ -1,4 +1,4 @@
-import { type SQLiteBunDatabase } from "drizzle-orm/bun-sqlite"
+?import { type SQLiteBunDatabase } from "drizzle-orm/bun-sqlite"
 import { migrate } from "drizzle-orm/bun-sqlite/migrator"
 import { type SQLiteTransaction } from "drizzle-orm/sqlite-core"
 export * from "drizzle-orm"
@@ -28,10 +28,10 @@ export const NotFoundError = NamedError.create(
 const log = Log.create({ service: "db" })
 
 export function getChannelPath() {
-  if (["latest", "beta", "prod"].includes(InstallationChannel) || Flag.CODY_DISABLE_CHANNEL_DB)
-    return path.join(Global.Path.data, "opencode.db")
+  if (["latest", "beta", "prod", "local"].includes(InstallationChannel) || Flag.CODY_DISABLE_CHANNEL_DB)
+    return path.join(Global.Path.data, "cody-x.db")
   const safe = InstallationChannel.replace(/[^a-zA-Z0-9._-]/g, "-")
-  return path.join(Global.Path.data, `opencode-${safe}.db`)
+  return path.join(Global.Path.data, `cody-x-${safe}.db`)
 }
 
 export const Path = iife(() => {
