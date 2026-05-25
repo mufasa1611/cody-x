@@ -45,7 +45,7 @@ export const agentWebSocketRoute = HttpRouter.use((router) =>
               }
 
               if (paired) {
-                yield* hub.dispatch(parsed)
+                yield* hub.dispatch(parsed, pairedCode)
               }
             }).pipe(Effect.catch(() => Effect.void)),
           )

@@ -35,7 +35,7 @@ export interface Interface {
   readonly createPairingCode: Effect.Effect<string>
   readonly connectAgent: (code: string, write: AgentWriter) => Effect.Effect<boolean, Error>
   readonly disconnectAgent: (code: string) => Effect.Effect<void>
-  readonly dispatch: (message: AgentMessage) => Effect.Effect<void>
+  readonly dispatch: (message: AgentMessage, senderCode?: string) => Effect.Effect<void>
   readonly getStatus: Effect.Effect<{ connected: boolean; code?: string; pairedAt?: number }>
   readonly listDir: (path: string) => Effect.Effect<unknown, Error>
   readonly readFile: (path: string) => Effect.Effect<unknown, Error>
@@ -138,7 +138,7 @@ export const layer = Layer.effect(
       }
     })
 
-    const dispatch = Effect.fn("AgentHub.dispatch")(function* (message: AgentMessage) {
+    const dispatch = Effect.fn("AgentHub.dispatch")(function* (message: AgentMessage, senderCode?: string) {
       switch (message.type) {
         case "result":
         case "error": {
@@ -154,16 +154,9 @@ export const layer = Layer.effect(
           break
         }
         case "pong":
-          // heartbeat acknowledged
           break
-        case "disconnect": {
-          // Find which agent sent this
-          for (const [code, agent] of agents) {
-            // We can't identify the sender here without scope
-            // This will be handled by the WebSocket close handler
-          }
+        case "disconnect":
           break
-        }
       }
     })
 
@@ -214,7 +207,7 @@ export const layer = Layer.effect(
       createPairingCode: createPairingCode(),
       connectAgent: (code, write) => connectAgent(code, write),
       disconnectAgent: (code) => disconnectAgent(code),
-      dispatch: (message) => dispatch(message),
+      dispatch: (message, code) => dispatch(message, code),
       getStatus: getStatus(),
       listDir: (path) => sendCommand("list-dir", { path }),
       readFile: (path) => sendCommand("read-file", { path }),
