@@ -107,11 +107,21 @@ export const layer = Layer.effect(
     })
 
     const agentMakeDirectory = Effect.fn("AgentFS.makeDirectory")(function* (path: string, options?: { recursive?: boolean; mode?: number }) {
-      yield* hub.exec(`mkdir -p "${path}"`).pipe(Effect.catch(() => fs.makeDirectory(path, options)))
+      const unixCmd = `mkdir -p "${path}"`
+      const winCmd = `cmd /c if not exist "${path}" md "${path}" 2>nul`
+      yield* hub.exec(unixCmd).pipe(
+        Effect.catch(() => hub.exec(winCmd)),
+        Effect.catch(() => fs.makeDirectory(path, options)),
+      )
     })
 
     const agentRemove = Effect.fn("AgentFS.remove")(function* (path: string, options?: { recursive?: boolean; force?: boolean }) {
-      yield* hub.exec(`rm -rf "${path}"`).pipe(Effect.catch(() => fs.remove(path, options)))
+      const unixCmd = `rm -rf "${path}"`
+      const winCmd = `cmd /c if exist "${path}\\" (rd /s /q "${path}") else (del /f /q "${path}" 2>nul)`
+      yield* hub.exec(unixCmd).pipe(
+        Effect.catch(() => hub.exec(winCmd)),
+        Effect.catch(() => fs.remove(path, options)),
+      )
     })
 
     const baseFs: FileSystem.FileSystem = {

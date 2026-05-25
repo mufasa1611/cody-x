@@ -153,8 +153,13 @@ export const layer = Layer.effect(
           }
           break
         }
-        case "pong":
+case "pong": {
+          if (senderCode) {
+            const agent = agents.get(senderCode)
+            if (agent) agent.lastPong = Date.now()
+          }
           break
+        }
         case "disconnect":
           break
       }
