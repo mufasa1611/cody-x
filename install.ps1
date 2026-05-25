@@ -117,8 +117,6 @@ if (Test-Path (Join-Path $root ".git")) {
   Write-Host "No .git directory found. Skipping repository update."
 }
 
-Ensure-Command "node" "OpenJS.NodeJS.LTS" "Node.js LTS"
-
 function Get-BunCommand {
   $cmd = Get-Command bun -ErrorAction SilentlyContinue
   if ($cmd) { return $cmd.Source }
@@ -283,8 +281,8 @@ if (-not (Test-Path $defaultModelFile)) {
 # ---- Install global command ----
 Write-Host "Installing global cody-x command..."
 $globalInstaller = Join-Path $root "script\install-cody-x-global.ps1"
-$globalInstall = Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $globalInstaller) -Wait -PassThru -NoNewWindow
-$globalInstallExit = $globalInstall.ExitCode
+& $globalInstaller
+$globalInstallExit = $LASTEXITCODE
 if ($globalInstallExit -ne 0) {
   Write-Host "[error] Global command installation failed. You can run it manually:" -ForegroundColor Red
   Write-Host "  powershell -NoProfile -ExecutionPolicy Bypass -File `"$globalInstaller`"" -ForegroundColor Yellow
@@ -302,74 +300,10 @@ if (-not (Get-Command cody-x -ErrorAction SilentlyContinue)) {
   exit 1
 }
 
-& cody-x --help *> $null
+& cody-x --version *> $null
 if ($LASTEXITCODE -ne 0) {
   Write-Host "[error] cody-x was found on PATH but failed to start." -ForegroundColor Red
   exit $LASTEXITCODE
 }
 
-# ---- Interactive local model scan (final step) ----
-Write-Host ""
-Write-Host "---"
-Write-Host "Do you have Ollama or local GGUF models to scan?"
-Write-Host "  (scans your drives to auto-configure local AI models)"
-$answer = Read-Host "  [Y/n] "
-if ([string]::IsNullOrWhiteSpace($answer) -or $answer -match '^[yY]') {
-  $discoverScript = Join-Path $root "script\discover-local-models.ps1"
-  if (Test-Path $discoverScript) {
-    Write-Host ""
-    Write-Host "Scanning for local models..."
-
-    # Count drives
-    $drives = Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Root -match '^[A-Za-z]:\\$' -and (Test-Path $_.Root) }
-    $driveCount = $drives.Count
-    $driveLetters = ($drives | ForEach-Object { $_.Root.TrimEnd('\') }) -join ", "
-    Write-Host "  Found $driveCount drive(s): $driveLetters"
-    Write-Host ""
-
-    # Run with single-line progress
-    $env:CODY_MODEL_DISCOVERY_QUIET = "1"
-    $env:CODY_MODEL_SCAN_MAX_SECONDS = "30"
-
-    $job = Start-Job -ScriptBlock {
-      param($root)
-      & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root "script\discover-local-models.ps1") -Root $root -MaxSeconds 30
-    } -ArgumentList $root
-
-    # Show single-line progress
-    $dots = 0
-    while ($job.State -eq 'Running') {
-      $dots = ($dots + 1) % 4
-      $bar = "." * $dots + " " * (3 - $dots)
-      Write-Host "`r  Scanning[$bar] $($job.State)" -NoNewline
-      Start-Sleep -Milliseconds 500
-    }
-
-    Receive-Job -Job $job -Wait -AutoRemoveJob | Out-Null
-
-    # Show results
-    $reportPath = Join-Path (Join-Path $root ".cody\generated") "cody-local-models.report.json"
-    if (Test-Path $reportPath) {
-      try {
-        $report = Get-Content $reportPath -Raw | ConvertFrom-Json
-        $ollamaCount = $report.ollamaModelCount
-        $ggufCount = $report.ggufModelCount
-        $total = $ollamaCount + $ggufCount
-        if ($total -gt 0) {
-          Write-Host "`r[ok] Found $total local models ($ollamaCount Ollama, $ggufCount GGUF)"
-          Write-Host "  Models will be available in cody-x provider list."
-        } else {
-          Write-Host "`r[info] No local models found."
-          Write-Host "  Install Ollama or download GGUF files to use local models."
-        }
-      } catch {
-        Write-Host "`r[warn] Could not read model discovery report."
-      }
-    }
-  } else {
-    Write-Host "[warn] Model discovery script not found. Skipping."
-  }
-} else {
-  Write-Host "[info] Local model scan skipped. Run later with:"
-  Write-Host "  powershell -File script\discover-local-models.ps1"
-}
+Write-Host "[info] Local model discovery runs automatically on first launch via cody-x.cmd."
