@@ -1,13 +1,13 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
 $target = Join-Path $env:APPDATA "npm"
-$cmdShim = Join-Path $target "cody_pro.cmd"
-$psShim = Join-Path $target "cody_pro.ps1"
+$cmdShim = Join-Path $target "cody-x.cmd"
+$psShim = Join-Path $target "cody-x.ps1"
 
-if (-not (Test-Path (Join-Path $root "cody-pro.cmd"))) {
-  throw "Cody Pro launcher not found at $root\cody-pro.cmd"
+if (-not (Test-Path (Join-Path $root "cody-x.cmd"))) {
+  throw "cody-x launcher not found at $root\cody-x.cmd"
 }
 
 function Get-BunCommand {
@@ -35,7 +35,7 @@ function Add-UserPathEntry($entry) {
   if (-not $exists) {
     $next = @($items + $full) -join ";"
     [Environment]::SetEnvironmentVariable("Path", $next, "User")
-    Write-Host "Added Cody Pro command directory to user PATH: $full"
+    Write-Host "Added cody-x command directory to user PATH: $full"
   }
   $currentItems = @($env:PATH -split ";" | Where-Object { $_ -and $_.Trim() })
   $inCurrent = $false
@@ -50,7 +50,7 @@ function Add-UserPathEntry($entry) {
     Add-Type @"
 using System;
 using System.Runtime.InteropServices;
-namespace CodyPro {
+namespace CodyX {
   public static class NativeMethods {
     [DllImport("user32.dll", SetLastError=true, CharSet=CharSet.Auto)]
     public static extern IntPtr SendMessageTimeout(IntPtr hWnd, UInt32 Msg, UIntPtr wParam, string lParam, UInt32 fuFlags, UInt32 uTimeout, out UIntPtr lpdwResult);
@@ -58,9 +58,9 @@ namespace CodyPro {
 }
 "@
     $result = [UIntPtr]::Zero
-    [CodyPro.NativeMethods]::SendMessageTimeout([IntPtr]0xffff, 0x1a, [UIntPtr]::Zero, "Environment", 0x0002, 5000, [ref]$result) | Out-Null
+    [CodyX.NativeMethods]::SendMessageTimeout([IntPtr]0xffff, 0x1a, [UIntPtr]::Zero, "Environment", 0x0002, 5000, [ref]$result) | Out-Null
   } catch {
-    Write-Host "[warn] Could not broadcast PATH update. Open a new terminal if cody_pro is not recognized."
+    Write-Host "[warn] Could not broadcast PATH update. Open a new terminal if cody-x is not recognized."
   }
 }
 
@@ -75,13 +75,13 @@ if (-not $bun) { throw "Bun installation did not produce a usable bun command." 
 Write-Host "Using Bun: $bun"
 New-Item -ItemType Directory -Force -Path $target | Out-Null
 
-# Create cody_pro command (proxy-enabled)
+# Create cody-x command (proxy-enabled)
 @"
 @echo off
 setlocal
 set "CODY_ROOT=$root"
-if not exist "%CODY_ROOT%\cody-pro.cmd" (
-  echo Cody Pro launcher not found at "%CODY_ROOT%\cody-pro.cmd".
+if not exist "%CODY_ROOT%\cody-x.cmd" (
+  echo cody-x launcher not found at "%CODY_ROOT%\cody-x.cmd".
   exit /b 1
 )
 :: Load proxy settings from .env.proxy, with .env fallback for older installs.
@@ -95,16 +95,16 @@ if not defined CODY_PROXY_ENABLED if exist "%CODY_ROOT%\.env" (
     for /f "tokens=1,* delims==" %%b in ("%%a") do set "%%b=%%c"
   )
 )
-call "%CODY_ROOT%\cody-pro.cmd" %*
+call "%CODY_ROOT%\cody-x.cmd" %*
 exit /b %ERRORLEVEL%
 "@ | Set-Content -Encoding ASCII -Path $cmdShim
 
 @"
 #!/usr/bin/env pwsh
 `$root = "$root"
-`$launcher = Join-Path `$root "cody-pro.cmd"
+`$launcher = Join-Path `$root "cody-x.cmd"
 if (-not (Test-Path `$launcher)) {
-  Write-Error "Cody Pro launcher not found at `$launcher."
+  Write-Error "cody-x launcher not found at `$launcher."
   exit 1
 }
 # Load proxy settings from .env.proxy, with .env fallback for older installs.
@@ -121,13 +121,13 @@ if (Test-Path `$envFile) {
 exit `$LASTEXITCODE
 "@ | Set-Content -Encoding ASCII -Path $psShim
 
-# Only cody_pro is created from this repo (cody-pro is the original D: installation)
+# Only cody-x is created from this repo
 
 Write-Host "Installed global commands:"
-  Write-Host "  cody_pro  (from $root, with proxy from .env.proxy)"
+  Write-Host "  cody-x  (from $root, with proxy from .env.proxy)"
 Add-UserPathEntry $target
 
-if (-not (Get-Command cody_pro -ErrorAction SilentlyContinue)) {
-  throw "cody_pro shim was created but is not on PATH."
+if (-not (Get-Command cody-x -ErrorAction SilentlyContinue)) {
+  throw "cody-x shim was created but is not on PATH."
 }
-Write-Host "[ok] cody_pro is available on PATH."
+Write-Host "[ok] cody-x is available on PATH."

@@ -1,4 +1,4 @@
-param([string]$Root)
+﻿param([string]$Root)
 
 $options = @("CLI (Terminal UI)", "Web UI (Browser)")
 $selected = 0
@@ -19,7 +19,7 @@ try {
             $first = $false
         }
         Write-Host ""
-        Write-Host "  Cody Pro Launcher"
+        Write-Host "  cody-x Launcher"
         Write-Host ""
         for ($i = 0; $i -lt $options.Length; $i++) {
             if ($i -eq $selected) {

@@ -1,10 +1,10 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 set -euo pipefail
 
-REPO_URL="https://github.com/your-org/cody.git"
-DEFAULT_ROOT="${HOME:-~}/.local/share/cody_pro"
+REPO_URL="https://github.com/mufasa1611/cody-x.git"
+DEFAULT_ROOT="${HOME:-~}/.local/share/cody-x"
 BRANCH="${CODY_BRANCH:-main}"
-INSTALLER_URL="https://raw.githubusercontent.com/mufasa1611/cody_pro/$BRANCH/install.sh"
+INSTALLER_URL="https://raw.githubusercontent.com/mufasa1611/cody-x/$BRANCH/install.sh"
 
 # ---- Self-update check ----
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
@@ -25,9 +25,9 @@ fi
 
 # ---- Help ----
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-  echo "Cody Pro Installer for Linux/macOS"
+  echo "cody-x Installer for Linux/macOS"
   echo ""
-  echo "Usage: curl -fsSL https://raw.githubusercontent.com/mufasa1611/cody_pro/$BRANCH/install.sh | bash"
+  echo "Usage: curl -fsSL https://raw.githubusercontent.com/mufasa1611/cody-x/$BRANCH/install.sh | bash"
   echo ""
   echo "Environment variables:"
   echo "  CODY_INSTALL_ROOT   Install to a custom path instead of $DEFAULT_ROOT"
@@ -40,7 +40,7 @@ fi
 # ---- OS detection ----
 OS="$(uname -s)"
 ARCH="$(uname -m)"
-echo "Cody Pro installer for $OS ($ARCH)"
+echo "cody-x installer for $OS ($ARCH)"
 
 case "$OS" in
   Linux) ;;
@@ -124,7 +124,7 @@ fi
 ROOT="${CODY_INSTALL_ROOT:-}"
 if [ -z "$ROOT" ]; then
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  if [ -f "$SCRIPT_DIR/package.json" ] && grep -q '"name".*"cody-pro"' "$SCRIPT_DIR/package.json" 2>/dev/null; then
+  if [ -f "$SCRIPT_DIR/package.json" ] && grep -q '"name".*"cody"' "$SCRIPT_DIR/package.json" 2>/dev/null; then
     ROOT="$SCRIPT_DIR"
   else
     ROOT="$DEFAULT_ROOT"
@@ -135,15 +135,15 @@ echo "Install target: $ROOT"
 
 # ---- Clone or update ----
 check_is_repo() {
-  [ -f "$1/package.json" ] && grep -q '"name".*"cody-pro"' "$1/package.json" 2>/dev/null
+  [ -f "$1/package.json" ] && grep -q '"name".*"cody"' "$1/package.json" 2>/dev/null
 }
 
 if ! check_is_repo "$ROOT"; then
-  echo "Cody Pro checkout not found. Cloning from GitHub..."
+  echo "cody-x checkout not found. Cloning from GitHub..."
   PARENT="$(dirname "$ROOT")"
   mkdir -p "$PARENT"
   if [ -d "$ROOT" ] && [ "$(ls -A "$ROOT" 2>/dev/null)" ]; then
-    echo "[error] $ROOT exists but is not a Cody Pro checkout."
+    echo "[error] $ROOT exists but is not a cody-x checkout."
     echo "  Move it away or set CODY_INSTALL_ROOT, then rerun."
     exit 1
   fi
@@ -158,7 +158,7 @@ if [ -d "$ROOT/.git" ]; then
   BEFORE_HEAD=$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true)
   CURRENT_BRANCH="$(git -C "$ROOT" branch --show-current 2>/dev/null || true)"
   if [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "$BRANCH" ]; then
-    echo "Switching Cody Pro checkout from $CURRENT_BRANCH to $BRANCH..."
+    echo "Switching cody-x checkout from $CURRENT_BRANCH to $BRANCH..."
     if git -C "$ROOT" fetch origin "$BRANCH"; then
       git -C "$ROOT" switch "$BRANCH" || {
         echo "[error] Could not switch to $BRANCH."
@@ -170,7 +170,7 @@ if [ -d "$ROOT/.git" ]; then
       exit 1
     fi
   fi
-  echo "Updating Cody Pro checkout..."
+  echo "Updating cody-x checkout..."
   git -C "$ROOT" pull --ff-only 2>/dev/null || echo "[warn] git pull failed; continuing with current checkout."
 fi
 
@@ -216,7 +216,7 @@ echo "[ok] Bun: $("$BUN" --version 2>/dev/null || echo "$BUN")"
 
 # ---- bun install (skip if deps unchanged) ----
 if [ "$NEED_INSTALL" = true ]; then
-  echo "Installing Cody Pro dependencies..."
+  echo "Installing cody-x dependencies..."
   set +e
   "$BUN" install
   BUN_EXIT=$?
@@ -256,14 +256,14 @@ fi
 
 # ---- Create proxy config ----
 if [ ! -f "$ROOT/.env.proxy" ]; then
-  echo "Creating .env.proxy with Cloudflare proxy settings..."
+  echo "Creating .env.proxy with proxy settings..."
   cat > "$ROOT/.env.proxy" << 'ENVEOF'
 CODY_PROXY_ENABLED=1
 HTTPS_PROXY=http://localhost:9999
 HTTP_PROXY=http://localhost:9999
 NO_PROXY=localhost,127.0.0.1,::1
 ENVEOF
-  echo "[ok] .env.proxy created with Cloudflare proxy config."
+  echo "[ok] .env.proxy created with proxy config."
 else
   echo "[ok] .env.proxy already exists."
 fi

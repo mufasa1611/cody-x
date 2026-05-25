@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 param(
   [string]$Root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path,
   [switch]$Refresh,
@@ -27,7 +27,7 @@ $notes = New-Object 'System.Collections.Generic.List[string]'
 
 function Show-CodyScan([string]$Message) {
   if ($env:CODY_MODEL_DISCOVERY_QUIET -eq "1") { return }
-  Write-Host "[cody-pro:model-scan] $Message"
+  Write-Host "[cody-x:model-scan] $Message"
 }
 
 function Test-Expired {

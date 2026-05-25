@@ -1,20 +1,20 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
-set "REPO_URL=https://github.com/your-org/cody.git"
+set "REPO_URL=https://github.com/mufasa1611/cody-x.git"
 if not defined CODY_BRANCH set "CODY_BRANCH=main"
-set "INSTALLER_URL=https://raw.githubusercontent.com/mufasa1611/cody_pro/%CODY_BRANCH%/install.bat"
-set "DEFAULT_PARENT=%LOCALAPPDATA%\CodyPro"
-set "DEFAULT_ROOT=%DEFAULT_PARENT%\cody_pro"
+set "INSTALLER_URL=https://raw.githubusercontent.com/mufasa1611/cody-x/%CODY_BRANCH%/install.bat"
+set "DEFAULT_PARENT=%LOCALAPPDATA%\cody-x"
+set "DEFAULT_ROOT=%DEFAULT_PARENT%"
 set "GLOBAL_BIN=%APPDATA%\npm"
-set "GLOBAL_CMD=%GLOBAL_BIN%\cody_pro.cmd"
+set "GLOBAL_CMD=%GLOBAL_BIN%\cody-x.cmd"
 set "ROOT=%~dp0"
 if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
 
 if defined CODY_INSTALL_ROOT set "ROOT=%CODY_INSTALL_ROOT%"
 if not exist "%ROOT%\package.json" set "ROOT=%DEFAULT_ROOT%"
 
-echo Cody Pro Windows installer
+echo cody-x Windows installer
 echo Repo: "%ROOT%"
 echo.
 
@@ -26,7 +26,7 @@ if errorlevel 1 (
   goto AfterSelfUpdate
 )
 
-set "LATEST_INSTALLER=%TEMP%\cody_pro-install-latest-%RANDOM%%RANDOM%.bat"
+set "LATEST_INSTALLER=%TEMP%\cody-x-install-latest-%RANDOM%%RANDOM%.bat"
 if "%CODY_INSTALLER_SELF_UPDATE%"=="0" goto AfterSelfUpdate
 echo Checking for installer updates...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri '%INSTALLER_URL%' -OutFile '%LATEST_INSTALLER%'; exit 0 } catch { Write-Host ('[warn] Could not download latest installer: ' + $_.Exception.Message); exit 1 }"
@@ -64,15 +64,15 @@ call :EnsureCommand git "Git.Git" "Git"
 if errorlevel 1 exit /b 1
 
 set "HAS_CHECKOUT=0"
-if exist "%ROOT%\package.json" if exist "%ROOT%\cody-pro.cmd" set "HAS_CHECKOUT=1"
+if exist "%ROOT%\package.json" if exist "%ROOT%\cody-x.cmd" set "HAS_CHECKOUT=1"
 
 if "%HAS_CHECKOUT%"=="1" (
-  echo [ok] Cody Pro checkout found.
+  echo [ok] cody-x checkout found.
 ) else (
-  echo Cody Pro checkout not found. Cloning from GitHub...
+  echo cody-x checkout not found. Cloning from GitHub...
   if exist "%DEFAULT_ROOT%" (
-    echo [error] "%DEFAULT_ROOT%" exists but is not a Cody Pro checkout.
-    echo Move it away or set up Cody Pro there, then rerun install.bat.
+    echo [error] "%DEFAULT_ROOT%" exists but is not a cody-x checkout.
+    echo Move it away or set up cody-x there, then rerun install.bat.
     exit /b 1
   )
   if not exist "%DEFAULT_PARENT%" mkdir "%DEFAULT_PARENT%" >nul 2>nul
@@ -82,11 +82,11 @@ if "%HAS_CHECKOUT%"=="1" (
     git clone "%REPO_URL%" "%DEFAULT_ROOT%"
   )
   if errorlevel 1 (
-    echo [error] Failed to clone Cody Pro from "%REPO_URL%".
+    echo [error] Failed to clone cody-x from "%REPO_URL%".
     exit /b 1
   )
   set "ROOT=%DEFAULT_ROOT%"
-  echo [ok] Cody Pro cloned to "%ROOT%".
+  echo [ok] cody-x cloned to "%ROOT%".
   echo [ok] Checking Git safe directory configuration...
   git config --global --add safe.directory "%ROOT%" >nul 2>nul
 )
@@ -100,7 +100,7 @@ where npm >nul 2>nul
 if not errorlevel 1 (
   echo [ok] npm found.
 ) else (
-  echo [warn] npm was not found after Node.js check. Cody Pro does not require npm for startup, but Node.js should normally provide it.
+  echo [warn] npm was not found after Node.js check. cody-x does not require npm for startup, but Node.js should normally provide it.
 )
 
 call :EnsureBun
@@ -116,7 +116,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo Installing Cody Pro dependencies...
+echo Installing cody-x dependencies...
 pushd "%ROOT%"
 call bun install
 if errorlevel 1 (
@@ -184,8 +184,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\ensure-defaul
 
 echo.
 echo.
-echo Installing global cody_pro command...
-powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\install-cody-pro-global.ps1"
+echo Installing global cody-x command...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\install-cody-x-global.ps1"
 if errorlevel 1 (
   set "CODY_FATAL_EXIT=!ERRORLEVEL!"
   popd
@@ -193,9 +193,9 @@ if errorlevel 1 (
 )
 
 echo.
-echo Verifying cody_pro command...
+echo Verifying cody-x command...
 if not exist "%GLOBAL_CMD%" (
-  echo [error] Global cody_pro command shim was not created.
+  echo [error] Global cody-x command shim was not created.
   echo Expected command shim:
   echo   "%GLOBAL_CMD%"
   popd
@@ -205,12 +205,12 @@ if not exist "%GLOBAL_CMD%" (
 set "PATH=%GLOBAL_BIN%;%USERPROFILE%\.bun\bin;%PATH%"
 set "FOUND_GLOBAL_CMD="
 pushd "%TEMP%"
-for /f "delims=" %%A in ('where cody_pro 2^>nul') do (
+for /f "delims=" %%A in ('where cody-x 2^>nul') do (
   if /I "%%~fA"=="%GLOBAL_CMD%" set "FOUND_GLOBAL_CMD=1"
 )
 if not defined FOUND_GLOBAL_CMD (
   popd
-  echo [error] cody_pro was installed but the global command directory is not on PATH.
+  echo [error] cody-x was installed but the global command directory is not on PATH.
   echo Expected PATH entry:
   echo   "%GLOBAL_BIN%"
   echo Expected command shim:
@@ -220,21 +220,21 @@ if not defined FOUND_GLOBAL_CMD (
   popd
   exit /b 1
 )
-call cody_pro --help >nul 2>nul
+call cody-x --help >nul 2>nul
 if errorlevel 1 (
   popd
-  echo [error] cody_pro was found on PATH but failed to start.
+  echo [error] cody-x was found on PATH but failed to start.
   popd
   exit /b 1
 )
 popd
-echo [ok] cody_pro is ready on PATH.
+echo [ok] cody-x is ready on PATH.
 
 popd
 echo.
-echo Cody Pro installation complete.
-echo Start Cody Pro with:
-echo   cody_pro
+echo cody-x installation complete.
+echo Start cody-x with:
+echo   cody-x
 set "FINAL_PATH=%GLOBAL_BIN%;%USERPROFILE%\.bun\bin;%PATH%"
 endlocal & set "PATH=%FINAL_PATH%"
 exit /b 0
@@ -327,7 +327,7 @@ rem Avoid Git dubious ownership error when clone runs under a different user con
 git config --global --add safe.directory "%ROOT%" >nul 2>nul
 for /f "delims=" %%A in ('git branch --show-current 2^>nul') do set "CURRENT_BRANCH=%%A"
 if defined CURRENT_BRANCH if /I not "!CURRENT_BRANCH!"=="%CODY_BRANCH%" (
-  echo Switching Cody Pro checkout from !CURRENT_BRANCH! to %CODY_BRANCH%...
+  echo Switching cody-x checkout from !CURRENT_BRANCH! to %CODY_BRANCH%...
   git fetch origin "%CODY_BRANCH%"
   if errorlevel 1 (
     echo [error] Could not fetch branch "%CODY_BRANCH%" from origin.
@@ -343,11 +343,10 @@ if defined CURRENT_BRANCH if /I not "!CURRENT_BRANCH!"=="%CODY_BRANCH%" (
     )
   )
 )
-echo Updating Cody Pro checkout...
+echo Updating cody-x checkout...
 git pull --ff-only
 if errorlevel 1 (
   echo [warn] git pull --ff-only failed. Continuing with the current checkout.
 )
 popd
 exit /b 0
-

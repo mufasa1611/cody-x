@@ -34,16 +34,16 @@ const handleLauncherDownload = Effect.fn("AgentDownload.handleLauncherDownload")
 
   const bat = `@echo off
 setlocal enabledelayedexpansion
-title Cody Pro — Connect My PC
+title cody-x — Connect My PC
 echo ============================================
-echo    Cody Pro — Remote PC Agent
+echo    cody-x — Remote PC Agent
 echo ============================================
 echo.
 
 set "CODE=${code}"
 set "WS_URL=${wsUrl}"
 set "SERVER=${serverUrl}"
-set "SCRIPT=%TEMP%\\cody-connect-${code}.mjs"
+set "SCRIPT=%TEMP%\\cody-x-connect-${code}.mjs"
 
 REM Download connect.mjs from server
 echo [1/2] Downloading connect script...
@@ -57,7 +57,7 @@ if not exist "%SCRIPT%" (
 echo OK
 
 REM Try Node.js first, then Bun
-echo [2/2] Connecting to Cody Pro...
+echo [2/2] Connecting to cody-x...
 set "CODY_WS_URL=%WS_URL%"
 where node >nul 2>nul
 if !ERRORLEVEL! EQU 0 (
@@ -102,15 +102,15 @@ const handlePs1Download = Effect.fn("AgentDownload.handlePs1Download")(function*
   const serverUrl = url.searchParams.get("server") || "https://cody.kingkung.men"
 
   const ps1 = `#!/usr/bin/env pwsh
-# Cody Pro — Remote PC Agent
+# cody-x — Remote PC Agent
 
 $code = "${code}"
 $wsUrl = "${wsUrl}"
 $server = "${serverUrl}"
-$script = Join-Path $env:TEMP "cody-connect-${code}.mjs"
+$script = Join-Path $env:TEMP "cody-x-connect-${code}.mjs"
 
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "   Cody Pro — Remote PC Agent" -ForegroundColor Cyan
+Write-Host "   cody-x — Remote PC Agent" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -128,7 +128,7 @@ try {
 }
 
 # Connect
-Write-Host "[2/2] Connecting to Cody Pro..." -ForegroundColor Cyan
+Write-Host "[2/2] Connecting to cody-x..." -ForegroundColor Cyan
 $env:CODY_WS_URL = $wsUrl
 
 # Try Bun first (faster), then Node
@@ -165,5 +165,6 @@ export const agentDownloadRoute = HttpRouter.use((router) =>
     yield* router.add("GET", "/agent/download/launcher.ps1", (request) => handlePs1Download(request))
   }),
 )
+
 
 

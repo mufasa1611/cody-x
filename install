@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="mufasa1611/cody_pro"
+REPO="mufasa1611/cody-x"
 BRANCH="${CODY_BRANCH:-main}"
 SELF_URL="https://raw.githubusercontent.com/$REPO/$BRANCH/install"
 
@@ -26,7 +26,7 @@ ARCH="$(uname -m 2>/dev/null || echo unknown)"
 
 case "$OS" in
   Linux*|Darwin*)
-    echo "Cody Pro installer for $OS ($ARCH)"
+    echo "cody-x installer for $OS ($ARCH)"
     if [ -n "${ANDROID_ROOT:-}" ] || [ -n "${TERMUX_VERSION:-}" ]; then
       echo "[info] Android/Termux-like environment detected."
     fi
@@ -34,7 +34,7 @@ case "$OS" in
     exec bash <(curl -fsSL "https://raw.githubusercontent.com/$REPO/$BRANCH/install.sh") "$@"
     ;;
   MINGW*|MSYS*|CYGWIN*)
-    echo "Cody Pro installer for Windows (Git Bash/MSYS)"
+    echo "cody-x installer for Windows (Git Bash/MSYS)"
     echo "[info] Switching to PowerShell installer..."
     exec powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \
       "iwr https://raw.githubusercontent.com/$REPO/$BRANCH/install.ps1 -UseBasicParsing | iex"
@@ -42,7 +42,7 @@ case "$OS" in
   *)
     echo ""
     echo "=========================================="
-    echo "  Cody Pro Installer"
+    echo "  cody-x Installer"
     echo "=========================================="
     echo ""
     echo "  This script requires bash. Detected: $OS ($ARCH)"

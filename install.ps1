@@ -1,4 +1,4 @@
-﻿param(
+param(
   [string]$Branch = $(if ($env:CODY_BRANCH) { $env:CODY_BRANCH } else { "main" }),
   [switch]$SelfUpdate,
   [switch]$NoSelfUpdate
@@ -6,15 +6,15 @@
 
 $ErrorActionPreference = "Stop"
 
-$repoUrl = "https://github.com/your-org/cody.git"
-$defaultRoot = Join-Path $env:LOCALAPPDATA "CodyPro\cody_pro"
+$repoUrl = "https://github.com/mufasa1611/cody-x.git"
+$defaultRoot = Join-Path $env:LOCALAPPDATA "cody-x"
 
-function Test-CodyProCheckout($path) {
+function Test-CodyXCheckout($path) {
   $packagePath = Join-Path $path "package.json"
   if (-not (Test-Path $packagePath)) {
     return $false
   }
-  return (Get-Content -Raw -Path $packagePath) -match '"name"\s*:\s*"cody-pro"'
+  return (Get-Content -Raw -Path $packagePath) -match '"name"\s*:\s*"cody"'
 }
 
 function Ensure-Command($commandName, $wingetId, $label) {
@@ -47,7 +47,7 @@ if (-not $scriptRoot) {
 # or pass -NoSelfUpdate for local deterministic testing.
 $selfUpdateDisabled = $NoSelfUpdate -or $env:CODY_INSTALLER_SELF_UPDATE -eq "0"
 if (-not $selfUpdateDisabled -and $scriptPath -and -not $env:CODY_INSTALLER_SELF_UPDATED) {
-  $installerUrl = "https://raw.githubusercontent.com/mufasa1611/cody_pro/$Branch/install.ps1"
+  $installerUrl = "https://raw.githubusercontent.com/mufasa1611/cody-x/$Branch/install.ps1"
   try {
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     $response = Invoke-WebRequest -UseBasicParsing -Uri $installerUrl
@@ -68,14 +68,14 @@ if (-not $selfUpdateDisabled -and $scriptPath -and -not $env:CODY_INSTALLER_SELF
   }
 }
 
-$root = if (Test-CodyProCheckout $scriptRoot) { $scriptRoot } else { $defaultRoot }
+$root = if (Test-CodyXCheckout $scriptRoot) { $scriptRoot } else { $defaultRoot }
 
 Ensure-Command "git" "Git.Git" "Git"
 
-if (-not (Test-CodyProCheckout $root)) {
-  Write-Host "Cody Pro checkout not found. Cloning from GitHub..."
+if (-not (Test-CodyXCheckout $root)) {
+  Write-Host "cody-x checkout not found. Cloning from GitHub..."
   if ((Test-Path $root) -and (Get-ChildItem -Force -Path $root | Select-Object -First 1)) {
-    throw "$root exists but is not a Cody Pro checkout. Move it away or choose a clean install location, then rerun this installer."
+    throw "$root exists but is not a cody-x checkout. Move it away or choose a clean install location, then rerun this installer."
   }
   New-Item -ItemType Directory -Force -Path (Split-Path -Parent $root) | Out-Null
   git clone --branch $Branch $repoUrl $root
@@ -83,7 +83,7 @@ if (-not (Test-CodyProCheckout $root)) {
     Write-Host "[warn] Branch $Branch clone failed. Retrying default branch..."
     git clone $repoUrl $root
     if ($LASTEXITCODE -ne 0) {
-      throw "Failed to clone Cody Pro from $repoUrl."
+      throw "Failed to clone cody-x from $repoUrl."
     }
   }
 }
@@ -97,7 +97,7 @@ if (Test-Path (Join-Path $root ".git")) {
   $beforeHead = git -C $root rev-parse HEAD 2>$null
   $currentBranch = (git -C $root branch --show-current 2>$null).Trim()
   if ($currentBranch -and $currentBranch -ne $Branch) {
-    Write-Host "Switching Cody Pro checkout from $currentBranch to $Branch..."
+    Write-Host "Switching cody-x checkout from $currentBranch to $Branch..."
     git -C $root fetch origin $Branch
     if ($LASTEXITCODE -eq 0) {
       git -C $root switch $Branch
@@ -108,7 +108,7 @@ if (Test-Path (Join-Path $root ".git")) {
       throw "Could not fetch branch $Branch from origin."
     }
   }
-  Write-Host "Updating Cody Pro checkout..."
+  Write-Host "Updating cody-x checkout..."
   git -C $root pull --ff-only
   if ($LASTEXITCODE -ne 0) {
     Write-Host "git pull --ff-only failed. Continuing with the current checkout."
@@ -157,7 +157,7 @@ if (-not (Test-Path "node_modules")) {
 }
 
 if ($needInstall) {
-  Write-Host "Installing Cody Pro dependencies..."
+  Write-Host "Installing cody-x dependencies..."
   & $bun install
   if ($LASTEXITCODE -ne 0) {
     Write-Host ""
@@ -190,7 +190,7 @@ if (-not $hasVCTools) {
   Write-Host "[info] Visual Studio C++ Build Tools not detected." -ForegroundColor DarkGray
   Write-Host "  Native modules (tree-sitter-powershell) may fail to compile. This is optional." -ForegroundColor DarkGray
   Write-Host "  For full PowerShell syntax highlighting, install VS Build Tools:" -ForegroundColor DarkGray
-  Write-Host "    winget install Microsoft.VisualStudio.2022.BuildTools --override `"--add Microsoft.VisualStudio.Workload.VCTools --passive`"" -ForegroundColor DarkGray
+  Write-Host '    winget install Microsoft.VisualStudio.2022.BuildTools --override "--add Microsoft.VisualStudio.Workload.VCTools --passive"' -ForegroundColor DarkGray
 }
 
 Write-Host "Building Web UI..."
@@ -202,23 +202,23 @@ if ($buildExit -ne 0) {
   Write-Host "[warn] Web UI build failed, server will proxy to app.cody.ai."
 }
 
-Write-Host "Creating .env.proxy with Cloudflare proxy settings..."
+# ---- Create proxy config ----
+Write-Host "Creating .env.proxy with proxy settings..."
 $proxyFile = Join-Path $root ".env.proxy"
 if (-not (Test-Path $proxyFile)) {
-  $proxyContent = @"
-CODY_PROXY_ENABLED=1
-HTTPS_PROXY=http://localhost:9999
-HTTP_PROXY=http://localhost:9999
-NO_PROXY=localhost,127.0.0.1,::1
-"@
-  [System.IO.File]::WriteAllText($proxyFile, $proxyContent, [System.Text.UTF8Encoding]::new($false))
-  Write-Host "[ok] .env.proxy created with Cloudflare proxy config."
+  $proxyLines = @(
+    "CODY_PROXY_ENABLED=1",
+    "HTTPS_PROXY=http://localhost:9999",
+    "HTTP_PROXY=http://localhost:9999",
+    "NO_PROXY=localhost,127.0.0.1,::1"
+  )
+  [System.IO.File]::WriteAllLines($proxyFile, $proxyLines, [System.Text.UTF8Encoding]::new($false))
+  Write-Host "[ok] .env.proxy created with proxy settings."
 } else {
   Write-Host "[ok] .env.proxy already exists."
 }
 
-
-
+# ---- Set default model ----
 Write-Host "Setting default model to cody/big-pickle..."
 $generatedDir = Join-Path $root ".cody\generated"
 if (-not (Test-Path $generatedDir)) {
@@ -226,32 +226,32 @@ if (-not (Test-Path $generatedDir)) {
 }
 $defaultModelFile = Join-Path $generatedDir "cody.json"
 if (-not (Test-Path $defaultModelFile)) {
-  $json = @'
-{
-  "$schema": "https://cody.dev/config.json",
-  "model": "cody/big-pickle",
-  "provider": {
-    "cody": {
-      "models": {
-        "big-pickle": {
-          "name": "Big Pickle",
-          "reasoning": true,
-          "tool_call": true,
-          "temperature": true,
-          "cost": { "input": 0, "output": 0 },
-          "limit": { "context": 200000, "output": 128000 }
-        }
-      }
-    }
-  }
-}
-'@
-  [System.IO.File]::WriteAllText($defaultModelFile, $json, [System.Text.UTF8Encoding]::new($false))
+  $json = [System.Text.StringBuilder]::new()
+  [void]$json.AppendLine("{")
+  [void]$json.AppendLine('  "$schema": "https://cody.dev/config.json",')
+  [void]$json.AppendLine('  "model": "cody/big-pickle",')
+  [void]$json.AppendLine('  "provider": {')
+  [void]$json.AppendLine('    "cody": {')
+  [void]$json.AppendLine('      "models": {')
+  [void]$json.AppendLine('        "big-pickle": {')
+  [void]$json.AppendLine('          "name": "Big Pickle",')
+  [void]$json.AppendLine('          "reasoning": true,')
+  [void]$json.AppendLine('          "tool_call": true,')
+  [void]$json.AppendLine('          "temperature": true,')
+  [void]$json.AppendLine('          "cost": { "input": 0, "output": 0 },')
+  [void]$json.AppendLine('          "limit": { "context": 200000, "output": 128000 }')
+  [void]$json.AppendLine("        }")
+  [void]$json.AppendLine("      }")
+  [void]$json.AppendLine("    }")
+  [void]$json.AppendLine("  }")
+  [void]$json.AppendLine("}")
+  [System.IO.File]::WriteAllText($defaultModelFile, $json.ToString(), [System.Text.UTF8Encoding]::new($false))
   Write-Host "[ok] Default model configured: cody/big-pickle"
 }
 
-Write-Host "Installing global cody_pro command..."
-$globalInstaller = Join-Path $root "script\install-cody-pro-global.ps1"
+# ---- Install global command ----
+Write-Host "Installing global cody-x command..."
+$globalInstaller = Join-Path $root "script\install-cody-x-global.ps1"
 $globalInstall = Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $globalInstaller) -Wait -PassThru -NoNewWindow
 $globalInstallExit = $globalInstall.ExitCode
 if ($globalInstallExit -ne 0) {
@@ -261,24 +261,23 @@ if ($globalInstallExit -ne 0) {
 }
 
 $shimDir = Join-Path $env:APPDATA "npm"
-if (-not (Get-Command cody_pro -ErrorAction SilentlyContinue)) {
+if (-not (Get-Command cody-x -ErrorAction SilentlyContinue)) {
   $env:PATH = "$shimDir;$env:PATH"
 }
 
-if (-not (Get-Command cody_pro -ErrorAction SilentlyContinue)) {
-  Write-Host "[error] cody_pro was installed but is not available on PATH." -ForegroundColor Red
+if (-not (Get-Command cody-x -ErrorAction SilentlyContinue)) {
+  Write-Host "[error] cody-x was installed but is not available on PATH." -ForegroundColor Red
   Write-Host "  Expected PATH entry: $shimDir" -ForegroundColor Yellow
   exit 1
 }
 
-& cody_pro --help *> $null
+& cody-x --help *> $null
 if ($LASTEXITCODE -ne 0) {
-  Write-Host "[error] cody_pro was found on PATH but failed to start." -ForegroundColor Red
+  Write-Host "[error] cody-x was found on PATH but failed to start." -ForegroundColor Red
   exit $LASTEXITCODE
 }
 
-
-# --- Interactive local model scan (final step) ---
+# ---- Interactive local model scan (final step) ----
 Write-Host ""
 Write-Host "---"
 Write-Host "Do you have Ollama or local GGUF models to scan?"
@@ -289,23 +288,23 @@ if ([string]::IsNullOrWhiteSpace($answer) -or $answer -match '^[yY]') {
   if (Test-Path $discoverScript) {
     Write-Host ""
     Write-Host "Scanning for local models..."
-    
+
     # Count drives
     $drives = Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Root -match '^[A-Za-z]:\\$' -and (Test-Path $_.Root) }
     $driveCount = $drives.Count
     $driveLetters = ($drives | ForEach-Object { $_.Root.TrimEnd('\') }) -join ", "
     Write-Host "  Found $driveCount drive(s): $driveLetters"
     Write-Host ""
-    
+
     # Run with single-line progress
     $env:CODY_MODEL_DISCOVERY_QUIET = "1"
     $env:CODY_MODEL_SCAN_MAX_SECONDS = "30"
-    
+
     $job = Start-Job -ScriptBlock {
       param($root)
       & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root "script\discover-local-models.ps1") -Root $root -MaxSeconds 30
     } -ArgumentList $root
-    
+
     # Show single-line progress
     $dots = 0
     while ($job.State -eq 'Running') {
@@ -314,9 +313,9 @@ if ([string]::IsNullOrWhiteSpace($answer) -or $answer -match '^[yY]') {
       Write-Host "`r  Scanning[$bar] $($job.State)" -NoNewline
       Start-Sleep -Milliseconds 500
     }
-    
+
     Receive-Job -Job $job -Wait -AutoRemoveJob | Out-Null
-    
+
     # Show results
     $reportPath = Join-Path (Join-Path $root ".cody\generated") "cody-local-models.report.json"
     if (Test-Path $reportPath) {
@@ -327,7 +326,7 @@ if ([string]::IsNullOrWhiteSpace($answer) -or $answer -match '^[yY]') {
         $total = $ollamaCount + $ggufCount
         if ($total -gt 0) {
           Write-Host "`r[ok] Found $total local models ($ollamaCount Ollama, $ggufCount GGUF)"
-          Write-Host "  Models will be available in Cody Pro provider list."
+          Write-Host "  Models will be available in cody-x provider list."
         } else {
           Write-Host "`r[info] No local models found."
           Write-Host "  Install Ollama or download GGUF files to use local models."
