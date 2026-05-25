@@ -703,7 +703,6 @@ export const SettingsGeneral: Component = () => {
           <div data-action="settings-updates-startup">
             <Switch
               checked={settings.updates.startup()}
-              disabled={!platform.checkUpdate}
               onChange={(checked) => settings.updates.setStartup(checked)}
             />
           </div>
