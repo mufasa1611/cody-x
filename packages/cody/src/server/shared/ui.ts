@@ -28,11 +28,6 @@ function localDevUIFiles(): Record<string, string> | null {
   return Object.keys(files).length > 0 ? files : null
 }
 
-const embeddedUIPromise = Flag.CODY_DISABLE_EMBEDDED_WEB_UI
-  ? Promise.resolve(null)
-  : // @ts-expect-error - generated file at build time
-    import("cody-web-ui.gen.ts").then((module) => module.default as Record<string, string>).catch(() => localDevUIFiles())
-
 export const UI_UPSTREAM = new URL("https://app.opencode.ai")
 
 export const csp = (hash = "") =>
@@ -68,7 +63,10 @@ export function upstreamURL(path: string) {
 
 export function embeddedUI() {
   if (Flag.CODY_DISABLE_EMBEDDED_WEB_UI) return Promise.resolve(null)
-  return embeddedUIPromise
+  // Refresh file map on every call so rebuilds are picked up immediately
+  return import("cody-web-ui.gen.ts")
+    .then((module) => (module.default ?? null) as Record<string, string> | null)
+    .catch(() => localDevUIFiles())
 }
 
 function notFound() {
