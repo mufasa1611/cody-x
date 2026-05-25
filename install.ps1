@@ -193,6 +193,37 @@ if (-not $hasVCTools) {
   Write-Host '    winget install Microsoft.VisualStudio.2022.BuildTools --override "--add Microsoft.VisualStudio.Workload.VCTools --passive"' -ForegroundColor DarkGray
 }
 
+# ---- Check/install cloudflared for proxy tunnel ----
+$cfCmd = Get-Command cloudflared -ErrorAction SilentlyContinue
+if (-not $cfCmd) {
+  $cfPaths = @(
+    "$env:ProgramFiles\cloudflared\cloudflared.exe",
+    "${env:ProgramFiles(x86)}\cloudflared\cloudflared.exe",
+    "$env:LOCALAPPDATA\cloudflared\cloudflared.exe"
+  )
+  $cfFound = $false
+  foreach ($p in $cfPaths) { if (Test-Path $p) { $cfFound = $true; break } }
+  if (-not $cfFound) {
+    $winget = Get-Command winget -ErrorAction SilentlyContinue
+    if ($winget) {
+      Write-Host "[info] cloudflared not found. Installing with winget..."
+      winget install --id Cloudflare.cloudflared --exact --source winget --accept-package-agreements --accept-source-agreements
+      if ($LASTEXITCODE -eq 0) {
+        Write-Host "[ok] cloudflared installed."
+        $env:PATH = "$env:ProgramFiles\cloudflared;$env:PATH"
+      } else {
+        Write-Host "[warn] cloudflared install failed. Proxy tunnel won't auto-start."
+        Write-Host "  Install manually: https://developers.cloudflare.com/cloudflare-one/connections/connect-devices/warp/download-warp/"
+      }
+    } else {
+      Write-Host "[warn] cloudflared not found and winget not available."
+      Write-Host "  Install cloudflared from: https://developers.cloudflare.com/cloudflare-one/connections/connect-devices/warp/download-warp/"
+    }
+  }
+} else {
+  Write-Host "[ok] cloudflared found."
+}
+
 Write-Host "Building Web UI..."
 Push-Location (Join-Path $root "packages\app")
 & $bun run build
