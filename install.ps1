@@ -6,6 +6,13 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+trap {
+  Write-Host ""
+  Write-Host "[error] Install failed at step: $($_.InvocationInfo.ScriptLineNumber)" -ForegroundColor Red
+  Write-Host "  Message: $($_.Exception.Message)" -ForegroundColor Red
+  exit 1
+}
+
 $repoUrl = "https://github.com/mufasa1611/cody-x.git"
 $defaultRoot = Join-Path $env:LOCALAPPDATA "cody-x"
 
@@ -290,20 +297,92 @@ if ($globalInstallExit -ne 0) {
 }
 
 $shimDir = Join-Path $env:APPDATA "npm"
-if (-not (Get-Command cody-x -ErrorAction SilentlyContinue)) {
-  $env:PATH = "$shimDir;$env:PATH"
+$env:PATH = "$shimDir;$env:PATH"
+
+Write-Host "Verifying cody-x can start..."
+$verifyOutput = & $bun run --cwd "$root\packages\cody" --conditions=browser src\index.ts --version 2>&1
+$verifyExit = $LASTEXITCODE
+if ($verifyExit -ne 0) {
+  Write-Host "[error] cody-x failed to start (exit code $verifyExit)." -ForegroundColor Red
+  exit $verifyExit
+}
+Write-Host "[ok] cody-x version: $($verifyOutput.Trim())"
+
+# ---- Interactive local model scan ----
+Write-Host ""
+Write-Host "---"
+Write-Host "cody-x can scan your system for local Ollama models and GGUF files"
+Write-Host "to auto-configure them as AI providers."
+$scanAnswer = Read-Host "Scan for local models now? [y/N] "
+if ($scanAnswer -match '^[yY]') {
+  $discoverScript = Join-Path $root "script\discover-local-models.ps1"
+  if (Test-Path $discoverScript) {
+    Write-Host ""
+    Write-Host "Scanning for local models..."
+    $drives = Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Root -match '^[A-Za-z]:\\$' -and (Test-Path $_.Root) }
+    $driveCount = $drives.Count
+    $driveLetters = ($drives | ForEach-Object { $_.Root.TrimEnd('\') }) -join ", "
+    Write-Host "  Found $driveCount drive(s): $driveLetters"
+    Write-Host ""
+
+    $env:CODY_MODEL_DISCOVERY_QUIET = "1"
+    $env:CODY_MODEL_SCAN_MAX_SECONDS = "30"
+
+    $job = Start-Job -ScriptBlock {
+      param($root)
+      & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root "script\discover-local-models.ps1") -Root $root -MaxSeconds 30
+    } -ArgumentList $root
+
+    $dots = 0
+    while ($job.State -eq 'Running') {
+      $dots = ($dots + 1) % 4
+      $bar = "." * $dots + " " * (3 - $dots)
+      Write-Host "`r  Scanning[$bar]" -NoNewline
+      Start-Sleep -Milliseconds 500
+    }
+
+    Receive-Job -Job $job -Wait -AutoRemoveJob | Out-Null
+
+    $reportPath = Join-Path (Join-Path $root ".cody\generated") "cody-local-models.report.json"
+    if (Test-Path $reportPath) {
+      try {
+        $report = Get-Content $reportPath -Raw | ConvertFrom-Json
+        $ollamaCount = $report.ollamaModelCount
+        $ggufCount = $report.ggufModelCount
+        $total = $ollamaCount + $ggufCount
+        if ($total -gt 0) {
+          Write-Host "`r[ok] Found $total local models ($ollamaCount Ollama, $ggufCount GGUF)"
+        } else {
+          Write-Host "`r[info] No local models found."
+        }
+      } catch {
+        Write-Host "`r[warn] Could not read model discovery report."
+      }
+    }
+  } else {
+    Write-Host "[warn] Model discovery script not found. Skipping."
+  }
+} else {
+  Write-Host "[info] Model scan skipped. Run later with:"
+  Write-Host "  powershell -File `"$root\script\discover-local-models.ps1`""
 }
 
-if (-not (Get-Command cody-x -ErrorAction SilentlyContinue)) {
-  Write-Host "[error] cody-x was installed but is not available on PATH." -ForegroundColor Red
-  Write-Host "  Expected PATH entry: $shimDir" -ForegroundColor Yellow
-  exit 1
+# ---- Welcome / next steps ----
+Write-Host ""
+Write-Host "========================================" -ForegroundColor Green
+Write-Host "  cody-x installed successfully!" -ForegroundColor Green
+Write-Host "========================================" -ForegroundColor Green
+Write-Host ""
+Write-Host "  Installed to: $root" -ForegroundColor Cyan
+Write-Host "  Global command: cody-x" -ForegroundColor Cyan
+if (Test-Path (Join-Path $root ".env.proxy")) {
+  Write-Host "  Proxy: enabled (Cloudflare tunnel)" -ForegroundColor Cyan
 }
-
-& cody-x --version *> $null
-if ($LASTEXITCODE -ne 0) {
-  Write-Host "[error] cody-x was found on PATH but failed to start." -ForegroundColor Red
-  exit $LASTEXITCODE
-}
-
-Write-Host "[info] Local model discovery runs automatically on first launch via cody-x.cmd."
+Write-Host ""
+Write-Host "  Next steps:" -ForegroundColor White
+Write-Host "    cody-x           Launch interactive menu (TUI)" -ForegroundColor Yellow
+Write-Host "    cody-x web       Start web UI in browser" -ForegroundColor Yellow
+Write-Host "    cody-x --help    See all commands" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "  Open a NEW terminal window for the global 'cody-x' command to be available." -ForegroundColor White
+Write-Host "========================================" -ForegroundColor Green
