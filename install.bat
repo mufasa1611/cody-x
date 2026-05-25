@@ -93,20 +93,10 @@ if "%HAS_CHECKOUT%"=="1" (
 
 call :UpdateCheckout
 
-call :EnsureCommand node "OpenJS.NodeJS.LTS" "Node.js LTS"
-if errorlevel 1 exit /b 1
-
-where npm >nul 2>nul
-if not errorlevel 1 (
-  echo [ok] npm found.
-) else (
-  echo [warn] npm was not found after Node.js check. cody-x does not require npm for startup, but Node.js should normally provide it.
-)
-
 call :EnsureBun
 if errorlevel 1 exit /b 1
 
-set "PATH=%USERPROFILE%\.bun\bin;%APPDATA%\npm;%ProgramFiles%\nodejs;%PATH%"
+set "PATH=%USERPROFILE%\.bun\bin;%APPDATA%\npm;%PATH%"
 
 where bun >nul 2>nul
 if errorlevel 1 (
@@ -154,8 +144,8 @@ echo.
 echo Creating .env.proxy with proxy settings...
 if not exist "%ROOT%\.env.proxy" (
   >"%ROOT%\.env.proxy" echo CODY_PROXY_ENABLED=1
-  >>"%ROOT%\.env.proxy" echo HTTPS_PROXY=http://192.168.68.68:8888
-  >>"%ROOT%\.env.proxy" echo HTTP_PROXY=http://192.168.68.68:8888
+  >>"%ROOT%\.env.proxy" echo HTTPS_PROXY=http://localhost:9999
+  >>"%ROOT%\.env.proxy" echo HTTP_PROXY=http://localhost:9999
   >>"%ROOT%\.env.proxy" echo NO_PROXY=localhost,127.0.0.1,::1
   echo [ok] .env.proxy created with proxy settings.
 ) else (
@@ -167,18 +157,26 @@ if not exist "%ROOT%\.env.proxy" (
     echo [ok] .env.proxy already has NO_PROXY.
   )
 )
-if not "%CODY_DISCOVER_MODELS%"=="1" goto SkipModelDiscovery
-if not exist "%ROOT%\.cody\generated\cody.jsonc" (
-  powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\discover-local-models.ps1" -Root "%ROOT%"
-  if exist "%ROOT%\.cody\generated\cody-local-models.report.json" (
-    echo [ok] Model discovery complete.
+
+echo.
+echo Checking cloudflared for proxy tunnel...
+where cloudflared >nul 2>nul
+if not errorlevel 1 (
+  echo [ok] cloudflared found.
+) else if "%HAS_WINGET%"=="1" (
+  echo [missing] cloudflared not found. Installing with winget...
+  winget install --id Cloudflare.cloudflared --exact --source winget --accept-package-agreements --accept-source-agreements
+  if errorlevel 1 (
+    echo [warn] cloudflared install failed. Proxy tunnel won't auto-start.
+    echo Install manually: https://developers.cloudflare.com/cloudflare-one/connections/connect-devices/warp/download-warp/
   ) else (
-    echo [info] No local models found.
+    echo [ok] cloudflared installed.
   )
 ) else (
-  echo [ok] Model config already exists, skipping.
+  echo [warn] cloudflared not found and winget not available.
+  echo Install cloudflared from: https://developers.cloudflare.com/cloudflare-one/connections/connect-devices/warp/download-warp/
 )
-:SkipModelDiscovery
+echo [info] Local model discovery runs automatically on first launch via cody-x.cmd.
 if not exist "%ROOT%\.cody\generated" mkdir "%ROOT%\.cody\generated" >nul 2>nul
 powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\ensure-default-config.ps1" -Root "%ROOT%"
 
@@ -220,7 +218,7 @@ if not defined FOUND_GLOBAL_CMD (
   popd
   exit /b 1
 )
-call cody-x --help >nul 2>nul
+call cody-x --version >nul 2>nul
 if errorlevel 1 (
   popd
   echo [error] cody-x was found on PATH but failed to start.
