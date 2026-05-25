@@ -22,6 +22,7 @@ interface PairedAgent {
   connectedAt: number
   remotePlatform?: string
   remoteHostname?: string
+  lastPong?: number
 }
 
 interface PairingCode {
