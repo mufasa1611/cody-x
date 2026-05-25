@@ -20,13 +20,13 @@ if (Test-Path $defaultModelFile) {
 $json = @'
 {
   "$schema": "https://cody.dev/config.json",
-  "model": "cody/big-pickle",
+  "model": "cody/deepseek-v4-flash-free",
   "provider": {
     "cody": {
       "models": {
-        "big-pickle": {
-          "name": "Big Pickle",
-          "reasoning": true,
+        "deepseek-v4-flash-free": {
+          "name": "DeepSeek V4 Flash Free",
+          "reasoning": false,
           "tool_call": true,
           "temperature": true,
           "cost": { "input": 0, "output": 0 },
@@ -39,4 +39,4 @@ $json = @'
 '@
 
 [System.IO.File]::WriteAllText($defaultModelFile, $json, [System.Text.UTF8Encoding]::new($false))
-Write-Host "[ok] Default model configured: cody/big-pickle"
+Write-Host "[ok] Default model configured: cody/deepseek-v4-flash-free"

@@ -219,7 +219,7 @@ if (-not (Test-Path $proxyFile)) {
 }
 
 # ---- Set default model ----
-Write-Host "Setting default model to cody/big-pickle..."
+Write-Host "Setting default model to cody/deepseek-v4-flash-free..."
 $generatedDir = Join-Path $root ".cody\generated"
 if (-not (Test-Path $generatedDir)) {
   New-Item -ItemType Directory -Force -Path $generatedDir | Out-Null
@@ -229,13 +229,13 @@ if (-not (Test-Path $defaultModelFile)) {
   $json = [System.Text.StringBuilder]::new()
   [void]$json.AppendLine("{")
   [void]$json.AppendLine('  "$schema": "https://cody.dev/config.json",')
-  [void]$json.AppendLine('  "model": "cody/big-pickle",')
+  [void]$json.AppendLine('  "model": "cody/deepseek-v4-flash-free",')
   [void]$json.AppendLine('  "provider": {')
   [void]$json.AppendLine('    "cody": {')
   [void]$json.AppendLine('      "models": {')
-  [void]$json.AppendLine('        "big-pickle": {')
-  [void]$json.AppendLine('          "name": "Big Pickle",')
-  [void]$json.AppendLine('          "reasoning": true,')
+  [void]$json.AppendLine('        "deepseek-v4-flash-free": {')
+  [void]$json.AppendLine('          "name": "DeepSeek V4 Flash Free",')
+  [void]$json.AppendLine('          "reasoning": false,')
   [void]$json.AppendLine('          "tool_call": true,')
   [void]$json.AppendLine('          "temperature": true,')
   [void]$json.AppendLine('          "cost": { "input": 0, "output": 0 },')
@@ -246,7 +246,7 @@ if (-not (Test-Path $defaultModelFile)) {
   [void]$json.AppendLine("  }")
   [void]$json.AppendLine("}")
   [System.IO.File]::WriteAllText($defaultModelFile, $json.ToString(), [System.Text.UTF8Encoding]::new($false))
-  Write-Host "[ok] Default model configured: cody/big-pickle"
+  Write-Host "[ok] Default model configured: cody/deepseek-v4-flash-free"
 }
 
 # ---- Install global command ----

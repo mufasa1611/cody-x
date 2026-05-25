@@ -24,7 +24,7 @@ if (Test-Path $legacyCfg) {
         $fixed = @'
 {
   "$schema": "https://cody.dev/config.json",
-  "model": "cody/big-pickle"
+  "model": "cody/deepseek-v4-flash-free"
 }
 '@
         [System.IO.File]::WriteAllText($legacyCfg, $fixed.TrimStart(), $utf8NoBom)

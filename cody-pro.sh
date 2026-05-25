@@ -100,7 +100,7 @@ if [ -d "$GENERATED_DIR" ]; then
   legacy="$GENERATED_DIR/cody.json"
   if [ -f "$legacy" ] && grep -q '""' "$legacy" 2>/dev/null; then
     echo '[cody-pro] Fixed empty key in cody.json'
-    printf '{\n  "$schema": "https://cody.dev/config.json",\n  "model": "cody/big-pickle"\n}\n' > "$legacy"
+    printf '{\n  "$schema": "https://cody.dev/config.json",\n  "model": "cody/deepseek-v4-flash-free"\n}\n' > "$legacy"
   fi
 fi
 
