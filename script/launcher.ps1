@@ -23,9 +23,9 @@ try {
         Write-Host ""
         for ($i = 0; $i -lt $options.Length; $i++) {
             if ($i -eq $selected) {
-                Write-Host "  > $($options[$i])"
+                Write-Host "${esc}[38;5;214m  > $($options[$i])${esc}[0m"
             } else {
-                Write-Host "    $($options[$i])"
+                Write-Host "${esc}[2m    $($options[$i])${esc}[0m"
             }
         }
         Write-Host ""
@@ -40,5 +40,4 @@ try {
     $host.UI.RawUI.FlushInputBuffer()
 }
 
-$selected
 exit $selected
