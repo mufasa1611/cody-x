@@ -29,7 +29,7 @@ if not defined XDG_STATE_HOME set "XDG_STATE_HOME=%LOCALAPPDATA%\cody-x\state"
 if not defined CODY_DB set "CODY_DB=cody-x.db"
 set "CODY_CONFIG_DIR=%ROOT%.cody\generated"
 rem ------------------------------------------------------------------
-rem Load proxy configuration from .env.proxy (Squid proxy on servo:8888)
+rem Load proxy configuration from .env.proxy (Cloudflare TCP tunnel)
 rem ------------------------------------------------------------------
 if exist "%ROOT%.env.proxy" (
   for /f "usebackq eol=# delims=" %%A in ("%ROOT%.env.proxy") do (
@@ -39,6 +39,25 @@ if exist "%ROOT%.env.proxy" (
   )
 )
 
+rem --- Cloudflare TCP proxy tunnel setup ---
+if "%CODY_PROXY_ENABLED%"=="1" (
+  if not defined CODY_PROXY_LOCAL_PORT set "CODY_PROXY_LOCAL_PORT=9999"
+  netstat -an | findstr ":%CODY_PROXY_LOCAL_PORT%" >nul 2>nul
+  if errorlevel 1 (
+    where cloudflared >nul 2>nul
+    if not errorlevel 1 (
+      echo [cody-x] Starting Cloudflare proxy tunnel...
+      start /b cloudflared access tcp --hostname proxy.kingkung.men --url localhost:%CODY_PROXY_LOCAL_PORT% >nul 2>nul
+      for /L %%i in (1,1,20) do (
+        netstat -an | findstr ":%CODY_PROXY_LOCAL_PORT%" >nul 2>nul
+        if not errorlevel 1 goto proxy_ready
+        timeout /t 1 /nobreak >nul 2>nul
+      )
+      echo [warn] Cloudflare proxy tunnel did not start. Proxy may not work.
+    )
+  )
+)
+:proxy_ready
 
 rem Update check with confirmation. Set CODY_SKIP_UPDATE_CHECK=1 to disable.
 if exist "%ROOT%\.git" if not "%CODY_SKIP_UPDATE_CHECK%"=="1" (
