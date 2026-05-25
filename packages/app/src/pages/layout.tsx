@@ -431,6 +431,31 @@ export default function Layout(props: ParentProps) {
       }
 
       const unsub = globalSDK.event.listen((e) => {
+        if (e.details?.type === "installation.update-available") {
+          const isLatest = e.details.properties?.version === "latest"
+          showToast({
+            title: "Update Available",
+            description: isLatest
+              ? "A new version is available. Update now?"
+              : `Version ${e.details.properties.version} is available. Update now?`,
+            persistent: true,
+            actions: [
+              {
+                label: "Update Now",
+                onClick: async () => {
+                  try {
+                    await fetch(globalSDK.url + "/global/git-upgrade", { method: "POST" })
+                  } catch {
+                    // Best-effort (server will restart)
+                  }
+                },
+              },
+              { label: "Later", onClick: "dismiss" },
+            ],
+          })
+          return
+        }
+
         if (e.details?.type === "worktree.ready") {
           setBusy(e.name, false)
           WorktreeState.ready(e.name)

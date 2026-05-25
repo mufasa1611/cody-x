@@ -16,6 +16,7 @@ import { lazy } from "../../util/lazy"
 import { Config } from "@/config/config"
 import { errors } from "../error"
 import { disposeAllInstancesAndEmitGlobalDisposed } from "../global-lifecycle"
+import { gitUpgrade } from "@/cli/upgrade"
 
 const log = Log.create({ service: "server" })
 
@@ -281,6 +282,28 @@ export const GlobalRoutes = lazy(() =>
           },
         })
         return c.json({ success: true, version: target })
+      },
+    )
+    .post(
+      "/git-upgrade",
+      describeRoute({
+        summary: "Git upgrade",
+        description: "Pull latest from git and restart.",
+        operationId: "global.gitUpgrade",
+        responses: {
+          200: {
+            description: "Upgrade initiated",
+            content: {
+              "application/json": {
+                schema: resolver(z.object({ success: z.literal(true) })),
+              },
+            },
+          },
+        },
+      }),
+      (c) => {
+        gitUpgrade()
+        return c.json({ success: true })
       },
     ),
 )
