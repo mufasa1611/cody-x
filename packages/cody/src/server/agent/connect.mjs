@@ -176,8 +176,8 @@ async function executeCommand(command, args) {
       try {
         const output = execSync(commandStr, {
           encoding: "utf-8",
-          maxBuffer: 10 * 1024 * 1024, // 10MB
-          timeout: 30000, // 30s
+          maxBuffer: 50 * 1024 * 1024, // 50MB
+          timeout: 120000, // 120s
         })
         return { stdout: output, stderr: "", exitCode: 0 }
       } catch (err) {
