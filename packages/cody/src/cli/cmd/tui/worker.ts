@@ -4,7 +4,7 @@ import * as Log from "@cody/core/util/log"
 import { InstanceRuntime } from "@/project/instance-runtime"
 import { WithInstance } from "@/project/with-instance"
 import { Rpc } from "@/util/rpc"
-import { upgrade } from "@/cli/upgrade"
+import { gitUpgrade as doGitUpgrade, upgrade } from "@/cli/upgrade"
 import { Config } from "@/config/config"
 import { GlobalBus } from "@/bus/global"
 import { ServerAuth } from "@/server/auth"
@@ -90,6 +90,9 @@ export const rpc = {
         await upgrade().catch(() => {})
       },
     })
+  },
+  async gitUpgrade() {
+    doGitUpgrade()
   },
   async reload() {
     await AppRuntime.runPromise(

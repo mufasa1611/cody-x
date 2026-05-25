@@ -251,6 +251,7 @@ export const TuiThreadCommand = cmd({
             const server = await client.call("snapshot", undefined)
             return [tui, server]
           },
+          onGitUpgrade: () => { client.call("gitUpgrade", undefined) },
           config,
           directory: cwd,
           fetch: transport.fetch,

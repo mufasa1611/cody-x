@@ -7,6 +7,14 @@ import { InstallationVersion } from "@cody/core/installation/version"
 import { Rpc } from "@/util/rpc"
 import { execSync } from "child_process"
 
+let _upgrading = false
+function gitPullRestart(repoRoot: string) {
+  if (_upgrading) return
+  _upgrading = true
+  execSync("git pull --ff-only", { cwd: repoRoot, encoding: "utf8", timeout: 30000 })
+  Rpc.emit("restart", {})
+}
+
 async function codyProUpgrade() {
   try {
     const repoRoot = execSync("git rev-parse --show-toplevel", { encoding: "utf8", timeout: 5000 }).trim()
@@ -20,10 +28,18 @@ async function codyProUpgrade() {
 
     const config = await AppRuntime.runPromise(Config.Service.use((cfg) => cfg.getGlobal()))
     if (config.autoupdate === true) {
-      await new Promise((r) => setTimeout(r, 2000))
-      execSync("git pull --ff-only", { cwd: repoRoot, encoding: "utf8", timeout: 30000 })
-      Rpc.emit("restart", {})
+      await new Promise((r) => setTimeout(r, 5000))
+      gitPullRestart(repoRoot)
     }
+  } catch {
+    // Best-effort
+  }
+}
+
+export function gitUpgrade() {
+  try {
+    const repoRoot = execSync("git rev-parse --show-toplevel", { encoding: "utf8", timeout: 5000 }).trim()
+    gitPullRestart(repoRoot)
   } catch {
     // Best-effort
   }

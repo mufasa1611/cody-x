@@ -116,6 +116,7 @@ export function tui(input: {
   args: Args
   config: TuiConfig.Resolved
   onSnapshot?: () => Promise<string[]>
+  onGitUpgrade?: () => void
   directory?: string
   fetch?: typeof fetch
   headers?: RequestInit["headers"]
@@ -187,7 +188,7 @@ export function tui(input: {
                                             <PromptHistoryProvider>
                                               <PromptRefProvider>
                                                 <EditorContextProvider>
-                                                  <App onSnapshot={input.onSnapshot} />
+                                                  <App onSnapshot={input.onSnapshot} onGitUpgrade={input.onGitUpgrade} />
                                                 </EditorContextProvider>
                                               </PromptRefProvider>
                                             </PromptHistoryProvider>
@@ -214,7 +215,7 @@ export function tui(input: {
   })
 }
 
-function App(props: { onSnapshot?: () => Promise<string[]> }) {
+function App(props: { onSnapshot?: () => Promise<string[]>; onGitUpgrade?: () => void }) {
   const tuiConfig = useTuiConfig()
   const {
     keymap: { sections },
@@ -814,6 +815,18 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
 
   event.on("installation.update-available", async (evt) => {
     const version = evt.properties.version
+
+    if (version === "latest") {
+      const choice = await DialogConfirm.show(
+        dialog,
+        "Update Available",
+        "A new version is available. Update now?",
+        "skip",
+      )
+      if (choice !== true) return
+      props.onGitUpgrade?.()
+      return
+    }
 
     const skipped = kv.get("skipped_version")
     if (skipped && !semver.gt(version, skipped)) return
