@@ -13,6 +13,7 @@ import { Heap } from "@/cli/heap"
 import { AppRuntime } from "@/effect/app-runtime"
 import { ensureProcessMetadata } from "@cody/core/util/cody-process"
 import { Effect } from "effect"
+import { Flag } from "@cody/core/flag/flag"
 import { disposeAllInstancesAndEmitGlobalDisposed } from "@/server/global-lifecycle"
 
 ensureProcessMetadata("worker")
@@ -44,6 +45,12 @@ process.on("uncaughtException", (e) => {
 GlobalBus.on("event", (event) => {
   Rpc.emit("global.event", event)
 })
+
+// Periodic upgrade check for git-based installs
+if (!Installation.isLocal() && !Flag.CODY_DISABLE_AUTOUPDATE) {
+  upgrade().catch(() => {})
+  setInterval(() => { upgrade().catch(() => {}) }, 5 * 60 * 1000).unref()
+}
 
 let server: Awaited<ReturnType<typeof Server.listen>> | undefined
 

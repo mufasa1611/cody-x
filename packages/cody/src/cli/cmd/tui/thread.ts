@@ -13,6 +13,7 @@ import type { GlobalEvent } from "@cody/sdk/v2"
 import type { EventSource } from "./context/sdk"
 import { win32DisableProcessedInput, win32InstallCtrlCGuard } from "./win32"
 import { writeHeapSnapshot } from "v8"
+import { execSync } from "child_process"
 import { TuiConfig } from "./config/tui"
 import {
   CODY_PROCESS_ROLE,
@@ -172,6 +173,7 @@ export const TuiThreadCommand = cmd({
       process.on("SIGUSR2", reload)
 
       let stopped = false
+      let restarting = false
       const stop = async () => {
         if (stopped) return
         stopped = true
@@ -185,6 +187,19 @@ export const TuiThreadCommand = cmd({
         })
         worker.terminate()
       }
+
+      client.on("restart", async () => {
+        if (restarting) return
+        restarting = true
+        UI.println("Restarting to apply update...")
+        await stop()
+        execSync(process.execPath + " " + process.argv.slice(1).map((a) => (a.includes(" ") ? `"${a}"` : a)).join(" "), {
+          cwd: cwd,
+          stdio: "inherit",
+          timeout: 30000,
+        })
+        process.exit(0)
+      })
 
       const prompt = await input(args.prompt)
       const config = await TuiConfig.get()

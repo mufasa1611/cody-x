@@ -4,6 +4,7 @@ import { AppRuntime } from "@/effect/app-runtime"
 import { Flag } from "@cody/core/flag/flag"
 import { Installation } from "@/installation"
 import { InstallationVersion } from "@cody/core/installation/version"
+import { Rpc } from "@/util/rpc"
 import { execSync } from "child_process"
 
 async function codyProUpgrade() {
@@ -14,7 +15,15 @@ async function codyProUpgrade() {
     execSync("git fetch origin " + branch + " --quiet", { cwd: repoRoot, encoding: "utf8", timeout: 15000 })
     const behind = execSync("git rev-list --count HEAD..origin/" + branch, { cwd: repoRoot, encoding: "utf8", timeout: 5000 }).trim()
     if (behind === "0" || behind === "") return
+
     await Bus.publish(Installation.Event.UpdateAvailable, { version: "latest" })
+
+    const config = await AppRuntime.runPromise(Config.Service.use((cfg) => cfg.getGlobal()))
+    if (config.autoupdate === true) {
+      await new Promise((r) => setTimeout(r, 2000))
+      execSync("git pull --ff-only", { cwd: repoRoot, encoding: "utf8", timeout: 30000 })
+      Rpc.emit("restart", {})
+    }
   } catch {
     // Best-effort
   }
@@ -24,9 +33,15 @@ export async function upgrade() {
   const config = await AppRuntime.runPromise(Config.Service.use((cfg) => cfg.getGlobal()))
   if (config.autoupdate === false || Flag.CODY_DISABLE_AUTOUPDATE) return
 
-  // For Cody Pro (git-based installs), check git origin instead of npm
+  // Auto-detect git-based installs
   if (process.env.CODY_PRO) {
     return codyProUpgrade()
+  }
+  try {
+    execSync("git rev-parse --git-dir", { encoding: "utf8", timeout: 3000 })
+    return codyProUpgrade()
+  } catch {
+    // Not a git repo, fall through to npm/brew/scoop method
   }
 
   const method = await Installation.method()
