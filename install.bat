@@ -176,7 +176,23 @@ if not errorlevel 1 (
   echo [warn] cloudflared not found and winget not available.
   echo Install cloudflared from: https://developers.cloudflare.com/cloudflare-one/connections/connect-devices/warp/download-warp/
 )
-echo [info] Local model discovery runs automatically on first launch via cody-x.cmd.
+echo.
+echo ---
+echo cody-x can scan your system for local Ollama models and GGUF files
+echo to auto-configure them as AI providers.
+set /p "SCAN_ANSWER=Scan for local models now? [y/N] "
+if /I "!SCAN_ANSWER!"=="y" (
+  if exist "%ROOT%\script\discover-local-models.ps1" (
+    echo.
+    echo Scanning for local models...
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\discover-local-models.ps1" -Root "%ROOT%" -MaxSeconds 30
+  ) else (
+    echo [warn] Model discovery script not found. Skipping.
+  )
+) else (
+  echo [info] Model scan skipped. Run later with:
+  echo   powershell -File "%ROOT%\script\discover-local-models.ps1"
+)
 if not exist "%ROOT%\.cody\generated" mkdir "%ROOT%\.cody\generated" >nul 2>nul
 powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\ensure-default-config.ps1" -Root "%ROOT%"
 
@@ -200,39 +216,33 @@ if not exist "%GLOBAL_CMD%" (
   exit /b 1
 )
 
-set "PATH=%GLOBAL_BIN%;%USERPROFILE%\.bun\bin;%PATH%"
-set "FOUND_GLOBAL_CMD="
-pushd "%TEMP%"
-for /f "delims=" %%A in ('where cody-x 2^>nul') do (
-  if /I "%%~fA"=="%GLOBAL_CMD%" set "FOUND_GLOBAL_CMD=1"
-)
-if not defined FOUND_GLOBAL_CMD (
-  popd
-  echo [error] cody-x was installed but the global command directory is not on PATH.
-  echo Expected PATH entry:
-  echo   "%GLOBAL_BIN%"
-  echo Expected command shim:
-  echo   "%GLOBAL_CMD%"
-  echo Open a new terminal and rerun install.bat. If it still fails, run:
-  echo   "%GLOBAL_CMD%"
-  popd
-  exit /b 1
-)
-call cody-x --version >nul 2>nul
-if errorlevel 1 (
-  popd
-  echo [error] cody-x was found on PATH but failed to start.
-  popd
-  exit /b 1
-)
+echo Verifying cody-x can start...
+pushd "%ROOT%\packages\cody"
+for /f "delims=" %%V in ('bun run --conditions=browser src\index.ts --version 2^>nul') do set "CODY_VERSION=%%V"
 popd
-echo [ok] cody-x is ready on PATH.
+if not defined CODY_VERSION (
+  echo [error] cody-x failed to start. Check the error above.
+  exit /b 1
+)
+echo [ok] cody-x version: !CODY_VERSION!
 
 popd
 echo.
-echo cody-x installation complete.
-echo Start cody-x with:
-echo   cody-x
+echo ========================================
+echo   cody-x installed successfully!
+echo ========================================
+echo.
+echo   Installed to: %ROOT%
+echo   Global command: cody-x
+if exist "%ROOT%\.env.proxy" echo   Proxy: enabled (Cloudflare tunnel)
+echo.
+echo   Next steps:
+echo     cody-x           Launch interactive menu (TUI)
+echo     cody-x web       Start web UI in browser
+echo     cody-x --help    See all commands
+echo.
+echo   Open a NEW terminal window for the global 'cody-x' command to be available.
+echo ========================================
 set "FINAL_PATH=%GLOBAL_BIN%;%USERPROFILE%\.bun\bin;%PATH%"
 endlocal & set "PATH=%FINAL_PATH%"
 exit /b 0
@@ -259,7 +269,7 @@ if "%HAS_WINGET%"=="1" (
     echo [error] Failed to install %LABEL% with winget.
     exit /b 1
   )
-  set "PATH=%ProgramFiles%\Git\cmd;%ProgramFiles%\nodejs;%PATH%"
+  set "PATH=%ProgramFiles%\Git\cmd;%PATH%"
   where "%CMD_NAME%" >nul 2>nul
   if not errorlevel 1 (
     echo [ok] %LABEL% installed.
