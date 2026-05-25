@@ -122,48 +122,54 @@ export const SettingsGeneral: Component = () => {
   const desktop = createMemo(() => platform.platform === "desktop")
 
   const check = () => {
-    if (!platform.checkUpdate) return
     setStore("checking", true)
 
-    void platform
-      .checkUpdate()
+    const doCheck = platform.checkUpdate
+      ? platform.checkUpdate().then((result) => ({ ...result, method: "platform" as const }))
+      : fetch(globalSdk.url + "/global/git-check", { method: "POST" }).then(() => ({
+          updateAvailable: false,
+          version: undefined,
+          method: "api" as const,
+        }))
+
+    void doCheck
       .then((result) => {
-        if (!result.updateAvailable) {
+        if (result.method === "platform" && result.updateAvailable) {
+          const actions = platform.updateAndRestart
+            ? [
+                {
+                  label: language.t("toast.update.action.installRestart"),
+                  onClick: async () => {
+                    await platform.updateAndRestart!()
+                  },
+                },
+                {
+                  label: language.t("toast.update.action.notYet"),
+                  onClick: "dismiss" as const,
+                },
+              ]
+            : [
+                {
+                  label: language.t("toast.update.action.notYet"),
+                  onClick: "dismiss" as const,
+                },
+              ]
+
           showToast({
-            variant: "success",
-            icon: "circle-check",
-            title: language.t("settings.updates.toast.latest.title"),
-            description: language.t("settings.updates.toast.latest.description", { version: platform.version ?? "" }),
+            persistent: true,
+            icon: "download",
+            title: language.t("toast.update.title"),
+            description: language.t("toast.update.description", { version: result.version ?? "" }),
+            actions,
           })
           return
         }
 
-        const actions = platform.updateAndRestart
-          ? [
-              {
-                label: language.t("toast.update.action.installRestart"),
-                onClick: async () => {
-                  await platform.updateAndRestart!()
-                },
-              },
-              {
-                label: language.t("toast.update.action.notYet"),
-                onClick: "dismiss" as const,
-              },
-            ]
-          : [
-              {
-                label: language.t("toast.update.action.notYet"),
-                onClick: "dismiss" as const,
-              },
-            ]
-
         showToast({
-          persistent: true,
-          icon: "download",
-          title: language.t("toast.update.title"),
-          description: language.t("toast.update.description", { version: result.version ?? "" }),
-          actions,
+          variant: "success",
+          icon: "circle-check",
+          title: language.t("settings.updates.toast.latest.title"),
+          description: language.t("settings.updates.toast.latest.description", { version: platform.version ?? "" }),
         })
       })
       .catch((err: unknown) => {
@@ -719,7 +725,7 @@ export const SettingsGeneral: Component = () => {
           title={language.t("settings.updates.row.check.title")}
           description={language.t("settings.updates.row.check.description")}
         >
-          <Button size="small" variant="secondary" disabled={store.checking || !platform.checkUpdate} onClick={check}>
+          <Button size="small" variant="secondary" disabled={store.checking} onClick={check}>
             {store.checking
               ? language.t("settings.updates.action.checking")
               : language.t("settings.updates.action.checkNow")}

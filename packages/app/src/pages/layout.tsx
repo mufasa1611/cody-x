@@ -371,29 +371,33 @@ export default function Layout(props: ParentProps) {
       let toastId: number | undefined
       let interval: ReturnType<typeof setInterval> | undefined
 
-      const pollUpdate = () =>
-        platform.checkUpdate!().then(({ updateAvailable, version }) => {
-          if (!updateAvailable) return
-          if (toastId !== undefined) return
-          toastId = showToast({
-            persistent: true,
-            icon: "download",
-            title: language.t("toast.update.title"),
-            description: language.t("toast.update.description", { version: version ?? "" }),
-            actions: [
-              {
-                label: language.t("toast.update.action.installRestart"),
-                onClick: async () => {
-                  await platform.updateAndRestart!()
+      const pollUpdate = () => {
+        if (platform.checkUpdate) {
+          return platform.checkUpdate().then(({ updateAvailable, version }) => {
+            if (!updateAvailable) return
+            if (toastId !== undefined) return
+            toastId = showToast({
+              persistent: true,
+              icon: "download",
+              title: language.t("toast.update.title"),
+              description: language.t("toast.update.description", { version: version ?? "" }),
+              actions: [
+                {
+                  label: language.t("toast.update.action.installRestart"),
+                  onClick: async () => {
+                    await platform.updateAndRestart!()
+                  },
                 },
-              },
-              {
-                label: language.t("toast.update.action.notYet"),
-                onClick: "dismiss",
-              },
-            ],
+                {
+                  label: language.t("toast.update.action.notYet"),
+                  onClick: "dismiss",
+                },
+              ],
+            })
           })
-        })
+        }
+        return fetch(globalSDK.url + "/global/git-check", { method: "POST" }).catch(() => {})
+      }
 
       createEffect(() => {
         if (!settings.ready()) return

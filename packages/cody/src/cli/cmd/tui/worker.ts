@@ -46,10 +46,9 @@ GlobalBus.on("event", (event) => {
   Rpc.emit("global.event", event)
 })
 
-// Periodic upgrade check for git-based installs
+// Initial upgrade check on worker start (for TUI and non-web scenarios)
 if (!Installation.isLocal() && !Flag.CODY_DISABLE_AUTOUPDATE) {
   upgrade().catch(() => {})
-  setInterval(() => { upgrade().catch(() => {}) }, 5 * 60 * 1000).unref()
 }
 
 let server: Awaited<ReturnType<typeof Server.listen>> | undefined
