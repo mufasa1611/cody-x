@@ -305,31 +305,31 @@ export const GlobalRoutes = lazy(() =>
         gitUpgrade()
         return c.json({ success: true })
       },
-    )
-    .post(
-      "/git-check",
-      describeRoute({
-        summary: "Check git for updates",
-        description: "Check if new commits are available on the git remote.",
-        operationId: "global.gitCheck",
-        responses: {
-          200: {
-            description: "Check completed",
-            content: {
-              "application/json": {
-                schema: resolver(z.object({ updateAvailable: z.boolean() })),
-              },
-            },
+    ),
+)
+
+export const GitCheckRoute = new Hono().post(
+  "/git-check",
+  describeRoute({
+    summary: "Check git for updates",
+    description: "Check if new commits are available on the git remote.",
+    operationId: "global.gitCheck",
+    responses: {
+      200: {
+        description: "Check completed",
+        content: {
+          "application/json": {
+            schema: resolver(z.object({ updateAvailable: z.boolean() })),
           },
         },
-      }),
-      async (c: Context) => {
-        const result = checkForUpdates()
-        if (result.updateAvailable) {
-          upgrade().catch(() => {})
-        }
-        return c.json(result)
       },
-    )
-    .post("/test", async (c) => c.json({ ok: true })),
+    },
+  }),
+  async (c: Context) => {
+    const result = checkForUpdates()
+    if (result.updateAvailable) {
+      upgrade().catch(() => {})
+    }
+    return c.json(result)
+  },
 )
