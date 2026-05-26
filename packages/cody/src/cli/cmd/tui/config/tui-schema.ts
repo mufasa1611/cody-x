@@ -186,7 +186,7 @@ const InputKeymapSection = {
   "input.select.buffer.home": keymapBinding("shift+home"),
   "input.select.buffer.end": keymapBinding("shift+end"),
   "input.delete.line": keymapBinding("ctrl+shift+d"),
-  "input.delete.to.line.end": keymapBinding("ctrl+k"),
+  "input.delete.to.line.end": keymapBinding("ctrl+k,alt+k"),
   "input.delete.to.line.start": keymapBinding("ctrl+u"),
   "input.backspace": keymapBinding("backspace,shift+backspace"),
   "input.delete": keymapBinding("ctrl+d,delete,shift+delete"),
