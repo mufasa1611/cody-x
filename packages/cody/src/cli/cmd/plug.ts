@@ -101,6 +101,14 @@ export function createPlugTask(input: PlugInput, dep: PlugDeps = defaultPlugDeps
     }
     install.stop("Plugin package ready")
 
+    if (target.deps) {
+      if (target.deps.installed) {
+        dep.log.success("Plugin dependencies installed")
+      } else if (target.deps.error) {
+        dep.log.warn(`Plugin dependency install skipped: ${target.deps.error}`)
+      }
+    }
+
     const inspect = dep.spinner()
     inspect.start("Reading plugin manifest...")
     const manifest = await readPluginManifest(target.target)

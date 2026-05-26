@@ -12,6 +12,7 @@ import { Global } from "@cody/core/global"
 import { Filesystem } from "@/util/filesystem"
 import { Flock } from "@cody/core/util/flock"
 import { isRecord } from "@/util/record"
+import { Process } from "@/util/process"
 
 import { parsePluginSpecifier, readPackageThemes, readPluginPackage, resolvePluginTarget } from "./shared"
 
@@ -25,6 +26,29 @@ export type Target = {
 
 export type InstallDeps = {
   resolve: (spec: string) => Promise<string>
+}
+
+export type DepInstallResult = {
+  installed: boolean
+  dir?: string
+  error?: string
+}
+
+async function targetHasDependencies(targetDir: string): Promise<boolean> {
+  try {
+    const pkgPath = path.join(targetDir, "package.json")
+    const content = await Filesystem.readJson<Record<string, unknown>>(pkgPath)
+    const deps = content?.dependencies
+    const devDeps = content?.devDependencies
+    const codyDeps = content?.codyDependencies
+    return Boolean(
+      (deps && typeof deps === "object" && Object.keys(deps).length > 0) ||
+      (devDeps && typeof devDeps === "object" && Object.keys(devDeps).length > 0) ||
+      (codyDeps && typeof codyDeps === "object" && Object.keys(codyDeps as Record<string, string>).length > 0),
+    )
+  } catch {
+    return false
+  }
 }
 
 export type PatchDeps = {
@@ -54,7 +78,7 @@ type Err<C extends string, T> = {
   code: C
 } & T
 
-export type InstallResult = Ok<{ target: string }> | Err<"install_failed", { error: unknown }>
+export type InstallResult = Ok<{ target: string; deps?: DepInstallResult }> | Err<"install_failed", { error: unknown }>
 
 export type ManifestResult =
   | Ok<{ targets: Target[] }>
@@ -86,6 +110,19 @@ const defaultPatchDeps: PatchDeps = {
   },
   exists: (file) => Filesystem.exists(file),
   files: (dir, name) => ConfigPaths.fileInDirectory(dir, name),
+}
+
+export async function installPluginDependencies(target: string): Promise<DepInstallResult> {
+  const stat = await Filesystem.statAsync(target).catch(() => undefined)
+  const dir = stat?.isDirectory() ? target : path.dirname(target)
+  const has = await targetHasDependencies(dir)
+  if (!has) return { installed: false }
+  const result = await Process.run(["bun", "install"], { cwd: dir, nothrow: true, timeout: 120000 })
+  if (result.code !== 0) {
+    const text = result.stderr.toString("utf8").trim().split("\n").filter(Boolean).slice(-3).join("; ")
+    return { installed: false, dir, error: text || `bun install exited with code ${result.code}` }
+  }
+  return { installed: true, dir }
 }
 
 function pluginSpec(item: unknown) {
@@ -274,9 +311,13 @@ export async function installPlugin(spec: string, dep: InstallDeps = defaultInst
       error: target.error,
     }
   }
+
+  const deps = await installPluginDependencies(target.item)
+
   return {
     ok: true,
     target: target.item,
+    deps,
   }
 }
 

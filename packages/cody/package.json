@@ -15,6 +15,12 @@
     "dev:temporary": "bun run --conditions=browser ./src/temporary.ts",
     "db": "bun drizzle-kit"
   },
+  "preferGlobal": true,
+  "files": [
+    "bin/",
+    "script/postinstall.mjs",
+    "script/fix-node-pty.ts"
+  ],
   "bin": {
     "cody": "./bin/cody"
   },

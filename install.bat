@@ -3,6 +3,10 @@ setlocal EnableExtensions EnableDelayedExpansion
 
 set "REPO_URL=https://github.com/mufasa1611/cody-x.git"
 if not defined CODY_BRANCH set "CODY_BRANCH=main"
+if not defined CODY_NO_SCAN set "CODY_NO_SCAN=0"
+if not defined CODY_NO_PROXY set "CODY_NO_PROXY=0"
+if not defined CODY_NO_BUILD set "CODY_NO_BUILD=0"
+if not defined CODY_YES set "CODY_YES=0"
 set "INSTALLER_URL=https://raw.githubusercontent.com/mufasa1611/cody-x/%CODY_BRANCH%/install.bat"
 set "DEFAULT_PARENT=%LOCALAPPDATA%\cody-x"
 set "DEFAULT_ROOT=%DEFAULT_PARENT%"
@@ -76,15 +80,22 @@ if "%HAS_CHECKOUT%"=="1" (
     exit /b 1
   )
   if not exist "%DEFAULT_PARENT%" mkdir "%DEFAULT_PARENT%" >nul 2>nul
+  set "CLONE_RETRY=1"
+  set "CLONE_BACKOFF=1"
+  :RetryClone
   git clone --branch "%CODY_BRANCH%" "%REPO_URL%" "%DEFAULT_ROOT%"
-  if errorlevel 1 (
-    echo [warn] Branch "%CODY_BRANCH%" clone failed. Retrying default branch...
-    git clone "%REPO_URL%" "%DEFAULT_ROOT%"
-  )
-  if errorlevel 1 (
-    echo [error] Failed to clone cody-x from "%REPO_URL%".
+  if not errorlevel 1 goto CloneOk
+  if !CLONE_RETRY! geq 3 (
+    echo [error] Failed to clone cody-x from "%REPO_URL%" after 3 attempts.
     exit /b 1
   )
+  echo [warn] Clone failed (attempt !CLONE_RETRY!/3). Retrying in !CLONE_BACKOFF!s...
+  ping -n !CLONE_BACKOFF! 127.0.0.1 >nul 2>nul
+  set /a "CLONE_BACKOFF*=2"
+  if !CLONE_BACKOFF! gtr 16 set "CLONE_BACKOFF=16"
+  set /a "CLONE_RETRY+=1"
+  goto RetryClone
+  :CloneOk
   set "ROOT=%DEFAULT_ROOT%"
   echo [ok] cody-x cloned to "%ROOT%".
   echo [ok] Checking Git safe directory configuration...
@@ -108,36 +119,43 @@ if errorlevel 1 (
 echo.
 echo Installing cody-x dependencies...
 pushd "%ROOT%"
+set "BUN_RETRY=1"
+set "BUN_BACKOFF=1"
+:RetryBunInstall
 call bun install
-if errorlevel 1 (
-  set "BUN_INSTALL_EXIT=!ERRORLEVEL!"
+if not errorlevel 1 goto BunInstallOk
+if !BUN_RETRY! geq 3 (
   echo.
-  echo [warn] Bun install failed with exit code !BUN_INSTALL_EXIT!. Retrying with --no-optional...
-  call bun install --no-optional
-  if !ERRORLEVEL! neq 0 (
-    set "BUN_INSTALL_RETRY_EXIT=!ERRORLEVEL!"
-    echo.
-    echo [error] Bun install failed again with exit code !BUN_INSTALL_RETRY_EXIT!.
-    echo   This project has many dependencies and may need more memory.
-    echo   Try increasing the Windows page file size, then rerun install.bat.
-    echo   You can also run: bun install --frozen-lockfile
-    popd
-    set "CODY_FATAL_EXIT=!BUN_INSTALL_RETRY_EXIT!"
-    goto FatalExit
-  )
-  echo [ok] Dependencies installed with --no-optional.
-)
-
-echo.
-echo Building Web UI...
-pushd "%ROOT%\packages\app"
-call bun run build
-if errorlevel 1 (
+  echo [error] bun install failed after 3 attempts.
+  echo   This project has many dependencies and may need more memory.
+  echo   Try increasing the Windows page file size, then rerun install.bat.
   popd
-  echo [warn] Web UI build failed, server will proxy to app.cody.ai.
-  goto AfterWebBuild
+  set "CODY_FATAL_EXIT=!BUN_RETRY!"
+  goto FatalExit
 )
-popd
+echo [warn] bun install failed (attempt !BUN_RETRY!/3). Retrying in !BUN_BACKOFF!s...
+ping -n !BUN_BACKOFF! 127.0.0.1 >nul 2>nul
+set /a "BUN_BACKOFF*=2"
+if !BUN_BACKOFF! gtr 16 set "BUN_BACKOFF=16"
+set /a "BUN_RETRY+=1"
+goto RetryBunInstall
+:BunInstallOk
+echo [ok] Dependencies installed.
+
+if "%CODY_NO_BUILD%"=="1" (
+  echo [info] Web UI build skipped (CODY_NO_BUILD=1).
+) else (
+  echo.
+  echo Building Web UI...
+  pushd "%ROOT%\packages\app"
+  call bun run build
+  if errorlevel 1 (
+    popd
+    echo [warn] Web UI build failed, server will proxy to app.cody.ai.
+    goto AfterWebBuild
+  )
+  popd
+)
 :AfterWebBuild
 
 echo.
@@ -158,6 +176,11 @@ if not exist "%ROOT%\.env.proxy" (
   )
 )
 
+if "%CODY_NO_PROXY%"=="1" (
+  echo [info] Proxy setup skipped (CODY_NO_PROXY=1).
+  goto AfterProxy
+)
+
 echo.
 echo Checking cloudflared for proxy tunnel...
 where cloudflared >nul 2>nul
@@ -176,8 +199,14 @@ if not errorlevel 1 (
   echo [warn] cloudflared not found and winget not available.
   echo Install cloudflared from: https://developers.cloudflare.com/cloudflare-one/connections/connect-devices/warp/download-warp/
 )
+:AfterProxy
+
 echo.
 echo ---
+if "%CODY_NO_SCAN%"=="1" (
+  echo [info] Model scan skipped (CODY_NO_SCAN=1).
+  goto AfterModelScan
+)
 echo cody-x can scan your system for local Ollama models and GGUF files
 echo to auto-configure them as AI providers.
 set /p "SCAN_ANSWER=Scan for local models now? [y/N] "
@@ -193,6 +222,7 @@ if /I "!SCAN_ANSWER!"=="y" (
   echo [info] Model scan skipped. Run later with:
   echo   powershell -File "%ROOT%\script\discover-local-models.ps1"
 )
+:AfterModelScan
 if not exist "%ROOT%\.cody\generated" mkdir "%ROOT%\.cody\generated" >nul 2>nul
 powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\script\ensure-default-config.ps1" -Root "%ROOT%"
 
@@ -227,6 +257,19 @@ if not defined CODY_VERSION (
 echo [ok] cody-x version: !CODY_VERSION!
 
 popd
+
+echo.
+echo Creating uninstall shortcut...
+set "START_MENU_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\cody-x"
+if not exist "%START_MENU_DIR%" mkdir "%START_MENU_DIR%" >nul 2>nul
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "$shell = New-Object -ComObject WScript.Shell; $shortcut = $shell.CreateShortcut('%START_MENU_DIR%\Uninstall cody-x.lnk'); $shortcut.TargetPath = 'cmd.exe'; $shortcut.Arguments = '/c \"\"%GLOBAL_CMD%\"\" uninstall'; $shortcut.Description = 'Uninstall cody-x'; $shortcut.WorkingDirectory = '%ROOT%'; $shortcut.Save()" >nul 2>nul
+if errorlevel 1 (
+  echo [warn] Could not create uninstall shortcut.
+) else (
+  echo [ok] Uninstall shortcut created.
+)
+
 echo.
 echo ========================================
 echo   cody-x installed successfully!
