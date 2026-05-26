@@ -74,7 +74,7 @@ async function streamEvents(c: Context, subscribe: (q: AsyncQueue<string | null>
 
 export const GlobalRoutes = lazy(() =>
   new Hono()
-    .post("/git-check", async (c) => {
+    .get("/gitcheck", async (c) => {
       return c.json(checkForUpdates())
     })
     .get(
