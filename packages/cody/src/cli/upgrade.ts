@@ -15,36 +15,11 @@ function gitPullRestart(repoRoot: string) {
   Rpc.emit("restart", {})
 }
 
-function gitRepoRoot(): string | undefined {
-  try {
-    return execSync("git rev-parse --show-toplevel", { encoding: "utf8", timeout: 5000 }).trim()
-  } catch {
-    return undefined
-  }
-}
-
-function gitBranch(): string {
-  return process.env.CODY_BRANCH || "main"
-}
-
-export function checkForUpdates(): { updateAvailable: boolean } {
-  try {
-    const repoRoot = gitRepoRoot()
-    if (!repoRoot) return { updateAvailable: false }
-    const branch = gitBranch()
-    execSync("git fetch origin " + branch + " --quiet", { cwd: repoRoot, encoding: "utf8", timeout: 15000 })
-    const behind = execSync("git rev-list --count HEAD..origin/" + branch, { cwd: repoRoot, encoding: "utf8", timeout: 5000 }).trim()
-    return { updateAvailable: behind !== "0" && behind !== "" }
-  } catch {
-    return { updateAvailable: false }
-  }
-}
-
 async function codyProUpgrade() {
   try {
-    const repoRoot = gitRepoRoot()
+    const repoRoot = execSync("git rev-parse --show-toplevel", { encoding: "utf8", timeout: 5000 }).trim()
     if (!repoRoot) return
-    const branch = gitBranch()
+    const branch = process.env.CODY_BRANCH || "main"
     execSync("git fetch origin " + branch + " --quiet", { cwd: repoRoot, encoding: "utf8", timeout: 15000 })
     const behind = execSync("git rev-list --count HEAD..origin/" + branch, { cwd: repoRoot, encoding: "utf8", timeout: 5000 }).trim()
     if (behind === "0" || behind === "") return

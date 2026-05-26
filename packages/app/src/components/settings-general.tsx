@@ -126,18 +126,16 @@ export const SettingsGeneral: Component = () => {
 
     const doCheck = platform.checkUpdate
       ? platform.checkUpdate().then((result) => ({ ...result, method: "platform" as const }))
-      : fetch(globalSdk.url + "/global/git-check", { method: "POST" })
-          .then((res) => res.json() as Promise<{ updateAvailable: boolean }>)
-          .then((data) => ({
-              updateAvailable: data.updateAvailable,
-              version: data.updateAvailable ? "latest" : undefined,
-              method: "api" as const,
-          }))
+      : fetch(globalSdk.url + "/global/git-check", { method: "POST" }).then(() => ({
+          updateAvailable: false,
+          version: undefined,
+          method: "api" as const,
+        }))
 
     void doCheck
       .then((result) => {
-        if (result.updateAvailable) {
-          const actions = result.method === "platform" && platform.updateAndRestart
+        if (result.method === "platform" && result.updateAvailable) {
+          const actions = platform.updateAndRestart
             ? [
                 {
                   label: language.t("toast.update.action.installRestart"),
@@ -151,12 +149,6 @@ export const SettingsGeneral: Component = () => {
                 },
               ]
             : [
-                {
-                  label: "Pull & Restart",
-                  onClick: async () => {
-                    await fetch(globalSdk.url + "/global/git-upgrade", { method: "POST" })
-                  },
-                },
                 {
                   label: language.t("toast.update.action.notYet"),
                   onClick: "dismiss" as const,
