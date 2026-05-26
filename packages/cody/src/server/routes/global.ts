@@ -16,8 +16,6 @@ import { lazy } from "../../util/lazy"
 import { Config } from "@/config/config"
 import { errors } from "../error"
 import { disposeAllInstancesAndEmitGlobalDisposed } from "../global-lifecycle"
-import { checkForUpdates } from "@/cli/upgrade"
-
 const log = Log.create({ service: "server" })
 
 async function streamEvents(c: Context, subscribe: (q: AsyncQueue<string | null>) => () => void) {
@@ -74,9 +72,6 @@ async function streamEvents(c: Context, subscribe: (q: AsyncQueue<string | null>
 
 export const GlobalRoutes = lazy(() =>
   new Hono()
-    .get("/gitcheck", async (c) => {
-      return c.json(checkForUpdates())
-    })
     .get(
       "/health",
       describeRoute({
