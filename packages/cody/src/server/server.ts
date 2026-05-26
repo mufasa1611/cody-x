@@ -17,7 +17,7 @@ import { initProjectors } from "./projectors"
 import { InstanceRoutes } from "./routes/instance"
 import { ControlPlaneRoutes } from "./routes/control"
 import { UIRoutes } from "./routes/ui"
-import { GitCheckRoute, GlobalRoutes } from "./routes/global"
+import { GlobalRoutes, GitRoute } from "./routes/global"
 import { AgentRoutes } from "./agent/rest"
 import { WorkspaceRouterMiddleware } from "./workspace"
 import { InstanceMiddleware } from "./routes/instance/middleware"
@@ -114,7 +114,6 @@ function createHono(opts: CorsOptions, selection: ServerBackend.Selection = Serv
     .use(AuthMiddleware)
     .use(CompressionMiddleware)
     .route("/global", GlobalRoutes())
-    .route("/global", GitCheckRoute)
     .route("/agent", AgentRoutes())
 
   const runtime = adapter.create(app)
@@ -141,6 +140,7 @@ function createHono(opts: CorsOptions, selection: ServerBackend.Selection = Serv
       .route("/", ControlPlaneRoutes())
       .route("/", workspaceApp)
       .route("/", InstanceRoutes(runtime.upgradeWebSocket, opts))
+      .route("/", GitRoute)
       .route("/", UIRoutes()),
     runtime,
   }

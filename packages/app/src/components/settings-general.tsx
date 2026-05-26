@@ -126,7 +126,7 @@ export const SettingsGeneral: Component = () => {
 
     const doCheck = platform.checkUpdate
       ? platform.checkUpdate().then((result) => ({ ...result, method: "platform" as const }))
-      : fetch(globalSdk.url + "/global/git-check", { method: "POST" }).then((r) =>
+      : fetch(globalSdk.url + "/git-check", { method: "POST" }).then((r) =>
           r.json().then((body) => ({
             updateAvailable: (body as { updateAvailable: boolean }).updateAvailable,
             version: undefined,
