@@ -29,15 +29,16 @@ interface PairingCode {
   code: string
   createdAt: number
   expiresAt: number
-  used: boolean
+  pairedAt?: number
 }
 
 export interface Interface {
   readonly createPairingCode: Effect.Effect<string>
   readonly connectAgent: (code: string, write: AgentWriter) => Effect.Effect<boolean, Error>
+  readonly markOffline: (code: string) => Effect.Effect<void>
   readonly disconnectAgent: (code: string) => Effect.Effect<void>
   readonly dispatch: (message: AgentMessage, senderCode?: string) => Effect.Effect<void>
-  readonly getStatus: Effect.Effect<{ connected: boolean; code?: string; pairedAt?: number }>
+  readonly getStatus: Effect.Effect<{ connected: boolean; paired: boolean; code?: string; pairedAt?: number }>
   readonly listDir: (path: string) => Effect.Effect<unknown, Error>
   readonly readFile: (path: string) => Effect.Effect<unknown, Error>
   readonly writeFile: (path: string, content: string) => Effect.Effect<unknown, Error>
@@ -63,8 +64,9 @@ function generateCode(): string {
 function cleanupExpiredCodes(): void {
   const now = Date.now()
   for (const [code, info] of pairingCodes) {
-    if (now > info.expiresAt || info.used) {
+    if (now > info.expiresAt) {
       pairingCodes.delete(code)
+      agents.delete(code)
     }
   }
 }
@@ -94,7 +96,6 @@ export const layer = Layer.effect(
         code,
         createdAt: now,
         expiresAt: now + Duration.toMillis(CODE_TTL_DURATION),
-        used: false,
       })
 
       log.info("created pairing code", { code, expiresAt: now + Duration.toMillis(CODE_TTL_DURATION) })
@@ -106,15 +107,17 @@ export const layer = Layer.effect(
       write: AgentWriter,
     ) {
       const pairing = pairingCodes.get(code)
-      if (!pairing || pairing.used || Date.now() > pairing.expiresAt) {
+      if (!pairing || Date.now() > pairing.expiresAt) {
         log.warn("invalid pairing code", { code })
         return false
       }
 
-      // Mark code as used
-      pairing.used = true
+      if (!pairing.pairedAt) {
+        pairing.pairedAt = Date.now()
+      }
 
-      // Register agent
+      pairing.expiresAt = Date.now() + Duration.toMillis(CODE_TTL_DURATION)
+
       const agent: PairedAgent = {
         code,
         write,
@@ -126,17 +129,22 @@ export const layer = Layer.effect(
       return true
     })
 
-    const disconnectAgent = Effect.fn("AgentHub.disconnectAgent")(function* (code: string) {
+    const markOffline = Effect.fn("AgentHub.markOffline")(function* (code: string) {
       const agent = agents.get(code)
       if (agent) {
         agents.delete(code)
-        // Reject all pending commands for this agent
         for (const [id, pending] of pendingCommands) {
           pendingCommands.delete(id)
           yield* Deferred.fail(pending.deferred, new Error("Agent disconnected"))
         }
-        log.info("agent disconnected", { code })
+        log.info("agent went offline, pairing code preserved", { code })
       }
+    })
+
+    const disconnectAgent = Effect.fn("AgentHub.disconnectAgent")(function* (code: string) {
+      yield* markOffline(code)
+      pairingCodes.delete(code)
+      log.info("agent fully disconnected and pairing code removed", { code })
     })
 
     const dispatch = Effect.fn("AgentHub.dispatch")(function* (message: AgentMessage, senderCode?: string) {
@@ -211,20 +219,33 @@ case "pong": {
 
     const getStatus = Effect.fn("AgentHub.getStatus")(function* () {
       const agentsList = Array.from(agents.values())
-      if (agentsList.length === 0) {
-        return { connected: false } as const
+      const connected = agentsList.length > 0
+      const agentCode = connected ? agentsList[0].code : undefined
+
+      let paired = false
+      let pairedCode: string | undefined
+      let pairedAt: number | undefined
+      for (const [, pc] of pairingCodes) {
+        if (pc.pairedAt) {
+          paired = true
+          pairedCode = pc.code
+          pairedAt = pc.pairedAt
+          break
+        }
       }
-      const agent = agentsList[0]
+
       return {
-        connected: true,
-        code: agent.code,
-        pairedAt: agent.connectedAt,
+        connected,
+        paired,
+        code: agentCode ?? pairedCode,
+        pairedAt,
       } as const
     })
 
     return Service.of({
       createPairingCode: createPairingCode(),
       connectAgent: (code, write) => connectAgent(code, write),
+      markOffline: (code) => markOffline(code),
       disconnectAgent: (code) => disconnectAgent(code),
       dispatch: (message, code) => dispatch(message, code),
       getStatus: getStatus(),

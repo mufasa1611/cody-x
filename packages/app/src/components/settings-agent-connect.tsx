@@ -11,6 +11,7 @@ export const SettingsAgentConnect: Component = () => {
   const [pairingCode, setPairingCode] = createSignal<string | null>(null)
   const [codeExpiresAt, setCodeExpiresAt] = createSignal<number | null>(null)
   const [connected, setConnected] = createSignal(false)
+  const [paired, setPaired] = createSignal(false)
   const [pairedAt, setPairedAt] = createSignal<number | null>(null)
   const [generating, setGenerating] = createSignal(false)
   const [copied, setCopied] = createSignal(false)
@@ -23,6 +24,7 @@ export const SettingsAgentConnect: Component = () => {
       if (res.ok) {
         const data = await res.json()
         setConnected(data.connected)
+        setPaired(data.paired ?? false)
         setPairedAt(data.pairedAt ?? null)
       }
     } catch {
@@ -63,6 +65,7 @@ export const SettingsAgentConnect: Component = () => {
       const res = await fetch("/agent/disconnect", { method: "POST" })
       if (res.ok) {
         setConnected(false)
+        setPaired(false)
         setPairedAt(null)
         showToast({ title: "Remote PC disconnected", variant: "success" })
       }
@@ -107,13 +110,15 @@ export const SettingsAgentConnect: Component = () => {
 
         {/* Connection status */}
         <div class="flex items-center gap-2 py-3 border-t border-border-secondary">
-          <div class={"w-2 h-2 rounded-full " + (connected() ? "bg-green-500" : "bg-gray-400")} />
+          <div class={"w-2 h-2 rounded-full " + (connected() ? "bg-green-500" : paired() ? "bg-yellow-500" : "bg-gray-400")} />
           <span class="text-14-regular text-text-secondary">
             {connected()
               ? language.t("settings.agentConnect.connected")
-              : language.t("settings.agentConnect.disconnected")}
+              : paired()
+                ? "PC paired, waiting for connection"
+                : language.t("settings.agentConnect.disconnected")}
           </span>
-          <Show when={connected() && pairedAt() !== null}>
+          <Show when={pairedAt() !== null}>
             <span class="text-12-regular text-text-weak">
               {"(" + language.t("settings.agentConnect.pairedAt") + ": " + new Date(pairedAt()!).toLocaleTimeString() + ")"}
             </span>
@@ -121,7 +126,7 @@ export const SettingsAgentConnect: Component = () => {
         </div>
 
         {/* Generate pairing code section */}
-        <Show when={!connected()}>
+        <Show when={!paired()}>
           <div class="flex flex-col gap-3 py-3 border-t border-border-secondary">
             <Button variant="primary" onClick={generateCode} disabled={generating()}>
               {generating()
@@ -192,11 +197,16 @@ export const SettingsAgentConnect: Component = () => {
         </Show>
 
         {/* Disconnect section */}
-        <Show when={connected()}>
+        <Show when={paired()}>
           <div class="flex flex-col gap-3 py-3 border-t border-border-secondary">
             <Button variant="secondary" onClick={disconnect}>
-              {language.t("settings.agentConnect.disconnect")}
+              {connected()
+                ? language.t("settings.agentConnect.disconnect")
+                : "Disconnect from my PC"}
             </Button>
+            <Show when={!connected()}>
+              <span class="text-12-regular text-text-weak">Agent offline — disconnect to revoke pairing</span>
+            </Show>
           </div>
         </Show>
       </div>

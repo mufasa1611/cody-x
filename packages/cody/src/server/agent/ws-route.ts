@@ -52,7 +52,7 @@ export const agentWebSocketRoute = HttpRouter.use((router) =>
           .pipe(
             Effect.ensuring(
               pairedCode
-                ? hub.disconnectAgent(pairedCode)
+                ? hub.markOffline(pairedCode)
                 : Effect.void,
             ),
           )

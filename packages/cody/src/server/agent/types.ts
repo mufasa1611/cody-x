@@ -24,6 +24,7 @@ export interface CreatePairingResponse {
 
 export interface AgentStatusResponse {
   connected: boolean
+  paired: boolean
   pairedAt?: number
   remotePlatform?: string
   remoteHostname?: string
