@@ -16,6 +16,7 @@ function deps(global: string, target: string | Error): PlugDeps {
       error() {},
       info() {},
       success() {},
+      warn() {},
     },
     resolve: async () => {
       if (target instanceof Error) throw target

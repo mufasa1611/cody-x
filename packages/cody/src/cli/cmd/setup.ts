@@ -122,14 +122,30 @@ async function enableAutoStart(): Promise<boolean> {
     }
     const autoDir = path.join(os.homedir(), ".config", "autostart")
     await fs.mkdir(autoDir, { recursive: true })
-    const desktop = path.join(autoDir, "cody-pro.desktop")
+    const autostart = path.join(autoDir, "cody-pro.desktop")
     await fs.writeFile(
-      desktop,
+      autostart,
       `[Desktop Entry]
 Type=Application
 Name=Cody Pro
+Comment=AI coding assistant server
 Exec=${cliBin} serve
 X-GNOME-Autostart-enabled=true\n`,
+      "utf8",
+    )
+    // Also create application menu entry so it appears in the launcher
+    const appsDir = path.join(os.homedir(), ".local", "share", "applications")
+    await fs.mkdir(appsDir, { recursive: true })
+    const menuEntry = path.join(appsDir, "cody-pro.desktop")
+    await fs.writeFile(
+      menuEntry,
+      `[Desktop Entry]
+Type=Application
+Name=Cody Pro
+Comment=AI coding assistant server
+Exec=${cliBin} serve
+Terminal=false
+Categories=Development;Utility;\n`,
       "utf8",
     )
     return true

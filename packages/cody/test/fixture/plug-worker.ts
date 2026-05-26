@@ -46,6 +46,7 @@ function deps(msg: Msg): PlugDeps {
       error() {},
       info() {},
       success() {},
+      warn() {},
     },
     resolve: async () => msg.target,
     readText: (file) => Filesystem.readText(file),

@@ -38,7 +38,7 @@ import { Global } from "@cody/core/global"
 import { JsonMigration } from "@/storage/json-migration"
 import { Database } from "@/storage/db"
 import { errorMessage } from "./util/error"
-import { PluginCommand } from "./cli/cmd/plug"
+import { PluginCommand, PluginListCommand } from "./cli/cmd/plug"
 import { Heap } from "./cli/heap"
 import { drizzle } from "drizzle-orm/bun-sqlite"
 import { ensureProcessMetadata } from "@cody/core/util/cody-process"
@@ -202,6 +202,7 @@ const cli = yargs(args)
   .command(PrCommand)
   .command(SessionCommand)
   .command(PluginCommand)
+  .command(PluginListCommand)
   .command(SetupCommand)
   .command(DoctorCommand)
   .command(DbCommand)

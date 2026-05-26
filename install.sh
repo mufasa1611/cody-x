@@ -1,12 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_URL="https://github.com/mufasa1611/cody-x.git"
-DEFAULT_ROOT="${HOME:-~}/.local/share/cody-x"
+REPO="mufasa1611/cody-x"
 BRANCH="${CODY_BRANCH:-main}"
-INSTALLER_URL="https://raw.githubusercontent.com/mufasa1611/cody-x/$BRANCH/install.sh"
 
-# ---- Self-update check ----
+echo "[warn] This installer (root 'install.sh') is deprecated." >&2
+echo "[warn] Use the unified script/install.sh instead:" >&2
+echo "  curl -fsSL https://raw.githubusercontent.com/$REPO/$BRANCH/script/install.sh | bash" >&2
+echo "" >&2
+
+NEW_URL="https://raw.githubusercontent.com/$REPO/$BRANCH/script/install.sh"
+TMP="$(mktemp)"
+if curl -fsSL "$NEW_URL" -o "$TMP" 2>/dev/null; then
+  exec bash "$TMP" "$@"
+fi
+echo "[error] Could not download script/install.sh. Falling through to legacy installer." >&2
+
+REPO_URL="https://github.com/$REPO.git"
+DEFAULT_ROOT="${HOME:-~}/.local/share/cody-x"
+INSTALLER_URL="https://raw.githubusercontent.com/$REPO/$BRANCH/install.sh"
+
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 if [ "${CODY_INSTALLER_SELF_UPDATE:-1}" != "0" ] && [ -z "${CODY_INSTALLER_SELF_UPDATED:-}" ] && [ -f "$SCRIPT_PATH" ]; then
   TMP_INSTALLER="$(mktemp)"

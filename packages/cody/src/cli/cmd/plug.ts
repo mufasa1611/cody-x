@@ -1,7 +1,10 @@
 import { intro, log, outro, spinner } from "@clack/prompts"
 import { Effect } from "effect"
+import path from "path"
+import fs from "fs/promises"
 
 import { ConfigPaths } from "@/config/paths"
+import { Config } from "@/config/config"
 import { Global } from "@cody/core/global"
 import { installPlugin, patchPluginConfig, readPluginManifest } from "../../plugin/install"
 import { resolvePluginTarget } from "../../plugin/shared"
@@ -23,6 +26,7 @@ export type PlugDeps = {
     error: (msg: string) => void
     info: (msg: string) => void
     success: (msg: string) => void
+    warn: (msg: string) => void
   }
   resolve: (spec: string) => Promise<string>
   readText: (file: string) => Promise<string>
@@ -50,6 +54,7 @@ const defaultPlugDeps: PlugDeps = {
     error: (msg) => log.error(msg),
     info: (msg) => log.info(msg),
     success: (msg) => log.success(msg),
+    warn: (msg) => log.warn(msg),
   },
   resolve: (spec) => resolvePluginTarget(spec),
   readText: (file) => Filesystem.readText(file),
@@ -234,5 +239,70 @@ export const PluginCommand = effectCmd({
 
     outro("Done")
     if (!ok) process.exitCode = 1
+  }),
+})
+
+export const PluginListCommand = effectCmd({
+  command: "plugins",
+  aliases: ["plugin-list"],
+  describe: "list installed plugins and their dependency health",
+  instance: false,
+  builder: (yargs) =>
+    yargs.option("installed", {
+      alias: ["i"],
+      type: "boolean",
+      default: true,
+      describe: "show installed plugins",
+    }),
+  handler: Effect.fn("Cli.plugins")(function* () {
+    const config = yield* Config.Service.use((cfg) => cfg.get())
+
+    const origins = config.plugin_origins
+    if (!origins?.length) {
+      UI.empty()
+      intro("Installed Plugins")
+      log.info("No plugins installed.")
+      outro("Done")
+      return
+    }
+
+    UI.empty()
+    intro("Installed Plugins")
+
+    for (const plugin of origins) {
+      const spec = typeof plugin.spec === "string" ? plugin.spec : plugin.spec[0]
+      UI.println(`  ${UI.Style.TEXT_HIGHLIGHT_BOLD}${spec}${UI.Style.TEXT_NORMAL}`)
+
+      const resolved = yield* Effect.promise(() => resolvePluginTarget(spec).catch(() => null))
+      if (!resolved) {
+        log.error(`  Target not found`)
+        continue
+      }
+
+      const pkgPath = path.join(resolved, "package.json")
+      const pkg = yield* Effect.promise(() => Filesystem.readJson<Record<string, unknown>>(pkgPath).catch(() => null))
+      if (!pkg) {
+        log.warn(`  No package.json at ${resolved}`)
+        continue
+      }
+
+      const hasDeps =
+        (pkg.dependencies && typeof pkg.dependencies === "object" && Object.keys(pkg.dependencies as Record<string, string>).length > 0) ||
+        (pkg.devDependencies && typeof pkg.devDependencies === "object" && Object.keys(pkg.devDependencies as Record<string, string>).length > 0) ||
+        (pkg.codyDependencies && typeof pkg.codyDependencies === "object" && Object.keys(pkg.codyDependencies as Record<string, string>).length > 0)
+
+      const nodeModules = path.join(resolved, "node_modules")
+      const depsInstalled = yield* Effect.promise(() => fs.access(nodeModules).then(() => true).catch(() => false))
+
+      if (hasDeps && !depsInstalled) {
+        log.warn(`  Dependencies: not installed (run: cody plugin ${spec})`)
+      } else if (hasDeps && depsInstalled) {
+        log.success(`  Dependencies: installed`)
+      } else {
+        log.info(`  Dependencies: none`)
+      }
+    }
+
+    outro("Done")
   }),
 })

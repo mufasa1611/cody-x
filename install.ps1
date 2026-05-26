@@ -6,6 +6,23 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+Write-Host "[warn] This installer (root 'install.ps1') is deprecated." -ForegroundColor Yellow
+Write-Host "[warn] Use the unified script/install.ps1 instead:" -ForegroundColor Yellow
+Write-Host "  irm https://raw.githubusercontent.com/mufasa1611/cody-x/$Branch/script/install.ps1 | iex" -ForegroundColor Yellow
+Write-Host ""
+
+# Redirect to unified installer
+$newUrl = "https://raw.githubusercontent.com/mufasa1611/cody-x/$Branch/script/install.ps1"
+try {
+  $newScript = Invoke-WebRequest -UseBasicParsing -Uri $newUrl
+  $tempFile = [System.IO.Path]::GetTempFileName() + ".ps1"
+  [System.IO.File]::WriteAllText($tempFile, $newScript.Content)
+  & $tempFile @PSBoundParameters
+  exit $LASTEXITCODE
+} catch {
+  Write-Host "[warn] Could not download script/install.ps1. Falling through to legacy installer." -ForegroundColor Yellow
+}
+
 trap {
   Write-Host ""
   Write-Host "[error] Install failed at step: $($_.InvocationInfo.ScriptLineNumber)" -ForegroundColor Red
