@@ -301,7 +301,7 @@ export const GlobalRoutes = lazy(() =>
           },
         },
       }),
-      () => {
+      (c: Context) => {
         upgrade().catch(() => {})
         return c.json({ success: true })
       },
@@ -323,7 +323,7 @@ export const GlobalRoutes = lazy(() =>
           },
         },
       }),
-      () => {
+      (c: Context) => {
         gitUpgrade()
         return c.json({ success: true })
       },
