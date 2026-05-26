@@ -216,7 +216,7 @@ export function createRoutes(corsOptions?: CorsOptions) {
 export const routes = createRoutes()
 
 const defaultWebHandler = lazy(() =>
-  HttpRouter.toWebHandler(routes, {
+  HttpRouter.toWebHandler(routes as any, {
     memoMap,
     middleware: disposeMiddleware,
   }),
@@ -224,7 +224,7 @@ const defaultWebHandler = lazy(() =>
 
 export function webHandler(corsOptions?: CorsOptions) {
   if (!corsOptions?.cors?.length) return defaultWebHandler()
-  return HttpRouter.toWebHandler(createRoutes(corsOptions), {
+  return HttpRouter.toWebHandler(createRoutes(corsOptions) as any, {
     // Server-level CORS options are dynamic; don't reuse the default route layer memoized without them.
     memoMap: Layer.makeMemoMapUnsafe(),
     middleware: disposeMiddleware,

@@ -49,7 +49,7 @@ function app(modules: Runtime, backend: Backend, options: CallOptions) {
     })
   }
 
-  const handler = HttpRouter.toWebHandler(
+  const handler = (HttpRouter.toWebHandler as any)(
     modules.ExperimentalHttpApiServer.routes.pipe(
       Layer.provide(
         ConfigProvider.layer(
