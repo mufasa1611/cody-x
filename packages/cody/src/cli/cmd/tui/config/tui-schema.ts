@@ -65,7 +65,7 @@ const GlobalKeymapSection = {
   "mcp.list": keymapBinding("none"),
   "agent.cycle": keymapBinding("tab"),
   "agent.cycle.reverse": keymapBinding("shift+tab"),
-  "variant.cycle": keymapBinding("ctrl+t"),
+  "variant.cycle": keymapBinding("ctrl+t,alt+t"),
   "variant.list": keymapBinding("none"),
   "provider.connect": keymapBinding("none"),
   "console.org.switch": keymapBinding("none"),
