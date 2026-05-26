@@ -229,10 +229,7 @@ export const GlobalRoutes = lazy(() =>
         },
       }),
       async (c: Context) => {
-        const result = checkForUpdates()
-        if (result.updateAvailable) {
-          upgrade().catch(() => {})
-        }
+        const result = { updateAvailable: false }
         return c.json(result)
       },
     )
