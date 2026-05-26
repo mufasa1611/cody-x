@@ -309,27 +309,15 @@ export const GlobalRoutes = lazy(() =>
     .post("/_ping", async (c) => c.json({ ok: true })),
 )
 
-export const GitRoute = new Hono()
-  .post(
-    "/git-ping",
-    async (c: Context) => {
-      return c.json({ ok: true })
-    },
-  )
-  .post(
-    "/git-check",
-    async (c: Context) => {
-      const result = checkForUpdates()
-      if (result.updateAvailable) {
-        upgrade().catch(() => {})
-      }
-      return c.json(result)
-    },
-  )
-  .post(
-    "/git-upgrade",
-    async (c: Context) => {
-      gitUpgrade()
-      return c.json({ success: true })
-    },
-  )
+export const gitCheckHandler = async (c: Context) => {
+  const result = checkForUpdates()
+  if (result.updateAvailable) {
+    upgrade().catch(() => {})
+  }
+  return c.json(result)
+}
+
+export const gitUpgradeHandler = async (c: Context) => {
+  gitUpgrade()
+  return c.json({ success: true })
+}
