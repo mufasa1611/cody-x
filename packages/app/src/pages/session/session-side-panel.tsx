@@ -56,7 +56,6 @@ export function SessionSidePanel(props: {
   const navigate = useNavigate()
 
   const [connected, setConnected] = createSignal(false)
-  const [paired, setPaired] = createSignal(false)
   let intervalId: ReturnType<typeof setInterval> | undefined
 
   onMount(() => {
@@ -74,7 +73,6 @@ export function SessionSidePanel(props: {
       if (res.ok) {
         const data = await res.json()
         setConnected(data.connected)
-        setPaired(data.paired ?? false)
       }
     } catch { /* ignore */ }
   }
@@ -84,7 +82,6 @@ export function SessionSidePanel(props: {
       const res = await fetch("/agent/disconnect", { method: "POST" })
       if (res.ok) {
         setConnected(false)
-        setPaired(false)
         showToast({ title: "Remote PC disconnected", variant: "success" })
       }
     } catch {
@@ -458,20 +455,11 @@ export function SessionSidePanel(props: {
                   </Tabs.Content>
                   <Tabs.Content value="all" class="bg-background-stronger px-3 py-0">
                     <Switch>
-                      <Match when={paired()}>
+                      <Match when={connected()}>
                         <div class="flex flex-col h-full">
-                          <Show when={connected()}>
-                            <div class="flex-1 overflow-y-auto">
-                              <FileTreeRemote />
-                            </div>
-                          </Show>
-                          <Show when={!connected()}>
-                            <div class="flex flex-col items-center justify-center gap-2 py-8 px-4">
-                              <p class="text-13-regular text-text-weak text-center">
-                                Agent offline — reconnect from your PC
-                              </p>
-                            </div>
-                          </Show>
+                          <div class="flex-1 overflow-y-auto">
+                            <FileTreeRemote />
+                          </div>
                           <div class="shrink-0 border-t border-border-secondary px-3 py-2">
                             <Button variant="secondary" size="small" class="w-full" onClick={disconnect}>
                               Disconnect from PC
@@ -479,7 +467,7 @@ export function SessionSidePanel(props: {
                           </div>
                         </div>
                       </Match>
-                      <Match when={!paired()}>
+                      <Match when={!connected()}>
                         <div class="flex flex-col items-center justify-center h-full gap-3 py-12 px-4">
                           <p class="text-13-regular text-text-weak text-center">
                             Connect to a remote PC to browse files
