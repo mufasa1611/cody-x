@@ -311,6 +311,12 @@ export const GlobalRoutes = lazy(() =>
 
 export const GitRoute = new Hono()
   .post(
+    "/git-ping",
+    async (c: Context) => {
+      return c.json({ ok: true })
+    },
+  )
+  .post(
     "/git-check",
     async (c: Context) => {
       const result = checkForUpdates()
