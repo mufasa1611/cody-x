@@ -53,7 +53,7 @@ const keymapSectionInput = <Shape extends z.ZodRawShape>(shape: Shape) =>
     .strict()
 
 const GlobalKeymapSection = {
-  "command.palette.show": keymapBinding("ctrl+p"),
+  "command.palette.show": keymapBinding("ctrl+p,f1"),
   "session.list": keymapBinding("<leader>l"),
   "session.new": keymapBinding("<leader>n"),
   "model.list": keymapBinding("<leader>m"),
