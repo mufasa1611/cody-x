@@ -285,6 +285,28 @@ export const GlobalRoutes = lazy(() =>
       },
     )
     .post(
+      "/git-upgrade",
+      describeRoute({
+        summary: "Git upgrade",
+        description: "Pull latest from git and restart.",
+        operationId: "global.gitUpgrade",
+        responses: {
+          200: {
+            description: "Upgrade initiated",
+            content: {
+              "application/json": {
+                schema: resolver(z.object({ success: z.literal(true) })),
+              },
+            },
+          },
+        },
+      }),
+      async (c: Context) => {
+        gitUpgrade()
+        return c.json({ success: true })
+      },
+    )
+    .post(
       "/git-check",
       describeRoute({
         summary: "Check git for updates",
@@ -309,26 +331,5 @@ export const GlobalRoutes = lazy(() =>
         return c.json(result)
       },
     )
-    .post(
-      "/git-upgrade",
-      describeRoute({
-        summary: "Git upgrade",
-        description: "Pull latest from git and restart.",
-        operationId: "global.gitUpgrade",
-        responses: {
-          200: {
-            description: "Upgrade initiated",
-            content: {
-              "application/json": {
-                schema: resolver(z.object({ success: z.literal(true) })),
-              },
-            },
-          },
-        },
-      }),
-      async (c: Context) => {
-        gitUpgrade()
-        return c.json({ success: true })
-      },
-    ),
+    .post("/test", async (c) => c.json({ ok: true })),
 )
