@@ -114,10 +114,10 @@ function createHono(opts: CorsOptions, selection: ServerBackend.Selection = Serv
     .use(LoggerMiddleware(backendAttributes))
     .use(AuthMiddleware)
     .use(CompressionMiddleware)
-    .route("/global", GlobalRoutes())
     .post("/global/git-check", async (c) => {
       return c.json(checkForUpdates())
     })
+    .route("/global", GlobalRoutes())
     .route("/agent", AgentRoutes())
 
   const runtime = adapter.create(app)
