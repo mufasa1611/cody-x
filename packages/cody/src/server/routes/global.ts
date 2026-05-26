@@ -16,7 +16,7 @@ import { lazy } from "../../util/lazy"
 import { Config } from "@/config/config"
 import { errors } from "../error"
 import { disposeAllInstancesAndEmitGlobalDisposed } from "../global-lifecycle"
-import { gitUpgrade, upgrade } from "@/cli/upgrade"
+import { checkForUpdates, gitUpgrade, upgrade } from "@/cli/upgrade"
 
 const log = Log.create({ service: "server" })
 
@@ -295,15 +295,18 @@ export const GlobalRoutes = lazy(() =>
             description: "Check completed",
             content: {
               "application/json": {
-                schema: resolver(z.object({ success: z.literal(true) })),
+                schema: resolver(z.object({ updateAvailable: z.boolean() })),
               },
             },
           },
         },
       }),
-      () => {
-        upgrade().catch(() => {})
-        return c.json({ success: true })
+      (c: Context) => {
+        const result = checkForUpdates()
+        if (result.updateAvailable) {
+          upgrade().catch(() => {})
+        }
+        return c.json(result)
       },
     )
     .post(
@@ -323,7 +326,7 @@ export const GlobalRoutes = lazy(() =>
           },
         },
       }),
-      () => {
+      (c: Context) => {
         gitUpgrade()
         return c.json({ success: true })
       },
