@@ -17,7 +17,7 @@ import { initProjectors } from "./projectors"
 import { InstanceRoutes } from "./routes/instance"
 import { ControlPlaneRoutes } from "./routes/control"
 import { UIRoutes } from "./routes/ui"
-import { gitCheckHandler, gitUpgradeHandler, GlobalRoutes } from "./routes/global"
+import { GlobalRoutes } from "./routes/global"
 import { AgentRoutes } from "./agent/rest"
 import { WorkspaceRouterMiddleware } from "./workspace"
 import { InstanceMiddleware } from "./routes/instance/middleware"
@@ -135,13 +135,11 @@ function createHono(opts: CorsOptions, selection: ServerBackend.Selection = Serv
     .use(WorkspaceRouterMiddleware(runtime.upgradeWebSocket))
   workspaceApp.route("/", workspaceLegacyApp)
 
-    return {
+  return {
     app: app
       .route("/", ControlPlaneRoutes())
       .route("/", workspaceApp)
       .route("/", InstanceRoutes(runtime.upgradeWebSocket, opts))
-      .post("/git-check", gitCheckHandler)
-      .post("/git-upgrade", gitUpgradeHandler)
       .route("/", UIRoutes()),
     runtime,
   }

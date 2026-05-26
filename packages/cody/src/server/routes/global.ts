@@ -212,6 +212,31 @@ export const GlobalRoutes = lazy(() =>
       },
     )
     .post(
+      "/git-check",
+      describeRoute({
+        summary: "Check git for updates",
+        description: "Check if new commits are available on the git remote.",
+        operationId: "global.gitCheck",
+        responses: {
+          200: {
+            description: "Check completed",
+            content: {
+              "application/json": {
+                schema: resolver(z.object({ updateAvailable: z.boolean() })),
+              },
+            },
+          },
+        },
+      }),
+      async (c: Context) => {
+        const result = checkForUpdates()
+        if (result.updateAvailable) {
+          upgrade().catch(() => {})
+        }
+        return c.json(result)
+      },
+    )
+    .post(
       "/upgrade",
       describeRoute({
         summary: "Upgrade Cody Pro",
@@ -283,39 +308,8 @@ export const GlobalRoutes = lazy(() =>
         })
         return c.json({ success: true, version: target })
       },
-    )
-    .post(
-      "/git-upgrade",
-      describeRoute({
-        summary: "Git upgrade",
-        description: "Pull latest from git and restart.",
-        operationId: "global.gitUpgrade",
-        responses: {
-          200: {
-            description: "Upgrade initiated",
-            content: {
-              "application/json": {
-                schema: resolver(z.object({ success: z.literal(true) })),
-              },
-            },
-          },
-        },
-      }),
-      async (c: Context) => {
-        gitUpgrade()
-        return c.json({ success: true })
-      },
-    )
-    .post("/_ping", async (c) => c.json({ ok: true })),
+    ),
 )
-
-export const gitCheckHandler = async (c: Context) => {
-  const result = checkForUpdates()
-  if (result.updateAvailable) {
-    upgrade().catch(() => {})
-  }
-  return c.json(result)
-}
 
 export const gitUpgradeHandler = async (c: Context) => {
   gitUpgrade()
