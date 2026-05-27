@@ -13,6 +13,7 @@ import { Installation } from "@/installation"
 import { InstallationVersion } from "@cody/core/installation/version"
 import * as Log from "@cody/core/util/log"
 import { lazy } from "../../util/lazy"
+import { checkForUpdates } from "@/cli/upgrade"
 import { Config } from "@/config/config"
 import { errors } from "../error"
 import { disposeAllInstancesAndEmitGlobalDisposed } from "../global-lifecycle"
@@ -207,6 +208,27 @@ export const GlobalRoutes = lazy(() =>
       async (c) => {
         await AppRuntime.runPromise(disposeAllInstancesAndEmitGlobalDisposed())
         return c.json(true)
+      },
+    )
+    .post(
+      "/git-check",
+      describeRoute({
+        summary: "Check for updates",
+        description: "Check if a newer version is available via git.",
+        operationId: "global.git-check",
+        responses: {
+          200: {
+            description: "Update status",
+            content: {
+              "application/json": {
+                schema: resolver(z.object({ updateAvailable: z.boolean() })),
+              },
+            },
+          },
+        },
+      }),
+      async (c) => {
+        return c.json(checkForUpdates())
       },
     )
     .post(
