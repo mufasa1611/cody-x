@@ -24,10 +24,7 @@ interface RemovalTargets {
 
 export const UninstallCommand = {
   command: "uninstall",
-  describe:
-    process.env.CODY_PRO === "0"
-      ? "uninstall cody and remove all related files"
-      : "uninstall Cody Pro and remove all related files",
+  describe: "uninstall cody-x and remove all related files",
   builder: (yargs: Argv) =>
     yargs
       .option("keep-config", {
@@ -58,7 +55,7 @@ export const UninstallCommand = {
     UI.empty()
     UI.println(UI.logo("  "))
     UI.empty()
-    prompts.intro(process.env.CODY_PRO === "0" ? "Uninstall Cody" : "Uninstall Cody Pro")
+    prompts.intro("Uninstall Cody X")
 
     const method = await Installation.method()
     prompts.log.info(`Installation method: ${method}`)
@@ -232,7 +229,7 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
   }
 
   UI.empty()
-  prompts.log.success(process.env.CODY_PRO === "0" ? "Thank you for using Cody!" : "Thank you for using Cody Pro!")
+  prompts.log.success("Thank you for using Cody X!")
 }
 
 async function getShellConfigFile(): Promise<string | null> {

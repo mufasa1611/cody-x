@@ -48,7 +48,7 @@ function findNativeBinary(startDir: string): string | null {
 }
 
 async function resolveCliBinary(): Promise<string | null> {
-  const binName = process.env.CODY_PRO === "0" ? "cody" : "cody-pro"
+  const binName = "cody-x"
   try {
     const cmd = os.platform() === "win32" ? `where ${binName}` : `which ${binName}`
     const out = execSync(cmd, { encoding: "utf8", timeout: 5000 }).trim().split("\n")[0].trim()
@@ -211,7 +211,7 @@ export const SetupCommand = {
     UI.empty()
     UI.println(UI.logo("  "))
     UI.empty()
-    prompts.intro(process.env.CODY_PRO === "0" ? "Cody Setup" : "Cody Pro Setup")
+    prompts.intro("Cody X Setup")
 
     const method = await Installation.method()
     prompts.log.info(`Installation method: ${method}`)
@@ -409,11 +409,11 @@ export const SetupCommand = {
     prompts.log.success("Setup complete!")
     UI.empty()
     prompts.log.step("Next steps:")
-    prompts.log.info("  1. Start the server:  cody-pro serve")
-    prompts.log.info("  2. Open the web UI:   cody-pro web")
-    prompts.log.info("  3. Run diagnostics:   cody-pro doctor")
-    prompts.log.info("  4. Get help:          cody-pro --help")
+    prompts.log.info("  1. Start the server:  cody-x serve")
+    prompts.log.info("  2. Open the web UI:   cody-x web")
+    prompts.log.info("  3. Run diagnostics:   cody-x doctor")
+    prompts.log.info("  4. Get help:          cody-x --help")
     UI.empty()
-    prompts.outro(process.env.CODY_PRO === "0" ? "Happy coding with Cody!" : "Happy coding with Cody Pro!")
+    prompts.outro("Happy coding with Cody X!")
   },
 }

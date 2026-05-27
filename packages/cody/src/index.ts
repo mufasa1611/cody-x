@@ -33,7 +33,7 @@ import { DoctorCommand } from "./cli/cmd/doctor"
 import { SessionCommand } from "./cli/cmd/session"
 import { DbCommand } from "./cli/cmd/db"
 import path from "path"
-import { execSync } from "child_process"
+import { exec, execSync } from "child_process"
 import { Global } from "@cody/core/global"
 import { JsonMigration } from "@/storage/json-migration"
 import { Database } from "@/storage/db"
@@ -58,35 +58,40 @@ process.on("uncaughtException", (e) => {
 })
 
 const args = hideBin(process.argv)
-const cliName = process.env.CODY_PRO === "0" ? "cody" : "cody-pro"
+const cliName = "cody-x"
+
+function execAsync(cmd: string, opts: { cwd?: string; timeout?: number } = {}): Promise<string> {
+  return new Promise((resolve, reject) => {
+    exec(cmd, { cwd: opts.cwd, timeout: opts.timeout, encoding: "utf8" } as any, (err, stdout) => {
+      if (err) reject(err)
+      else resolve(String(stdout).trim())
+    })
+  })
+}
 
 // Auto-update at startup (skip for help/version/upgrade subcommands)
 if (process.env.CODY_PRO !== "0" && !args.some(a => ["--help", "-h", "--version", "-v"].includes(a)) && args[0] !== "upgrade") {
-  tryAutoUpdate()
+  tryAutoUpdateAsync().catch(() => {})
 }
-function tryAutoUpdate() {
+async function tryAutoUpdateAsync() {
+  const repoRoot = await execAsync("git rev-parse --show-toplevel", { timeout: 5000 })
+  if (!repoRoot) return
+  const branch = process.env.CODY_BRANCH || "main"
+  await execAsync(`git fetch origin ${branch} --quiet`, { cwd: repoRoot, timeout: 15000 })
+  const behind = await execAsync(`git rev-list --count HEAD..origin/${branch}`, { cwd: repoRoot, timeout: 5000 })
+  if (behind === "0" || behind === "") return
+  process.stderr.write("\n  \x1B[1mUpdating cody-x...\x1B[22m\n")
+  await execAsync("git pull --ff-only", { cwd: repoRoot, timeout: 30000 })
   try {
-    const repoRoot = execSync("git rev-parse --show-toplevel", { encoding: "utf8", timeout: 5000 }).trim()
-    if (!repoRoot) return
-    const branch = process.env.CODY_BRANCH || "main"
-    execSync(`git fetch origin ${branch} --quiet`, { cwd: repoRoot, encoding: "utf8", timeout: 15000 })
-    const behind = execSync(`git rev-list --count HEAD..origin/${branch}`, { cwd: repoRoot, encoding: "utf8", timeout: 5000 }).trim()
-    if (behind === "0" || behind === "") return
-    process.stderr.write("\n  \x1B[1mUpdating Cody Pro...\x1B[22m\n")
-    execSync("git pull --ff-only", { cwd: repoRoot, encoding: "utf8", timeout: 30000 })
-    try {
-      const changed = execSync("git diff HEAD@{1} --name-only", { cwd: repoRoot, encoding: "utf8", timeout: 5000 })
-      if (changed.split("\n").some(f => /^(package\.json|bun\.lock)$/.test(f.trim()))) {
-        execSync("bun install", { cwd: repoRoot, encoding: "utf8", timeout: 120000 })
-      }
-    } catch {
-      execSync("bun install", { cwd: repoRoot, encoding: "utf8", timeout: 120000 })
+    const changed = await execAsync("git diff HEAD@{1} --name-only", { cwd: repoRoot, timeout: 5000 })
+    if (changed.split("\n").some(f => /^(package\.json|bun\.lock)$/.test(f.trim()))) {
+      await execAsync("bun install", { cwd: repoRoot, timeout: 120000 })
     }
-    execSync("bun run --cwd packages/app build", { cwd: repoRoot, encoding: "utf8", timeout: 120000 })
-    process.stderr.write("  \x1B[32mUpdate complete.\x1B[0m\n")
   } catch {
-    // Auto-update is best-effort; silently continue if anything fails
+    await execAsync("bun install", { cwd: repoRoot, timeout: 120000 })
   }
+  await execAsync("bun run --cwd packages/app build", { cwd: repoRoot, timeout: 120000 })
+  process.stderr.write("  \x1B[32mUpdate complete.\x1B[0m\n")
 }
 
 function show(out: string) {

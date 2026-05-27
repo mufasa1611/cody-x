@@ -6,8 +6,7 @@ import { InstallationVersion } from "@cody/core/installation/version"
 
 export const UpgradeCommand = {
   command: "upgrade [target]",
-  describe:
-    process.env.CODY_PRO === "0" ? "upgrade cody to the latest or a specific version" : "upgrade Cody Pro",
+  describe: "upgrade cody-x to the latest or a specific version",
   builder: (yargs: Argv) => {
     return yargs
       .positional("target", {
@@ -30,7 +29,7 @@ export const UpgradeCommand = {
     const method = (args.method as Installation.Method) ?? detectedMethod
     if (method === "unknown") {
       prompts.log.error(
-        `${process.env.CODY_PRO === "0" ? "cody" : "Cody Pro"} is installed to ${process.execPath} and may be managed by a package manager`,
+        `cody-x is installed to ${process.execPath} and may be managed by a package manager`,
       )
       const install = await prompts.select({
         message: "Install anyways?",
@@ -50,7 +49,7 @@ export const UpgradeCommand = {
 
     if (InstallationVersion === target) {
       prompts.log.warn(
-        `${process.env.CODY_PRO === "0" ? "cody" : "Cody Pro"} upgrade skipped: ${target} is already installed`,
+        `cody-x upgrade skipped: ${target} is already installed`,
       )
       prompts.outro("Done")
       return

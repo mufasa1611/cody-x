@@ -541,18 +541,18 @@ export class Agent implements ACPAgent {
       description:
         process.env.CODY_PRO === "0"
           ? "Run `cody auth login` in the terminal"
-          : "Run `cody-pro auth login` in the terminal",
-      name: process.env.CODY_PRO === "0" ? "Login with cody" : "Login with Cody Pro",
-      id: process.env.CODY_PRO === "0" ? "cody-login" : "cody-pro-login",
+          : "Run `cody-x auth login` in the terminal",
+      name: "Login with Cody X",
+      id: "cody-x-login",
     }
 
     // If client supports terminal-auth capability, use that instead.
     if (params.clientCapabilities?._meta?.["terminal-auth"] === true) {
       authMethod._meta = {
         "terminal-auth": {
-          command: process.env.CODY_PRO === "0" ? "cody" : "cody-pro",
+          command: "cody-x",
           args: ["auth", "login"],
-          label: process.env.CODY_PRO === "0" ? "Cody Login" : "Cody Pro Login",
+          label: "Cody X Login",
         },
       }
     }
@@ -578,7 +578,7 @@ export class Agent implements ACPAgent {
       },
       authMethods: [authMethod],
       agentInfo: {
-        name: process.env.CODY_PRO === "0" ? "Cody" : "Cody Pro",
+        name: "Cody X",
         version: InstallationVersion,
       },
     }

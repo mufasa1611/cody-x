@@ -279,7 +279,7 @@ function build(input: SplashWriterInput, kind: "entry" | "exit", ctx: Scrollback
       lines,
       body_left + label.length,
       top + 1,
-      `${process.env.CODY_PRO === "0" ? "cody" : "cody-pro"} run -i -s ${meta.session_id}`,
+      `cody-x -s ${meta.session_id}`,
       right,
       undefined,
       TextAttributes.BOLD,

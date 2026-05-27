@@ -33,7 +33,7 @@ export const WebCommand = effectCmd({
   command: "web",
   builder: (yargs) => withNetworkOptions(yargs),
   describe:
-    process.env.CODY_PRO === "0" ? "start cody server and open web interface" : "start Cody Pro web interface",
+    "start cody-x server and open web interface",
   // Server loads instances per-request via x-cody-directory header — no
   // ambient project InstanceContext needed at startup.
   instance: false,
