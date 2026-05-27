@@ -39,6 +39,7 @@ export const GlobalPaths = {
   config: "/global/config",
   dispose: "/global/dispose",
   upgrade: "/global/upgrade",
+  gitCheck: "/global/git-check",
 } as const
 
 export const GlobalApi = HttpApi.make("global").add(
@@ -100,6 +101,18 @@ export const GlobalApi = HttpApi.make("global").add(
           identifier: "global.upgrade",
           summary: "Upgrade Cody Pro",
           description: "Upgrade Cody Pro to the specified version or latest if not specified.",
+        }),
+      ),
+      HttpApiEndpoint.post("gitCheck", GlobalPaths.gitCheck, {
+        success: described(
+          Schema.Struct({ updateAvailable: Schema.Boolean }),
+          "Git update check result",
+        ),
+      }).annotateMerge(
+        OpenApi.annotations({
+          identifier: "global.gitCheck",
+          summary: "Check for updates",
+          description: "Check if git-based updates are available.",
         }),
       ),
     )

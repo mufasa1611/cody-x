@@ -13,6 +13,7 @@ import { HttpApiBuilder } from "effect/unstable/httpapi"
 import * as Sse from "effect/unstable/encoding/Sse"
 import { RootHttpApi } from "../api"
 import { GlobalUpgradeInput } from "../groups/global"
+import { checkForUpdates } from "@/cli/upgrade"
 import { execSync } from "child_process"
 import path from "path"
 
@@ -184,6 +185,11 @@ export const globalHandlers = HttpApiBuilder.group(RootHttpApi, "global", (handl
       return HttpServerResponse.jsonUnsafe(result.body, { status: result.status })
     })
 
+    const gitCheck = Effect.fn("GlobalHttpApi.gitCheck")(function* () {
+      const result = yield* Effect.sync(checkForUpdates)
+      return { updateAvailable: result.updateAvailable }
+    })
+
     return handlers
       .handle("health", health)
       .handleRaw("event", event)
@@ -191,5 +197,6 @@ export const globalHandlers = HttpApiBuilder.group(RootHttpApi, "global", (handl
       .handle("configUpdate", configUpdate)
       .handle("dispose", dispose)
       .handleRaw("upgrade", upgradeRaw)
+      .handle("gitCheck", gitCheck)
   }),
 )

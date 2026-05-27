@@ -1,19 +1,8 @@
 import type { Hono } from "hono"
 import { createBunWebSocket } from "hono/bun"
-import { checkForUpdates } from "@/cli/upgrade"
 import type { Adapter, FetchApp, Opts } from "./adapter"
 
 function listen(app: FetchApp, opts: Opts, websocket?: ReturnType<typeof createBunWebSocket>["websocket"]) {
-  const origFetch = app.fetch
-  app.fetch = (request: Request) => {
-    const url = new URL(request.url)
-    if (request.method === "POST" && url.pathname === "/global/git-check") {
-      return new Response(JSON.stringify(checkForUpdates()), {
-        headers: { "content-type": "application/json" },
-      })
-    }
-    return origFetch(request)
-  }
   const start = (port: number) => {
     try {
       if (websocket) {
