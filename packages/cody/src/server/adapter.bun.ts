@@ -6,9 +6,9 @@ function listen(app: FetchApp, opts: Opts, websocket?: ReturnType<typeof createB
   const start = (port: number) => {
     try {
       if (websocket) {
-        return Bun.serve({ fetch: app.fetch, hostname: opts.hostname, idleTimeout: 0, websocket, port })
+        return Bun.serve({ fetch: app.fetch, hostname: opts.hostname, idleTimeout: 0, reusePort: true, websocket, port })
       }
-      return Bun.serve({ fetch: app.fetch, hostname: opts.hostname, idleTimeout: 0, port })
+      return Bun.serve({ fetch: app.fetch, hostname: opts.hostname, idleTimeout: 0, reusePort: true, port })
     } catch {
       return
     }
