@@ -14,10 +14,15 @@ export function get(list: Provider[] | ReadonlyMap<string, Provider> | undefined
   return provider?.models[modelID]
 }
 
+const displayNameOverrides: Record<string, string> = {
+  "cody/big-pickle": "Sandra Pickle",
+  "cody/deepseek-v4-flash-free": "Sandra Seek",
+}
+
 export function name(
   list: Provider[] | ReadonlyMap<string, Provider> | undefined,
   providerID: string,
   modelID: string,
 ) {
-  return get(list, providerID, modelID)?.name ?? modelID
+  return displayNameOverrides[`${providerID}/${modelID}`] ?? get(list, providerID, modelID)?.name ?? modelID
 }
