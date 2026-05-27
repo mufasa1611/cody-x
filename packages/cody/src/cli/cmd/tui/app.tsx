@@ -158,16 +158,7 @@ export function tui(input: {
               <ExitProvider onBeforeExit={onBeforeExit} onExit={onExit}>
                 <KVProvider>
                   <ToastProvider>
-                    <RouteProvider
-                      initialRoute={
-                        input.args.continue
-                          ? {
-                              type: "session",
-                              sessionID: "dummy",
-                            }
-                          : undefined
-                      }
-                    >
+                    <RouteProvider initialRoute={undefined}>
                       <TuiConfigProvider config={input.config}>
                         <SDKProvider
                           url={input.url}
@@ -301,24 +292,24 @@ function App(props: { onSnapshot?: () => Promise<string[]>; onGitUpgrade?: () =>
     if (!terminalTitleEnabled() || Flag.CODY_DISABLE_TERMINAL_TITLE) return
 
     if (route.data.type === "home") {
-      renderer.setTerminalTitle(process.env.CODY_PRO === "0" ? "Cody" : "Cody Pro")
+      renderer.setTerminalTitle("Cody X")
       return
     }
 
     if (route.data.type === "session") {
       const session = sync.session.get(route.data.sessionID)
       if (!session || SessionApi.isDefaultTitle(session.title)) {
-        renderer.setTerminalTitle(process.env.CODY_PRO === "0" ? "Cody" : "Cody Pro")
+        renderer.setTerminalTitle("Cody X")
         return
       }
 
       const title = session.title.length > 40 ? session.title.slice(0, 37) + "..." : session.title
-      renderer.setTerminalTitle(`${process.env.CODY_PRO === "0" ? "OC" : "CP"} | ${title}`)
+      renderer.setTerminalTitle(`CX | ${title}`)
       return
     }
 
     if (route.data.type === "plugin") {
-      renderer.setTerminalTitle(`${process.env.CODY_PRO === "0" ? "OC" : "CP"} | ${route.data.id}`)
+      renderer.setTerminalTitle(`CX | ${route.data.id}`)
     }
   })
 

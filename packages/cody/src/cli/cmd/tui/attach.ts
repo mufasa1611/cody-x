@@ -9,7 +9,7 @@ import { ServerAuth } from "@/server/auth"
 export const AttachCommand = cmd({
   command: "attach <url>",
   describe:
-    process.env.CODY_PRO === "0" ? "attach to a running cody server" : "attach to a running Cody Pro server",
+    "attach to a running cody-x server",
   builder: (yargs) =>
     yargs
       .positional("url", {
@@ -43,10 +43,7 @@ export const AttachCommand = cmd({
       .option("username", {
         alias: ["u"],
         type: "string",
-        describe:
-          process.env.CODY_PRO === "0"
-            ? "basic auth username (defaults to CODY_SERVER_USERNAME or 'cody')"
-            : "basic auth username (defaults to CODY_SERVER_USERNAME or 'cody-pro')",
+        describe: "basic auth username (defaults to CODY_SERVER_USERNAME or 'cody-x')",
       }),
   handler: async (args) => {
     const unguard = win32InstallCtrlCGuard()
