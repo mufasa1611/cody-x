@@ -19,6 +19,7 @@ import { ControlPlaneRoutes } from "./routes/control"
 import { UIRoutes } from "./routes/ui"
 import { GlobalRoutes } from "./routes/global"
 import { AgentRoutes } from "./agent/rest"
+import { checkForUpdates } from "@/cli/upgrade"
 import { WorkspaceRouterMiddleware } from "./workspace"
 import { InstanceMiddleware } from "./routes/instance/middleware"
 import { WorkspaceRoutes } from "./routes/control/workspace"
@@ -115,6 +116,17 @@ function createHono(opts: CorsOptions, selection: ServerBackend.Selection = Serv
     .use(CompressionMiddleware)
     .route("/global", GlobalRoutes())
     .route("/agent", AgentRoutes())
+
+  const origFetch = app.fetch
+  app.fetch = (request: Request, ...args: any) => {
+    const url = new URL(request.url)
+    if (request.method === "POST" && url.pathname === "/global/git-check") {
+      return new Response(JSON.stringify(checkForUpdates()), {
+        headers: { "content-type": "application/json" },
+      })
+    }
+    return origFetch(request, ...args)
+  }
 
   const runtime = adapter.create(app)
 
