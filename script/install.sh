@@ -165,7 +165,14 @@ ok "Git found."
 
 if ! command_exists bun; then
   step "Bun not found. Installing..."
-  curl -fsSL https://bun.sh/install | bash
+  if command_exists curl; then
+    curl -fsSL https://bun.sh/install | bash
+  elif command_exists wget; then
+    wget -qO- https://bun.sh/install | bash
+  else
+    err "Need curl or wget to install bun. Install one of them first."
+    exit 1
+  fi
   if [ -f "$HOME/.bun/bin/bun" ]; then
     export PATH="$HOME/.bun/bin:$PATH"
   fi
