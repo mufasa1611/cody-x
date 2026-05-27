@@ -6,14 +6,14 @@ function listen(app: FetchApp, opts: Opts, websocket?: ReturnType<typeof createB
   const start = (port: number) => {
     try {
       if (websocket) {
-        return Bun.serve({ fetch: app.fetch, hostname: opts.hostname, idleTimeout: 0, reusePort: true, websocket, port })
+        return Bun.serve({ fetch: app.fetch, hostname: opts.hostname, idleTimeout: 0, websocket, port })
       }
-      return Bun.serve({ fetch: app.fetch, hostname: opts.hostname, idleTimeout: 0, reusePort: true, port })
+      return Bun.serve({ fetch: app.fetch, hostname: opts.hostname, idleTimeout: 0, port })
     } catch {
       return
     }
   }
-  const server = opts.port === 0 ? (start(4096) ?? start(0)) : start(opts.port)
+  const server = opts.port === 0 ? (start(4096) ?? start(0)) : (start(opts.port) ?? start(0))
   if (!server) {
     throw new Error(`Failed to start server on port ${opts.port}`)
   }

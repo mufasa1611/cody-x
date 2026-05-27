@@ -130,7 +130,7 @@ if "!HAS_WEB!"=="1" (
   exit /b %ERRORLEVEL%
 )
 if not "%*"=="" (
-  call "%BUN%" run --cwd "%ROOT%packages\cody" --conditions=browser src\index.ts --port 4097 %*
+  call "%BUN%" run --cwd "%ROOT%packages\cody" --conditions=browser src\index.ts %*
   exit /b %ERRORLEVEL%
 )
 endlocal
@@ -156,6 +156,6 @@ if "%CODY_CHOICE%"=="1" (
   call "%BUN%" run cody-x web
   popd
 ) else (
-  call "%BUN%" run --cwd "%ROOT%packages\cody" --conditions=browser src\index.ts --port 4097
+  call "%BUN%" run --cwd "%ROOT%packages\cody" --conditions=browser src\index.ts
 )
 exit /b %ERRORLEVEL%

@@ -18,8 +18,7 @@
   "preferGlobal": true,
   "files": [
     "bin/",
-    "script/postinstall.mjs",
-    "script/fix-node-pty.ts"
+    "script/postinstall.mjs"
   ],
   "bin": {
     "cody": "./bin/cody"

@@ -15,8 +15,8 @@ export function get(list: Provider[] | ReadonlyMap<string, Provider> | undefined
 }
 
 const displayNameOverrides: Record<string, string> = {
-  "cody/big-pickle": "Sandra Pickle",
-  "cody/deepseek-v4-flash-free": "Sandra Seek",
+  "opencode/big-pickle": "Sandra Pickle",
+  "opencode/deepseek-v4-flash-free": "Sandra Seek",
 }
 
 export function name(

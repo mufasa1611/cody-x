@@ -87,7 +87,7 @@ async function main() {
     } catch {
       fs.copyFileSync(binaryPath, target)
     }
-    fs.chmodSync(target, 0o755)
+    if (os.platform() !== "win32") fs.chmodSync(target, 0o755)
   } catch (error) {
     console.error("Failed to setup cody binary:", error.message)
     process.exit(1)
@@ -97,6 +97,6 @@ async function main() {
 try {
   void main()
 } catch (error) {
-  console.error("Postinstall script error:", error.message)
+  console.error("Postinstall script error:", error)
   process.exit(0)
 }

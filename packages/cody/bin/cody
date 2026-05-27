@@ -97,11 +97,19 @@ function supportsAvx2() {
     }
   }
 
+  function hasExe(name) {
+    try {
+      return childProcess.spawnSync(name, ["-NoProfile", "-Command", "exit 0"], {
+        timeout: 500, windowsHide: true,
+      }).status === 0
+    } catch { return false }
+  }
+
   if (platform === "windows") {
     const cmd =
       '(Add-Type -MemberDefinition "[DllImport(""kernel32.dll"")] public static extern bool IsProcessorFeaturePresent(int ProcessorFeature);" -Name Kernel32 -Namespace Win32 -PassThru)::IsProcessorFeaturePresent(40)'
 
-    for (const exe of ["powershell.exe", "pwsh.exe", "pwsh", "powershell"]) {
+    for (const exe of ["powershell.exe", "pwsh.exe", "pwsh", "powershell"].filter(hasExe)) {
       try {
         const result = childProcess.spawnSync(exe, ["-NoProfile", "-NonInteractive", "-Command", cmd], {
           encoding: "utf8",
