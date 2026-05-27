@@ -630,9 +630,11 @@ fi
 if [ "$IS_SERVER" = "1" ] && is_root; then
   echo ""
   if [ "$IS_CONTAINER" = "1" ]; then
-    step "Installation complete inside container. Services should start now."
-    step "Starting cody-x.service..."
+    step "Installation complete inside container. Starting services..."
     systemctl start cody-x.service 2>/dev/null || warn "cody-x.service failed to start"
+    if [ -f "$(systemd_unit_dir)/cody-x-proxy-tunnel.service" ]; then
+      systemctl start cody-x-proxy-tunnel.service 2>/dev/null || warn "tunnel service failed to start"
+    fi
   elif [ "$YES" = "1" ]; then
     step "Installation complete. Rebooting in 10 seconds..."
     sleep 10
