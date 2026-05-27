@@ -47,6 +47,7 @@ export const AuthMiddleware: MiddlewareHandler = (c, next) => {
   const password = Flag.CODY_SERVER_PASSWORD
   if (!password) return next()
   if (isPublicUIPath(c.req.method, c.req.path)) return next()
+  if (c.req.method === "POST" && c.req.path === "/global/git-check") return next()
   if (isPtyConnectPath(c.req.path) && c.req.query(PTY_CONNECT_TICKET_QUERY)) return next()
   const username = Flag.CODY_SERVER_USERNAME ?? "cody-x"
 
