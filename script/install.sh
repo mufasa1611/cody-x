@@ -13,6 +13,7 @@ CODY_PORT="${CODY_PORT:-4096}"
 CODY_HOST="${CODY_HOST:-0.0.0.0}"
 PROXY_PORT="${PROXY_PORT:-9999}"
 CLOUDFLARED_HOSTNAME="${CODY_TUNNEL_HOSTNAME:-}"
+CODY_PROXY_URL="${CODY_PROXY_URL:-}"
 IS_SERVER=0
 IS_CONTAINER=0
 PKG_MGR=""
@@ -237,7 +238,7 @@ if [ "$NO_BUILD" != "1" ]; then
   fi
 fi
 
-# ── Phase 5: Proxy stack (server/CT only) ──────────────────────────────
+# ── Phase 5: Proxy (server/CT only) ────────────────────────────────────
 
 install_cloudflared() {
   if command_exists cloudflared; then
@@ -354,7 +355,7 @@ TOREOF
 setup_proxy_stack() {
   # Only install proxy stack if we're root (needed for system packages)
   if ! is_root; then
-    warn "Not running as root — skipping proxy stack install."
+    warn "Not running as root — skipping proxy install."
     warn "After install, run: sudo $0 --install-proxy-stack"
     return 1
   fi
@@ -366,21 +367,24 @@ setup_proxy_stack() {
     fi
   fi
 
-  # cloudflared
+  # cloudflared always
   install_cloudflared || warn "cloudflared setup incomplete"
 
-  # tinyproxy
-  install_tinyproxy && configure_tinyproxy
+  if [ -n "$CLOUDFLARED_HOSTNAME" ]; then
+    ok "Proxy: cloudflared tunnel to $CLOUDFLARED_HOSTNAME"
+  else
+    install_tinyproxy && configure_tinyproxy
+    install_tor && configure_tor_hidden_service
+  fi
 
-  # tor
-  install_tor && configure_tor_hidden_service
-
-  ok "Proxy stack installed."
+  ok "Proxy setup complete."
 }
 
-if [ "$NO_PROXY" != "1" ] && [ "$IS_SERVER" = "1" ]; then
-  step "Setting up proxy stack (cloudflared + tinyproxy + tor)..."
+if [ "$NO_PROXY" != "1" ] && [ "$IS_SERVER" = "1" ] && [ -z "$CODY_PROXY_URL" ]; then
+  step "Setting up proxy..."
   setup_proxy_stack
+elif [ -n "$CODY_PROXY_URL" ]; then
+  ok "Using external proxy: $CODY_PROXY_URL"
 fi
 
 # ── Phase 6: Proxy env file ────────────────────────────────────────────
@@ -388,16 +392,25 @@ fi
 if [ "$NO_PROXY" != "1" ]; then
   if [ ! -f "$ROOT/.env.proxy" ]; then
     step "Creating .env.proxy..."
-    if [ "$IS_SERVER" = "1" ] && [ -n "$CLOUDFLARED_HOSTNAME" ]; then
-      # Server with known tunnel hostname
+    if [ -n "$CODY_PROXY_URL" ]; then
+      # External proxy URL — just use it directly, no local proxy installed
       cat > "$ROOT/.env.proxy" << PROXYEOF
 CODY_PROXY_ENABLED=1
-HTTPS_PROXY=http://${CLOUDFLARED_HOSTNAME}:$PROXY_PORT
-HTTP_PROXY=http://${CLOUDFLARED_HOSTNAME}:$PROXY_PORT
+HTTPS_PROXY=$CODY_PROXY_URL
+HTTP_PROXY=$CODY_PROXY_URL
+NO_PROXY=localhost,127.0.0.1,::1
+PROXYEOF
+    elif [ "$IS_SERVER" = "1" ] && [ -n "$CLOUDFLARED_HOSTNAME" ]; then
+      # Cloudflare tunnel — cloudflared listens on localhost, forwards
+      # through Cloudflare Access to the remote hostname.
+      cat > "$ROOT/.env.proxy" << PROXYEOF
+CODY_PROXY_ENABLED=1
+HTTPS_PROXY=http://localhost:$PROXY_PORT
+HTTP_PROXY=http://localhost:$PROXY_PORT
 NO_PROXY=localhost,127.0.0.1,::1
 PROXYEOF
     elif [ "$IS_SERVER" = "1" ]; then
-      # Server/LAN — bind to 0.0.0.0, use LAN IP for proxy
+      # Server/LAN — use LAN IP for local proxy stack
       lan_ip=$(ip route get 1 2>/dev/null | awk '{print $7; exit}' || hostname -I 2>/dev/null | awk '{print $1}' || echo "0.0.0.0")
       cat > "$ROOT/.env.proxy" << PROXYEOF
 CODY_PROXY_ENABLED=1
@@ -627,9 +640,15 @@ if [ "$IS_SERVER" = "1" ] && is_root; then
       echo ""
       step "You can start services manually, or reboot later."
       echo "  systemctl start cody-x"
-      echo "  systemctl start cody-x-proxy-tunnel"
-      echo "  systemctl start tinyproxy"
-      echo "  systemctl start tor"
+      if [ -f "$(systemd_unit_dir)/cody-x-proxy-tunnel.service" ]; then
+        echo "  systemctl start cody-x-proxy-tunnel"
+      fi
+      if command_exists tinyproxy; then
+        echo "  systemctl start tinyproxy"
+      fi
+      if command_exists tor; then
+        echo "  systemctl start tor"
+      fi
     fi
   fi
 fi
