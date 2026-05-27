@@ -537,7 +537,7 @@ function pathParameterSchema(route: string, name: string) {
 
 export const PublicApi = CodyHttpApi.annotateMerge(
   OpenApi.annotations({
-    title: process.env.CODY_PRO === "0" ? "cody" : "cody-pro",
+    title: "cody-x",
     version: "1.0.0",
     description: process.env.CODY_PRO === "0" ? "cody api" : "Cody Pro API",
     transform: matchLegacyOpenApi,

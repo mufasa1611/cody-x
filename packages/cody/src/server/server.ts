@@ -184,7 +184,7 @@ export async function openapiHono() {
   const result = await generateSpecs(app, {
     documentation: {
       info: {
-        title: process.env.CODY_PRO === "0" ? "cody" : "cody-pro",
+        title: "cody-x",
         version: "1.0.0",
         description: process.env.CODY_PRO === "0" ? "cody api" : "Cody Pro API",
       },

@@ -4,7 +4,7 @@ import { ConfigService } from "@/effect/config-service"
 import { Flag } from "@cody/core/flag/flag"
 import { Config as EffectConfig, Context, Option, Redacted } from "effect"
 
-const DEFAULT_USERNAME = process.env.CODY_PRO === "0" ? "cody" : "cody-pro"
+const DEFAULT_USERNAME = "cody-x"
 
 export type Credentials = {
   password?: string
