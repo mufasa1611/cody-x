@@ -165,6 +165,14 @@ ok "Git found."
 
 if ! command_exists bun; then
   step "Bun not found. Installing..."
+  # bun install script needs unzip
+  if command_exists apt-get && is_root; then
+    apt-get install -y unzip 2>/dev/null || true
+  elif command_exists dnf && is_root; then
+    dnf install -y unzip 2>/dev/null || true
+  elif command_exists yum && is_root; then
+    yum install -y unzip 2>/dev/null || true
+  fi
   if command_exists curl; then
     curl -fsSL https://bun.sh/install | bash
   elif command_exists wget; then
