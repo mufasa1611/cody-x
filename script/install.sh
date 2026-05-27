@@ -356,7 +356,9 @@ setup_proxy_stack() {
   # Only install proxy stack if we're root (needed for system packages)
   if ! is_root; then
     warn "Not running as root — skipping proxy install."
-    warn "After install, run: sudo $0 --install-proxy-stack"
+    if [ -n "$CLOUDFLARED_HOSTNAME" ]; then
+      warn "After install, run: sudo $0"
+    fi
     return 1
   fi
 
@@ -400,6 +402,10 @@ HTTPS_PROXY=$CODY_PROXY_URL
 HTTP_PROXY=$CODY_PROXY_URL
 NO_PROXY=localhost,127.0.0.1,::1
 PROXYEOF
+    elif [ "$IS_SERVER" = "1" ] && ! is_root && [ -z "$CLOUDFLARED_HOSTNAME" ]; then
+      # Rootless server (e.g. unprivileged LXC) without external proxy —
+      # no local proxy was installed, warn and skip
+      warn "Not root — proxy stack not installed. Set CODY_PROXY_URL or run as root."
     elif [ "$IS_SERVER" = "1" ] && [ -n "$CLOUDFLARED_HOSTNAME" ]; then
       # Cloudflare tunnel — cloudflared listens on localhost, forwards
       # through Cloudflare Access to the remote hostname.
@@ -623,7 +629,11 @@ fi
 
 if [ "$IS_SERVER" = "1" ] && is_root; then
   echo ""
-  if [ "$YES" = "1" ]; then
+  if [ "$IS_CONTAINER" = "1" ]; then
+    step "Installation complete inside container. Services should start now."
+    step "Starting cody-x.service..."
+    systemctl start cody-x.service 2>/dev/null || warn "cody-x.service failed to start"
+  elif [ "$YES" = "1" ]; then
     step "Installation complete. Rebooting in 10 seconds..."
     sleep 10
     reboot
