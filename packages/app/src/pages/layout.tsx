@@ -63,6 +63,7 @@ import { useTheme, type ColorScheme } from "@cody/ui/theme/context"
 import { useCommand, type CommandOption } from "@/context/command"
 import { ConstrainDragXAxis, getDraggableId } from "@/utils/solid-dnd"
 import { DebugBar } from "@/components/debug-bar"
+import { DialogUpdateProgress } from "@/components/dialog-update-progress"
 import { Titlebar } from "@/components/titlebar"
 import { useServer } from "@/context/server"
 import { useLanguage, type Locale } from "@/context/language"
@@ -568,16 +569,6 @@ export default function Layout(props: ParentProps) {
 
   useUpdatePolling()
   useSDKNotificationToasts()
-
-  const [updateProgress, setUpdateProgress] = createSignal<string | null>(null)
-  onMount(() => {
-    const unsub = globalSDK.event.listen((e) => {
-      if ((e.details as { type: string })?.type === "update.progress") {
-        setUpdateProgress((e.details as { properties?: { message?: string } })?.properties?.message ?? null)
-      }
-    })
-    onCleanup(unsub)
-  })
 
   function scrollToSession(sessionId: string, sessionKey: string) {
     if (!scrollContainerRef) return
@@ -2541,14 +2532,7 @@ export default function Layout(props: ParentProps) {
         {import.meta.env.DEV && <DebugBar />}
       </div>
       <Toast.Region />
-      <Show when={updateProgress()}>
-        <Dialog title="Updating..." fit>
-          <div class="flex items-center gap-3 px-6 py-4">
-            <Spinner />
-            <span class="text-14-regular text-text-strong">{updateProgress()}</span>
-          </div>
-        </Dialog>
-      </Show>
+      <DialogUpdateProgress listen={globalSDK.event.listen} />
     </div>
   )
 }
