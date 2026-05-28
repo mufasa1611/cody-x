@@ -3,6 +3,7 @@ import {
   createEffect,
   createMemo,
   createResource,
+  createSignal,
   For,
   on,
   onCleanup,
@@ -25,6 +26,7 @@ import { IconButton } from "@cody/ui/icon-button"
 import { Tooltip } from "@cody/ui/tooltip"
 import { DropdownMenu } from "@cody/ui/dropdown-menu"
 import { Dialog } from "@cody/ui/dialog"
+import { Spinner } from "@cody/ui/spinner"
 import { getFilename } from "@cody/core/util/path"
 import { Session, type Message } from "@cody/sdk/v2/client"
 import { usePlatform } from "@/context/platform"
@@ -566,6 +568,16 @@ export default function Layout(props: ParentProps) {
 
   useUpdatePolling()
   useSDKNotificationToasts()
+
+  const [updateProgress, setUpdateProgress] = createSignal<string | null>(null)
+  onMount(() => {
+    const unsub = globalSDK.event.listen((e) => {
+      if ((e.details as { type: string })?.type === "update.progress") {
+        setUpdateProgress((e.details as { properties?: { message?: string } })?.properties?.message ?? null)
+      }
+    })
+    onCleanup(unsub)
+  })
 
   function scrollToSession(sessionId: string, sessionKey: string) {
     if (!scrollContainerRef) return
@@ -2529,6 +2541,14 @@ export default function Layout(props: ParentProps) {
         {import.meta.env.DEV && <DebugBar />}
       </div>
       <Toast.Region />
+      <Show when={updateProgress()}>
+        <Dialog title="Updating..." fit>
+          <div class="flex items-center gap-3 px-6 py-4">
+            <Spinner />
+            <span class="text-14-regular text-text-strong">{updateProgress()}</span>
+          </div>
+        </Dialog>
+      </Show>
     </div>
   )
 }

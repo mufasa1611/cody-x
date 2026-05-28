@@ -32,6 +32,12 @@ export const Event = {
       version: Schema.String,
     }),
   ),
+  Progress: BusEvent.define(
+    "update.progress",
+    Schema.Struct({
+      message: Schema.String,
+    }),
+  ),
 }
 
 export function getReleaseType(current: string, latest: string): ReleaseType {

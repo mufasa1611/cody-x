@@ -14,7 +14,7 @@ import * as Sse from "effect/unstable/encoding/Sse"
 import { RootHttpApi } from "../api"
 import { GlobalUpgradeInput } from "../groups/global"
 import { checkForUpdates } from "@/cli/upgrade"
-import { execSync } from "child_process"
+import { exec, execSync } from "child_process"
 import path from "path"
 
 const log = Log.create({ service: "server" })
@@ -102,37 +102,71 @@ export const globalHandlers = HttpApiBuilder.group(RootHttpApi, "global", (handl
       // For Cody Pro, use git-based update
       if (process.env.CODY_PRO) {
         const target = ctx.payload.target || "latest"
-        const run = () => {
-          try {
-            const repoRoot = execSync("git rev-parse --show-toplevel", { encoding: "utf8", timeout: 5000 }).trim()
-            if (!repoRoot) return { success: false as const, error: "Not a git repository" }
-            const branch = process.env.CODY_BRANCH || "main"
-            execSync("git fetch origin " + branch + " --quiet", { cwd: repoRoot, encoding: "utf8", timeout: 15000 })
-            execSync("git pull --ff-only", { cwd: repoRoot, encoding: "utf8", timeout: 30000 })
-            try {
-              const changed = execSync("git diff HEAD@{1} --name-only", { cwd: repoRoot, encoding: "utf8", timeout: 5000 })
-              if (changed.split("\n").some((f: string) => /^(package\.json|bun\.lock)$/.test(f.trim()))) {
-                execSync("bun install", { cwd: repoRoot, encoding: "utf8", timeout: 120000 })
-              }
-            } catch {
-              execSync("bun install", { cwd: repoRoot, encoding: "utf8", timeout: 120000 })
-            }
-            execSync("bun run --cwd packages/app build", { cwd: repoRoot, encoding: "utf8", timeout: 120000 })
-            return { success: true as const, version: target }
-          } catch (err) {
-            return { success: false as const, error: err instanceof Error ? err.message : String(err) }
+
+        // Fire upgrade in background, return immediately so SSE can flush progress events
+        const runAsyncUpgrade = () => {
+          const emitProgress = (message: string) => {
+            GlobalBus.emit("event", {
+              directory: "global",
+              payload: {
+                id: Bus.createID(),
+                type: Installation.Event.Progress.type,
+                properties: { message },
+              },
+            })
           }
+          const execAsync = (cmd: string, opts: { cwd?: string; timeout?: number } = {}): Promise<string> =>
+            new Promise((resolve, reject) => {
+              exec(cmd, { ...opts, encoding: "utf8" } as any, (err, stdout) => {
+                if (err) reject(err)
+                else resolve(String(stdout).trim())
+              })
+            })
+          ;(async () => {
+            try {
+              const repoRoot = await execAsync("git rev-parse --show-toplevel", { timeout: 5000 })
+              if (!repoRoot) return
+              const branch = process.env.CODY_BRANCH || "main"
+
+              emitProgress("Fetching latest code...")
+              await execAsync(`git fetch origin ${branch} --quiet`, { cwd: repoRoot, timeout: 15000 })
+
+              emitProgress("Pulling changes...")
+              await execAsync("git pull --ff-only", { cwd: repoRoot, timeout: 30000 })
+
+              let needsInstall = false
+              try {
+                const changed = await execAsync("git diff HEAD@{1} --name-only", { cwd: repoRoot, timeout: 5000 })
+                needsInstall = changed.split("\n").some((f: string) => /^(package\.json|bun\.lock)$/.test(f.trim()))
+              } catch {
+                needsInstall = true
+              }
+
+              if (needsInstall) {
+                emitProgress("Installing dependencies...")
+                await execAsync("bun install", { cwd: repoRoot, timeout: 120000 })
+              }
+
+              emitProgress("Building app...")
+              await execAsync("bun run --cwd packages/app build", { cwd: repoRoot, timeout: 120000 })
+
+              emitProgress("Update complete! Reload the page to see changes.")
+              GlobalBus.emit("event", {
+                directory: "global",
+                payload: {
+                  id: Bus.createID(),
+                  type: Installation.Event.Updated.type,
+                  properties: { version: target },
+                },
+              })
+            } catch (err) {
+              emitProgress("Update failed: " + (err instanceof Error ? err.message : String(err)))
+            }
+          })()
         }
-        const result = yield* Effect.sync(run)
-        if (!result.success) return { status: 500, body: result }
-        GlobalBus.emit("event", {
-          directory: "global",
-          payload: {
-            type: Installation.Event.Updated.type,
-            properties: { version: target },
-          },
-        })
-        return { status: 200, body: result }
+
+        runAsyncUpgrade()
+        return { status: 200, body: { success: true, version: target } as const }
       }
 
       const method = yield* installation.method()
