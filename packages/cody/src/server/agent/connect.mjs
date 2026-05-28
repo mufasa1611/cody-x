@@ -109,10 +109,34 @@ async function handleMessage(msg) {
   }
 }
 
+async function listDrives() {
+  // List all available drives on Windows
+  const drives = []
+  for (let i = 65; i <= 90; i++) {
+    const letter = String.fromCharCode(i)
+    try {
+      fs.accessSync(letter + ':\\', fs.constants.F_OK)
+      drives.push({
+        name: letter + ':\\',
+        path: letter + ':\\',
+        type: "directory",
+      })
+    } catch { /* drive not available */ }
+  }
+  return drives
+}
+
 async function executeCommand(command, args) {
   switch (command) {
     case "list-dir": {
       const dirPath = args.path || "/"
+      
+      // On Windows root path, list all available drives
+      if (process.platform === 'win32' && (dirPath === '/' || dirPath === '\\')) {
+        const drives = await listDrives()
+        return { files: drives }
+      }
+      
       const entries = []
       
       try {
@@ -176,8 +200,8 @@ async function executeCommand(command, args) {
       try {
         const output = execSync(commandStr, {
           encoding: "utf-8",
-          maxBuffer: 50 * 1024 * 1024, // 50MB
-          timeout: 120000, // 120s
+          maxBuffer: 10 * 1024 * 1024, // 10MB
+          timeout: 30000, // 30s
         })
         return { stdout: output, stderr: "", exitCode: 0 }
       } catch (err) {

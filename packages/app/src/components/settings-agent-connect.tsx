@@ -74,7 +74,7 @@ export const SettingsAgentConnect: Component = () => {
   const copyCommand = async () => {
     const code = pairingCode()
     if (code) {
-      const cmd = "npx --yes cody-x-connect " + code
+      const cmd = "npx --yes cody-connect " + code
       await navigator.clipboard.writeText(cmd)
       setCopied(true)
       showToast({ title: "Command copied! Paste it in your PC terminal.", variant: "success" })
@@ -150,7 +150,7 @@ export const SettingsAgentConnect: Component = () => {
                 <div class="flex items-center gap-2 bg-gray-900 rounded-lg py-2.5 px-3 border border-gray-700">
                   <span class="text-green-400 text-13-mono">$</span>
                   <code class="text-14-mono text-white flex-1 select-all whitespace-nowrap overflow-x-auto">
-                    npx --yes cody-x-connect {pairingCode()}
+                    npx --yes cody-connect {pairingCode()}
                   </code>
                   <Button
                     variant="ghost"
