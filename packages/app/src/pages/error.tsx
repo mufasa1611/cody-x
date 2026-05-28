@@ -4,6 +4,7 @@ import { Logo } from "@cody/ui/logo"
 import { Button } from "@cody/ui/button"
 import { Component, createSignal, Show } from "solid-js"
 import { createStore } from "solid-js/store"
+import { useNavigate } from "@solidjs/router"
 import { usePlatform } from "@/context/platform"
 import { useLanguage } from "@/context/language"
 import { Icon } from "@cody/ui/icon"
@@ -221,11 +222,18 @@ interface ErrorPageProps {
 export const ErrorPage: Component<ErrorPageProps> = (props) => {
   const platform = usePlatform()
   const language = useLanguage()
+  const navigate = useNavigate()
   const [store, setStore] = createStore({
     checking: false,
     version: undefined as string | undefined,
     actionError: undefined as string | undefined,
   })
+
+  function goHome() {
+    const keys = ["cody.global.dat:layout.page", "cody.global.dat:server"]
+    for (const key of keys) localStorage.removeItem(key)
+    navigate("/", { replace: true })
+  }
 
   async function checkForUpdates() {
     if (!platform.checkUpdate) return
@@ -272,6 +280,9 @@ export const ErrorPage: Component<ErrorPageProps> = (props) => {
           hideLabel
         />
         <div class="flex flex-row items-center justify-center gap-3 flex-wrap max-w-64">
+          <Button size="large" onClick={goHome}>
+            Go to Home
+          </Button>
           <Button size="large" onClick={platform.restart}>
             {language.t("error.page.action.restart")}
           </Button>
