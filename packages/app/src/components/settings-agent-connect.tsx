@@ -148,8 +148,8 @@ export const SettingsAgentConnect: Component = () => {
                   Step 2: Run this on your PC
                 </p>
                 <div class="flex items-center gap-2 bg-gray-900 rounded-lg py-2.5 px-3 border border-gray-700">
-                  <span class="text-green-400 text-13-mono">$</span>
-                  <code class="text-14-mono text-green-300 flex-1 select-all whitespace-nowrap overflow-x-auto">
+                  <span class="text-text-on-success-base text-13-mono">$</span>
+                  <code class="text-14-mono text-text-on-success-base flex-1 select-all whitespace-nowrap overflow-x-auto">
                     npx --yes cody-connect {pairingCode()}
                   </code>
                   <Button
