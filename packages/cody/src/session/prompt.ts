@@ -61,6 +61,7 @@ import * as DateTime from "effect/DateTime"
 import { eq } from "@/storage/db"
 import * as Database from "@/storage/db"
 import { SessionTable } from "./session.sql"
+import * as AgentHub from "@/server/agent/hub"
 
 // @ts-ignore
 globalThis.AI_SDK_LOG_WARNINGS = false
@@ -116,6 +117,7 @@ export const layer = Layer.effect(
     const summary = yield* SessionSummary.Service
     const sys = yield* SystemPrompt.Service
     const llm = yield* LLM.Service
+    const hub = yield* AgentHub.Service
     const runner = Effect.fn("SessionPrompt.runner")(function* () {
       return yield* EffectBridge.make()
     })
@@ -1572,6 +1574,12 @@ NOTE: At any point in time through this workflow you should feel free to ask the
               MessageV2.toModelMessagesEffect(msgs, model),
             ])
             const system = [...env, ...instructions, ...(skills ? [skills] : [])]
+            const agentStatus = yield* hub.getStatus
+            if (agentStatus.connected) {
+              system.push(
+                "A remote PC is connected. To interact with the remote PC's filesystem (list/read/write files, execute commands), use the cody-agent-list, cody-agent-read, cody-agent-write, and cody-agent-exec tools. The default glob, grep, read, write, edit, and shell tools operate on the server's filesystem, not the remote PC's filesystem."
+              )
+            }
             const format = lastUser.format ?? { type: "text" as const }
             if (format.type === "json_schema") system.push(STRUCTURED_OUTPUT_SYSTEM_PROMPT)
             const result = yield* handle.process({
