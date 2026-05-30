@@ -1,4 +1,4 @@
-import { PlanExitTool } from "./plan"
+﻿import { PlanExitTool } from "./plan"
 import { Session } from "@/session/session"
 import { QuestionTool } from "./question"
 import { ShellTool } from "./shell"
@@ -45,6 +45,7 @@ import { AppFileSystem } from "@cody/core/filesystem"
 import { Bus } from "../bus"
 import { Agent } from "../agent/agent"
 import { Skill } from "../skill"
+import { RemoteLsTool, RemoteReadTool, RemoteWriteTool, RemoteBashTool } from "./remote"
 import { Permission } from "@/permission"
 
 const log = Log.create({ service: "tool.registry" })
@@ -120,6 +121,10 @@ export const layer: Layer.Layer<
     const greptool = yield* GrepTool
     const patchtool = yield* ApplyPatchTool
     const skilltool = yield* SkillTool
+    const remoteLs = yield* RemoteLsTool
+    const remoteRead = yield* RemoteReadTool
+    const remoteWrite = yield* RemoteWriteTool
+    const remoteBash = yield* RemoteBashTool
     const agent = yield* Agent.Service
 
     const state = yield* InstanceState.make<State>(
@@ -216,6 +221,10 @@ export const layer: Layer.Layer<
           todo: Tool.init(todo),
           search: Tool.init(websearch),
           skill: Tool.init(skilltool),
+          remote_ls: Tool.init(remoteLs),
+          remote_read: Tool.init(remoteRead),
+          remote_write: Tool.init(remoteWrite),
+          remote_bash: Tool.init(remoteBash),
           patch: Tool.init(patchtool),
           question: Tool.init(question),
           lsp: Tool.init(lsptool),
@@ -238,6 +247,10 @@ export const layer: Layer.Layer<
             tool.todo,
             tool.search,
             tool.skill,
+            tool.remote_ls,
+            tool.remote_read,
+            tool.remote_write,
+            tool.remote_bash,
             tool.patch,
             ...(Flag.CODY_EXPERIMENTAL_LSP_TOOL ? [tool.lsp] : []),
             ...(Flag.CODY_EXPERIMENTAL_PLAN_MODE && Flag.CODY_CLIENT === "cli" ? [tool.plan] : []),
@@ -365,3 +378,4 @@ export const defaultLayer = <R>(fs: Layer.Layer<any, never, R> = AppFileSystem.d
   )
 
 export * as ToolRegistry from "./registry"
+

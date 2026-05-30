@@ -6,6 +6,7 @@ import { errors } from "@/server/error"
 import { lazy } from "@/util/lazy"
 import { jsonRequest } from "@/server/routes/instance/trace"
 import * as AgentHub from "./hub"
+import * as Shared from "./shared"
 import type {
   CreatePairingResponse,
   AgentStatusResponse,
@@ -237,10 +238,13 @@ export const AgentRoutes = lazy(() =>
           const hub = yield* AgentHub.Service
           const status = yield* hub.getStatus
           if (status.connected && status.code) {
+            Shared.clearHub()
             yield* hub.disconnectAgent(status.code)
           }
           return { disconnected: true }
         }),
     ),
 )
+
+
 
