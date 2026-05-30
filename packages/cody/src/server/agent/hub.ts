@@ -1,4 +1,4 @@
-import { Context, Deferred, Duration, Effect, Layer } from "effect"
+﻿import { Context, Deferred, Duration, Effect, Layer } from "effect"
 import type { AgentMessage, HubMessage } from "./types"
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -15,6 +15,7 @@ type AgentWriter = (data: string | Uint8Array) => Effect.Effect<void>
 interface PairedAgent {
   code: string
   write: AgentWriter
+  close: Effect.Effect<void>
   connectedAt: number
   remotePlatform?: string
   remoteHostname?: string
@@ -30,7 +31,7 @@ interface PairingCode {
 
 export interface Interface {
   readonly createPairingCode: Effect.Effect<string>
-  readonly connectAgent: (code: string, write: AgentWriter) => Effect.Effect<boolean, Error>
+  readonly connectAgent: (code: string, write: AgentWriter, close: Effect.Effect<void>) => Effect.Effect<boolean, Error>
   readonly disconnectAgent: (code: string) => Effect.Effect<void>
   readonly dispatch: (message: AgentMessage, senderCode?: string) => Effect.Effect<void>
   readonly getStatus: Effect.Effect<{ connected: boolean; code?: string; pairedAt?: number }>
@@ -86,7 +87,11 @@ const createPairingCode = Effect.fn("AgentHub.createPairingCode")(function* () {
   return code
 })
 
-const connectAgent = Effect.fn("AgentHub.connectAgent")(function* (code: string, write: AgentWriter) {
+const connectAgent = Effect.fn("AgentHub.connectAgent")(function* (
+  code: string,
+  write: AgentWriter,
+  close: Effect.Effect<void>,
+) {
   const pairing = pairingCodes.get(code)
   if (!pairing || pairing.used || Date.now() > pairing.expiresAt) {
     return false
@@ -97,6 +102,7 @@ const connectAgent = Effect.fn("AgentHub.connectAgent")(function* (code: string,
   const agent: PairedAgent = {
     code,
     write,
+    close,
     connectedAt: Date.now(),
   }
   agents.set(code, agent)
@@ -108,6 +114,14 @@ const disconnectAgent = Effect.fn("AgentHub.disconnectAgent")(function* (code: s
   const agent = agents.get(code)
   if (agent) {
     agents.delete(code)
+
+    // Notify the remote PC that it was disconnected
+    yield* agent.write(JSON.stringify({ type: "disconnect" })).pipe(Effect.catch(() => Effect.void))
+
+    // Close the WebSocket connection
+    yield* agent.close.pipe(Effect.catch(() => Effect.void))
+
+    // Reject all pending commands for this agent
     for (const [id, pending] of pendingCommands) {
       pendingCommands.delete(id)
       yield* Deferred.fail(pending.deferred, new Error("Agent disconnected"))
@@ -162,7 +176,7 @@ const sendCommand = (command: string, args: unknown): Effect.Effect<unknown, Err
       Effect.timeout(Duration.seconds(5)),
       Effect.catch((err) => {
         pendingCommands.delete(id)
-        return Effect.fail(err instanceof Error ? err : new Error(`Write failed: ${String(err)}`))
+        return Effect.fail(err instanceof Error ? err : new Error("Write failed: " + String(err)))
       }),
     )
 
@@ -170,7 +184,7 @@ const sendCommand = (command: string, args: unknown): Effect.Effect<unknown, Err
       Effect.timeout(COMMAND_TIMEOUT_DURATION),
       Effect.catch(() => {
         pendingCommands.delete(id)
-        return Effect.fail(new Error(`Command timed out after ${Duration.toMillis(COMMAND_TIMEOUT_DURATION)}ms`))
+        return Effect.fail(new Error("Command timed out after " + Duration.toMillis(COMMAND_TIMEOUT_DURATION) + "ms"))
       }),
     )
 
@@ -192,7 +206,7 @@ const getStatus = Effect.fn("AgentHub.getStatus")(function* () {
 
 const instance: Interface = {
   createPairingCode: createPairingCode(),
-  connectAgent: (code, write) => connectAgent(code, write),
+  connectAgent: (code, write, close) => connectAgent(code, write, close),
   disconnectAgent: (code) => disconnectAgent(code),
   dispatch: (message, code) => dispatch(message, code),
   getStatus: getStatus(),

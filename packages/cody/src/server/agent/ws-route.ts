@@ -1,5 +1,6 @@
-import { Effect } from "effect"
+﻿import { Effect } from "effect"
 import { HttpRouter, HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
+import * as Socket from "effect/unstable/socket/Socket"
 import * as AgentHub from "./hub"
 import type { AgentMessage } from "./types"
 
@@ -15,6 +16,11 @@ export const agentWebSocketRoute = HttpRouter.use((router) =>
         const socket = yield* Effect.orDie(request.upgrade)
         const rawWrite = yield* socket.writer
         const write = (data: string | Uint8Array) => rawWrite(data).pipe(Effect.catch(() => Effect.void))
+
+        // Close callback: sends a CloseEvent through the WebSocket writer
+        const closeSocket: Effect.Effect<void> = (rawWrite as (data: any) => Effect.Effect<void>)(
+          new Socket.CloseEvent(1000, "server disconnect"),
+        ).pipe(Effect.catch(() => Effect.void))
 
         // The agent should send a "pair" message as its first message
         let paired = false
@@ -33,7 +39,7 @@ export const agentWebSocketRoute = HttpRouter.use((router) =>
               }
 
               if (parsed.type === "pair" && !paired) {
-                const ok = yield* hub.connectAgent(parsed.code, write)
+                const ok = yield* hub.connectAgent(parsed.code, write, closeSocket)
                 if (ok) {
                   paired = true
                   pairedCode = parsed.code
