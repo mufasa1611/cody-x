@@ -34,6 +34,7 @@ import { zod as effectZod, zodObject } from "@/util/effect-zod"
 import { Vcs } from "@/project/vcs"
 import { InstanceStore } from "@/project/instance-store"
 import { InstanceBootstrap } from "@/project/bootstrap"
+import * as AgentHub from "@/server/agent/hub"
 
 export const Info = Schema.Struct({
   ...WorkspaceInfoSchema.fields,
@@ -1044,6 +1045,7 @@ export const defaultLayer = layer.pipe(
   Layer.provide(Session.defaultLayer),
   Layer.provide(SyncEvent.defaultLayer),
   Layer.provide(SessionPrompt.defaultLayer()),
+  Layer.provide(AgentHub.layer),
   Layer.provide(Project.defaultLayer),
   Layer.provide(Vcs.defaultLayer),
   Layer.provide(FetchHttpClient.layer),

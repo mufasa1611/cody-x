@@ -3,6 +3,7 @@ import { HttpApiBuilder } from "effect/unstable/httpapi"
 import { FetchHttpClient, HttpClient, HttpMiddleware, HttpRouter, HttpServer } from "effect/unstable/http"
 import * as Socket from "effect/unstable/socket/Socket"
 import { AppFileSystem } from "@cody/core/filesystem"
+import { agentFileSystemLayer } from "@/effect/app-runtime"
 import { Account } from "@/account/account"
 import { Agent } from "@/agent/agent"
 import { Auth } from "@/auth"
@@ -130,7 +131,7 @@ const instanceApiRoutes = HttpApiBuilder.layer(InstanceHttpApi).pipe(
     ptyHandlers,
     questionHandlers,
     permissionHandlers,
-    agentHandlers,
+    agentHandlers.pipe(Layer.provideMerge(AgentHub.layer)),
     providerHandlers,
     sessionHandlers,
     syncHandlers,
@@ -186,7 +187,7 @@ export function createRoutes(corsOptions?: CorsOptions) {
       Ripgrep.defaultLayer,
       Session.defaultLayer,
       SessionCompaction.defaultLayer,
-      SessionPrompt.defaultLayer(),
+      SessionPrompt.defaultLayer(agentFileSystemLayer),
       SessionRevert.defaultLayer,
       SessionShare.defaultLayer,
       SessionRunState.defaultLayer,

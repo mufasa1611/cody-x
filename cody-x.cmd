@@ -135,6 +135,9 @@ if not "%*"=="" (
 )
 endlocal
 
+rem Print banner before the interactive launcher menu
+call "%BUN%" run --cwd "%ROOT%packages\cody" --conditions=browser src\index.ts --print-banner-only
+
 rem Arrow-key launcher menu (exit code = choice, Write-Host goes direct to console)
 powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%script\launcher.ps1" -Root "%ROOT%"
 set "CODY_CHOICE=%ERRORLEVEL%"
@@ -156,6 +159,7 @@ if "%CODY_CHOICE%"=="1" (
   call "%BUN%" run cody-x web
   popd
 ) else (
-  call "%BUN%" run --cwd "%ROOT%packages\cody" --conditions=browser src\index.ts
+  rem Banner already printed above before launcher, skip duplicate
+  call "%BUN%" run --cwd "%ROOT%packages\cody" --conditions=browser src\index.ts --no-banner
 )
 exit /b %ERRORLEVEL%

@@ -209,8 +209,6 @@ export const SetupCommand = {
   builder: (yargs: Argv) => yargs,
   handler: async () => {
     UI.empty()
-    UI.println(UI.logo("  "))
-    UI.empty()
     prompts.intro("Cody X Setup")
 
     const method = await Installation.method()

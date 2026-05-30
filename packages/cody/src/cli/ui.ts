@@ -1,7 +1,7 @@
 import z from "zod"
 import { EOL } from "os"
 import { NamedError } from "@cody/core/util/error"
-import { codyPro, codyProCredit, logo as cody } from "./logo"
+import { codyPro, mufasaBanner, logo as cody } from "./logo"
 
 export const CancelledError = NamedError.create("UICancelledError", z.void())
 
@@ -89,9 +89,10 @@ export function logo(pad?: string) {
     result.push(isTTY ? draw(other, right.fg, right.shadow, right.bg) : plain(other))
     result.push(EOL)
   })
-  if (process.env.CODY_PRO !== "0") {
+  for (const line of mufasaBanner) {
     if (pad) result.push(pad)
-    result.push(isTTY ? Style.TEXT_ORANGE_BOLD : "", codyProCredit, isTTY ? reset : "")
+    result.push(isTTY ? `${Style.TEXT_DIM}${line}${reset}` : line)
+    result.push(EOL)
   }
   return result.join("").trimEnd()
 }

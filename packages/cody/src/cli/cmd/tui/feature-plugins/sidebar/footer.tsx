@@ -1,7 +1,8 @@
 import type { TuiPlugin, TuiPluginApi } from "@cody/plugin/tui"
 import type { InternalTuiPlugin } from "../../plugin/internal"
-import { createMemo, Show } from "solid-js"
+import { createMemo, For, Show } from "solid-js"
 import { Global } from "@cody/core/global"
+import { mufasaBanner } from "@/cli/logo"
 
 const id = "internal:sidebar-footer"
 
@@ -67,10 +68,11 @@ function View(props: { api: TuiPluginApi }) {
       <text fg={theme().textMuted}>
         <span style={{ fg: theme().success }}>•</span> <b>Cody</b>
         <span style={{ fg: theme().text }}>
-          <b> Pro</b>
+          <b>-x.local</b>
         </span>{" "}
         <span>{props.api.app.version}</span>
       </text>
+      <For each={mufasaBanner}>{(line) => <text fg={theme().textMuted}>{line}</text>}</For>
     </box>
   )
 }

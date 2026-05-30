@@ -19,7 +19,7 @@ import {
   type ScrollbackWriter,
 } from "@opentui/core"
 import * as Locale from "@/util/locale"
-import { codyPro, codyProCredit, codyProCreditColor, go, logo, mufasaBanner } from "@/cli/logo"
+import { codyX, go, mufasaBanner } from "@/cli/logo"
 import type { RunSplashTheme } from "./theme"
 
 export const SPLASH_TITLE_LIMIT = 50
@@ -203,20 +203,11 @@ function build(input: SplashWriterInput, kind: "entry" | "exit", ctx: Scrollback
   const left = color(input.theme.left, fallback(81, "#38bdf8"))
   const right = color(input.theme.right, RGBA.defaultForeground(RGBA.fromHex("#f8fafc")))
   const leftShadow = color(input.theme.leftShadow, fallback(238, "#334155"))
-  const isCodyPro = process.env.CODY_PRO !== "0"
-  const credit = fallback(208, codyProCreditColor)
   let height = 1
 
   if (kind === "entry") {
-    const brand = isCodyPro ? codyPro : logo
+    const brand = codyX
     const rightShadow = color(input.theme.rightShadow, fallback(240, "#475569"))
-
-    for (let i = 0; i < mufasaBanner.length; i += 1) {
-      const line = mufasaBanner[i] ?? ""
-      push(lines, 0, i, line, right)
-    }
-
-    const logoTop = mufasaBanner.length + 1
 
     for (let i = 0; i < brand.left.length; i += 1) {
       const leftText = brand.left[i] ?? ""
@@ -224,28 +215,29 @@ function build(input: SplashWriterInput, kind: "entry" | "exit", ctx: Scrollback
 
       draw(lines, leftText, {
         left: 0,
-        top: logoTop + i,
+        top: i,
         fg: left,
         shadow: leftShadow,
       })
       draw(lines, rightText, {
         left: leftText.length + 1,
-        top: logoTop + i,
+        top: i,
         fg: right,
         shadow: rightShadow,
       })
     }
-    height = logoTop + brand.left.length
+    height = brand.left.length
 
-    if (isCodyPro) {
-      const logoWidth = (brand.left[0]?.length ?? 0) + 1 + (brand.right[0]?.length ?? 0)
-      const creditLeft = Math.max(0, Math.floor((logoWidth - codyProCredit.length) / 2))
-      push(lines, creditLeft, logoTop + brand.left.length, codyProCredit, credit, undefined, TextAttributes.BOLD)
-      height = logoTop + brand.left.length + 1
+    let creditRow = brand.left.length
+
+    for (let i = 0; i < mufasaBanner.length; i += 1) {
+      const line = mufasaBanner[i] ?? ""
+      push(lines, 0, creditRow + i, line, right)
     }
+    height = creditRow + mufasaBanner.length
 
     if (input.showSession !== false) {
-      const top = logoTop + brand.left.length + (isCodyPro ? 2 : 1)
+      const top = creditRow + mufasaBanner.length
       const label = "Session".padEnd(10, " ")
       push(lines, 0, top, label, left, undefined, TextAttributes.DIM)
       push(lines, label.length, top, meta.title, right, undefined, TextAttributes.BOLD)
@@ -284,9 +276,6 @@ function build(input: SplashWriterInput, kind: "entry" | "exit", ctx: Scrollback
       undefined,
       TextAttributes.BOLD,
     )
-    if (isCodyPro) {
-      push(lines, body_left, top + 2, codyProCredit, credit, undefined, TextAttributes.BOLD)
-    }
     height = top + mark.length
   }
 

@@ -77,8 +77,16 @@ process.on("uncaughtException", (e) => {
   })
 })
 
-const args = hideBin(process.argv)
+const rawArgs = hideBin(process.argv)
 const cliName = "cody-x"
+
+if (rawArgs.includes("--print-banner-only")) {
+  process.stderr.write(UI.logo() + EOL + EOL)
+  process.exit(0)
+}
+
+// Remove meta-flags that are not yargs options
+const args = rawArgs.filter(a => a !== "--no-banner" && a !== "--print-banner-only")
 
 function execAsync(cmd: string, opts: { cwd?: string; timeout?: number } = {}): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -90,7 +98,7 @@ function execAsync(cmd: string, opts: { cwd?: string; timeout?: number } = {}): 
 }
 
 // Auto-update at startup (skip for help/version/upgrade subcommands)
-if (process.env.CODY_PRO !== "0" && !args.some(a => ["--help", "-h", "--version", "-v"].includes(a)) && args[0] !== "upgrade") {
+if (process.env.CODY_PRO !== "0" && !rawArgs.some(a => ["--help", "-h", "--version", "-v"].includes(a)) && rawArgs[0] !== "upgrade") {
   tryAutoUpdateAsync().catch(() => {})
 }
 async function tryAutoUpdateAsync() {
@@ -245,15 +253,18 @@ const cli = yargs(args)
   })
   .strict()
 
+if (!rawArgs.some(a => ["--help", "-h", "--version", "-v"].includes(a)) && !rawArgs.includes("--no-banner")) {
+  process.stderr.write(UI.logo() + EOL + EOL)
+}
+
 try {
-  if (args.includes("-h") || args.includes("--help")) {
+  if (rawArgs.includes("-h") || rawArgs.includes("--help")) {
     await cli.parse(args, (err: Error | undefined, _argv: unknown, out: string) => {
       if (err) throw err
       if (!out) return
       show(out)
     })
-  } else if (args.includes("-v") || args.includes("--version")) {
-    process.stderr.write(UI.logo() + EOL + EOL)
+  } else if (rawArgs.includes("-v") || rawArgs.includes("--version")) {
     process.stderr.write(InstallationVersion + EOL)
     process.exit(0)
   } else {

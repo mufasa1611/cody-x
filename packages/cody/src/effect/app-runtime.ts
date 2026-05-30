@@ -57,7 +57,7 @@ import { layer as AgentHubLayer } from '@/server/agent/hub'
 import { Npm } from "@cody/core/npm"
 import { memoMap } from "@cody/core/effect/memo-map"
 
-const agentFileSystemLayer = Layer.provideMerge(
+export const agentFileSystemLayer = Layer.provideMerge(
   Layer.provideMerge(remoteFileSystemLayer, NodeFileSystem.layer),
   AgentHubLayer,
 )
