@@ -4,6 +4,18 @@
 - Local `main` ref may not exist; use `dev` or `origin/dev` for diffs.
 - Prefer automation: execute requested actions without confirmation unless blocked by missing info or safety/irreversibility.
 
+## PC Remote Management
+
+PC power management commands are at `/usr/local/bin/`:
+| Command | Action |
+|---|---|
+| `pc-on <name>` | WOL (power on) |
+| `pc-off <name>` | Shutdown |
+| `pc-restart <name>` | Reboot |
+| `pc-sleep <name>` | Sleep |
+
+Configured PCs and their names are in `/usr/local/bin/pc-ctrl.json` — read that file to find the target name. When the user asks to turn a PC on/off/restart/sleep, run the corresponding `pc-<action> <name>` command via bash. Do NOT use the `cody-pc-on` tool — use the system `pc-on` command instead.
+
 ## Style Guide
 
 ### General Principles
