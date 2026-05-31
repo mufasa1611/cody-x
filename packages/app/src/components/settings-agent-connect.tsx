@@ -74,7 +74,7 @@ export const SettingsAgentConnect: Component = () => {
   const copyCommand = async () => {
     const code = pairingCode()
     if (code) {
-      const cmd = "npx --yes cody-connect " + code
+      const cmd = "bunx --yes cody-connect " + code
       await navigator.clipboard.writeText(cmd)
       setCopied(true)
       showToast({ title: "Command copied! Paste it in your PC terminal.", variant: "success" })
@@ -141,7 +141,7 @@ export const SettingsAgentConnect: Component = () => {
                 </Button>
               </div>
 
-              {/* Step 2: Show the ready-to-paste npx command */}
+              {/* Step 2: Show the ready-to-paste bunx command */}
               <div class="bg-blue-900/20 border border-blue-700/30 rounded-lg p-3">
                 <p class="text-13-semibold text-blue-300 mb-2 flex items-center gap-1.5">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
@@ -150,7 +150,7 @@ export const SettingsAgentConnect: Component = () => {
                 <div class="flex items-center gap-2 bg-gray-900 rounded-lg py-2.5 px-3 border border-gray-700">
                   <span class="text-text-on-success-base text-13-mono">$</span>
                   <code class="text-14-mono text-text-on-success-base flex-1 select-all whitespace-nowrap overflow-x-auto">
-                    npx --yes cody-connect {pairingCode()}
+                    bunx --yes cody-connect {pairingCode()}
                   </code>
                   <Button
                     variant="ghost"

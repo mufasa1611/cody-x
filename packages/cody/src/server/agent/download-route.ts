@@ -56,16 +56,9 @@ if not exist "%SCRIPT%" (
 )
 echo OK
 
-REM Try Node.js first, then Bun
+REM Try Bun first (faster), then Node
 echo [2/2] Connecting to cody-x...
 set "CODY_WS_URL=%WS_URL%"
-where node >nul 2>nul
-if !ERRORLEVEL! EQU 0 (
-  echo Using Node.js...
-  node "%SCRIPT%" "%CODE%"
-  if !ERRORLEVEL! EQU 0 goto :done
-)
-
 where bun >nul 2>nul
 if !ERRORLEVEL! EQU 0 (
   echo Using Bun...
@@ -73,12 +66,19 @@ if !ERRORLEVEL! EQU 0 (
   if !ERRORLEVEL! EQU 0 goto :done
 )
 
+where node >nul 2>nul
+if !ERRORLEVEL! EQU 0 (
+  echo Using Node.js...
+  node "%SCRIPT%" "%CODE%"
+  if !ERRORLEVEL! EQU 0 goto :done
+)
+
 echo.
 echo Need Node.js or Bun to run the agent.
-echo Download Node.js: https://nodejs.org/
+echo Download Bun: https://bun.sh/
 echo.
 echo Or run manually:
-echo   node "%SCRIPT%" "%CODE%"
+echo   bun "%SCRIPT%" "%CODE%"
 pause
 exit /b 1
 
@@ -145,8 +145,8 @@ if (Get-Command node -ErrorAction SilentlyContinue) {
 }
 
 Write-Host ""
-Write-Host "Need Node.js or Bun." -ForegroundColor Yellow
-Write-Host "Download: https://nodejs.org/" -ForegroundColor Yellow
+Write-Host "Need Node.js or Bun to run the agent." -ForegroundColor Yellow
+Write-Host "Download Bun: https://bun.sh/" -ForegroundColor Yellow
 pause
 `
 

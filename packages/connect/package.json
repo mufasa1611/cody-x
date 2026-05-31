@@ -9,6 +9,7 @@
                 "cody-connect":  "connect.mjs"
             },
     "engines":  {
+                    "bun":  "\u003e=1.0.0",
                     "node":  "\u003e=18.0.0"
                 },
     "repository":  {
