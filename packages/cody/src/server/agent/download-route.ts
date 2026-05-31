@@ -56,14 +56,33 @@ if not exist "%SCRIPT%" (
 )
 echo OK
 
-REM Try Bun first (faster), then Node
+REM Try Bun first (faster), then Node; auto-install Bun if missing
 echo [2/2] Connecting to cody-x...
 set "CODY_WS_URL=%WS_URL%"
+set "BUN_PATH="
 where bun >nul 2>nul
 if !ERRORLEVEL! EQU 0 (
+  set "BUN_PATH=bun"
+) else if exist "%USERPROFILE%\.bun\bin\bun.exe" (
+  set "BUN_PATH=%USERPROFILE%\.bun\bin\bun.exe"
+)
+
+if defined BUN_PATH (
   echo Using Bun...
-  bun "%SCRIPT%" "%CODE%"
+  !BUN_PATH! "%SCRIPT%" "%CODE%"
   if !ERRORLEVEL! EQU 0 goto :done
+  echo Bun failed, trying Node.js...
+) else (
+  echo Bun not found. Installing Bun automatically...
+  powershell -Command "& {[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm bun.sh/install.ps1 | iex}" 2>nul
+  if exist "%USERPROFILE%\.bun\bin\bun.exe" (
+    set "BUN_PATH=%USERPROFILE%\.bun\bin\bun.exe"
+    echo Bun installed! Connecting...
+    !BUN_PATH! "%SCRIPT%" "%CODE%"
+    if !ERRORLEVEL! EQU 0 goto :done
+  ) else (
+    echo Bun auto-install failed.
+  )
 )
 
 where node >nul 2>nul
@@ -74,11 +93,7 @@ if !ERRORLEVEL! EQU 0 (
 )
 
 echo.
-echo Need Node.js or Bun to run the agent.
-echo Download Bun: https://bun.sh/
-echo.
-echo Or run manually:
-echo   bun "%SCRIPT%" "%CODE%"
+echo Could not connect. Install Bun manually: https://bun.sh/
 pause
 exit /b 1
 
@@ -131,11 +146,34 @@ try {
 Write-Host "[2/2] Connecting to cody-x..." -ForegroundColor Cyan
 $env:CODY_WS_URL = $wsUrl
 
-# Try Bun first (faster), then Node
-if (Get-Command bun -ErrorAction SilentlyContinue) {
+# Try Bun first (faster), then Node; auto-install Bun if missing
+$bunPath = (Get-Command bun -ErrorAction SilentlyContinue).Source
+if (-not $bunPath) {
+  $userBun = "$env:USERPROFILE\.bun\bin\bun.exe"
+  if (Test-Path $userBun) { $bunPath = $userBun }
+}
+
+if ($bunPath) {
   Write-Host "Using Bun..."
-  bun $script $code
+  & $bunPath $script $code
   if ($LASTEXITCODE -eq 0) { exit 0 }
+  Write-Host "Bun failed, trying Node.js..." -ForegroundColor Yellow
+} else {
+  Write-Host "Bun not found. Installing Bun automatically..." -ForegroundColor Cyan
+  try {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    irm bun.sh/install.ps1 | iex
+    $newBun = "$env:USERPROFILE\.bun\bin\bun.exe"
+    if (Test-Path $newBun) {
+      Write-Host "Bun installed! Connecting..." -ForegroundColor Green
+      & $newBun $script $code
+      if ($LASTEXITCODE -eq 0) { exit 0 }
+    } else {
+      Write-Host "Bun auto-install failed." -ForegroundColor Red
+    }
+  } catch {
+    Write-Host "Bun auto-install failed: $_" -ForegroundColor Red
+  }
 }
 
 if (Get-Command node -ErrorAction SilentlyContinue) {
@@ -145,8 +183,7 @@ if (Get-Command node -ErrorAction SilentlyContinue) {
 }
 
 Write-Host ""
-Write-Host "Need Node.js or Bun to run the agent." -ForegroundColor Yellow
-Write-Host "Download Bun: https://bun.sh/" -ForegroundColor Yellow
+Write-Host "Could not connect. Install Bun manually: https://bun.sh/" -ForegroundColor Yellow
 pause
 `
 

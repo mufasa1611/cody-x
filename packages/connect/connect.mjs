@@ -9,29 +9,96 @@ import path from "path"
 import { execSync } from "child_process"
 
 const WS_URL = process.env.CODY_WS_URL || "wss://cody.kingkung.men/ws/agent"
-const code = process.argv[2]
+const mode = process.argv[2]
 
-if (!code) {
+// --- Uninstall ---
+
+if (mode === "--uninstall" || mode === "--cleanup") {
+  if (process.platform === "win32" && !(trySync(() => execSync("net session", { encoding: "utf-8", timeout: 3000 }), false))) {
+    console.log("Elevating to administrator privileges for cleanup...")
+    const args = process.argv.slice(1).map(a => `"${a}"`).join(" ")
+    execSync(`powershell -Command "Start-Process -Verb RunAs -FilePath '${process.execPath}' -ArgumentList ${args} -Wait"`, { timeout: 15000 })
+    process.exit(0)
+  }
+  uninstallAll()
+  process.exit(0)
+}
+
+if (!mode || mode.startsWith("--")) {
   console.error("Usage: bunx cody-connect <PAIRING_CODE>")
+  console.error("       bunx cody-connect --uninstall")
+  console.error("")
   console.error("Get a pairing code from cody.kingkung.men > Settings > Connect My PC")
-  process.exit(1)
+  if (mode === "--help") console.log("  --uninstall  Remove all installed files, Bun, and cloned repo")
+  process.exit(mode === "--help" ? 0 : 1)
 }
 
 // Auto-elevate on Windows if not already admin
-if (process.platform === "win32") {
-  try {
-    execSync("net session", { encoding: "utf-8", timeout: 3000 })
-  } catch {
-    console.log("Elevating to administrator privileges for full remote control...")
-    const args = process.argv.slice(1).map(a => `"${a}"`).join(" ")
-    const cmd = `Start-Process -Verb RunAs -FilePath '${process.execPath}' -ArgumentList ${args} -Wait`
-    execSync(`powershell -Command "${cmd}"`, { timeout: 15000 })
-    process.exit(0)
-  }
+if (process.platform === "win32" && !(trySync(() => execSync("net session", { encoding: "utf-8", timeout: 3000 }), false))) {
+  console.log("Elevating to administrator privileges for full remote control...")
+  const args = process.argv.slice(1).map(a => `"${a}"`).join(" ")
+  execSync(`powershell -Command "Start-Process -Verb RunAs -FilePath '${process.execPath}' -ArgumentList ${args} -Wait"`, { timeout: 15000 })
+  process.exit(0)
 }
 
 console.log("Cody Connect Agent (admin mode)")
-startAgent(code)
+startAgent(mode)
+
+// --- Helper ---
+
+function trySync(fn, fallback) {
+  try { return fn() } catch { return fallback }
+}
+
+// --- Uninstall ---
+
+function uninstallAll() {
+  const home = process.env.USERPROFILE || process.env.HOME || ""
+  const appData = process.env.APPDATA || (process.platform === "darwin" ? path.join(home, "Library", "Application Support") : path.join(home, ".local", "share"))
+  const os = process.platform
+  let removed = []
+
+  // 1. Remove our temp scripts
+  const tempDir = process.env.TEMP || process.env.TMPDIR || "/tmp"
+  if (tempDir) {
+    for (const f of fs.readdirSync(tempDir).filter(f => f.startsWith("cody-x-connect-") || f === "cody-x-connect.mjs")) {
+      try { fs.rmSync(path.join(tempDir, f)); removed.push(path.join(tempDir, f)) } catch {}
+    }
+  }
+
+  // 2. Remove config directory
+  const configDir = os === "win32" ? path.join(process.env.APPDATA || "", "cody-connect") : path.join(home, ".cody-connect")
+  if (fs.existsSync(configDir)) {
+    try { fs.rmSync(configDir, { recursive: true, force: true }); removed.push(configDir) } catch {}
+  }
+
+  // 3. Remove cloned repo at default location
+  const defaultRoot = os === "win32" ? path.join(process.env.LOCALAPPDATA || "", "cody-x") : path.join(home, ".local", "share", "cody-x")
+  const repoDir = process.env.CODY_INSTALL_ROOT || defaultRoot
+  if (fs.existsSync(repoDir) && fs.existsSync(path.join(repoDir, "package.json"))) {
+    console.log(`Found cody-x installation at: ${repoDir}`)
+    console.log("Removing...")
+    try { fs.rmSync(repoDir, { recursive: true, force: true }); removed.push(repoDir) } catch (e) { console.error(`Failed to remove ${repoDir}: ${e.message}`) }
+  }
+
+  // 4. Remove bun (installed via our launcher)
+  const bunDir = os === "win32" ? path.join(home, ".bun") : path.join(home, ".bun")
+  if (fs.existsSync(bunDir)) {
+    console.log(`Found Bun installation at: ${bunDir}`)
+    console.log("Removing Bun (this won't affect system-installed Bun)...")
+    try { fs.rmSync(bunDir, { recursive: true, force: true }); removed.push(bunDir) } catch (e) { console.error(`Failed to remove Bun: ${e.message}`) }
+  }
+
+  if (removed.length === 0) {
+    console.log("Nothing to uninstall. No cody-x files found.")
+  } else {
+    console.log("")
+    console.log(`Removed ${removed.length} item(s):`)
+    for (const r of removed) console.log(`  - ${r}`)
+    console.log("")
+    console.log("Uninstall complete.")
+  }
+}
 
 // --- WebSocket Agent ---
 
@@ -43,14 +110,12 @@ async function startAgent(code) {
   console.log(`Connecting to ${WS_URL}...`)
 
   try {
-    const WebSocket = globalThis.WebSocket || await import("ws").then(m => m.default || m).catch(() => null)
-
-    if (WebSocket) {
-      ws = new WebSocket(WS_URL)
-    } else {
-      ws = new globalThis.WebSocket(WS_URL)
+    if (typeof globalThis.WebSocket !== "function") {
+      console.error("WebSocket not available. This agent requires Bun or Node.js 18+.")
+      process.exit(1)
     }
 
+    ws = new globalThis.WebSocket(WS_URL)
     ws.onopen = () => {
       console.log("Connected! Sending pairing code...")
       ws.send(JSON.stringify({ type: "pair", code }))
